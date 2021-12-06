@@ -7,6 +7,12 @@
 #include "mt_font.hpp"
 #include "mt_geometry.hpp"
 
+#define return_if(x) \
+	if (x)           \
+	{                \
+		return;      \
+	}
+
 using event = std::function<void()>;
 
 class Mt_widget
@@ -32,26 +38,47 @@ protected:
 		SDL_SetCursor(cursor);
 	}
 
+	void *parent = nullptr;
+
 public:
 	bool visible = true;
-	Mt_font font;
-	Mt_geometry geometry;
+	Mt_geometry *geometry = nullptr;
+	Mt_font *font = nullptr;
 
-	Mt_widget(Mt_application &application, int x, int y) : application(application), font(application, "assets/fonts/segoeui.ttf", 14), geometry(x, y)
+	static std::string defaultFont;
+	static int defaultFontSize;
+
+	Mt_widget(Mt_widget &widget) : application(widget.application), font(widget.font)
 	{
+		geometry = new Mt_geometry();
+		parent = &widget;
+	}
+	Mt_widget(Mt_application &application, int x, int y) : application(application)
+	{
+		font = new Mt_font(application, defaultFont, defaultFontSize);
+		geometry = new Mt_geometry(x, y);
+
 		application.widgets.emplace_back(this);
 	}
-	Mt_widget(Mt_application &application, int x, int y, int w, int h) : application(application), font(application, "assets/fonts/segoeui.ttf", 14), geometry(x, y, w, h)
+	Mt_widget(Mt_application &application, int x, int y, int w, int h) : application(application)
 	{
+		font = new Mt_font(application, defaultFont, defaultFontSize);
+		geometry = new Mt_geometry(x, y, w, h);
+		geometry->normalize();
+
 		application.widgets.emplace_back(this);
 	}
 	virtual ~Mt_widget()
 	{
+		if (parent == nullptr)
+			delete font;
+		delete geometry;
+
 		if (cursor)
-		{
 			SDL_FreeCursor(cursor);
-		}
 	}
+
+	Mt_application &getApplication() const { return application; }
 
 	const event none = []() {};
 	event onHovering = none;

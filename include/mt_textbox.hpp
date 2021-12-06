@@ -2,28 +2,21 @@
 #define A09E3D2A_8B1E_4F55_AB69_136314F85BE0
 
 #include "mt_application.hpp"
+
 #include "mt_widget.hpp"
 #include "mt_caret.hpp"
 #include "mt_lib.hpp"
 #include "mt_vector.hpp"
 #include "mt_color.hpp"
+#include "mt_label.hpp"
 
 class Mt_textbox : public Mt_widget
 {
 private:
-	std::string input;
-
-	SDL_Rect destR;
-	SDL_Rect textSrc = {0, 0, 0, 0}, textDest = {0, 0, 0, 0};
-	SDL_Texture *texture = nullptr;
-	SDL_Color textColor;
-	bool render = false;
-
-	Mt_caret caret;
+	Mt_caret *caret = nullptr;
 	size_t caretPos = 0;
 
-	bool focused = false;
-	bool released = true;
+	Mt_label *text = nullptr;
 
 	Mt_color color;
 	Mt_color frame_color;
@@ -82,73 +75,48 @@ public:
 	SDL_Color frame_focused_color = {0, 120, 215, 255};
 	SDL_Color frame_hover_color = {23, 23, 23, 255};
 
-	Mt_font font;
-	Mt_textbox(Mt_application &application, int xpos, int ypos, int width, int height, int fontSize, SDL_Color textColor) : Mt_widget(application), textColor(textColor), caret(application, fontSize), font(application)
+	Mt_textbox(Mt_widget &widget) : Mt_widget(widget)
 	{
-		font.setFont("assets/fonts/segoeui.ttf", fontSize);
+		caret = new Mt_caret(*this);
 
-		destR.w = width;
-		destR.h = height;
-		destR.x = xpos - (destR.w / 2);
-		destR.y = ypos - (destR.h / 2);
+		text = new Mt_label(*this);
+		text->autoupdate = false;
 
-		caret.destR.x = destR.x + (caret.destR.w / 2);
-		caret.destR.y = destR.y + ((destR.h / 2) - (caret.destR.h / 2));
+		color.color = normal_color;
+		frame_color.color = frame_normal_color;
+	}
+	Mt_textbox(Mt_application &application, int x, int y, int w, int h) : Mt_widget(application, x, y, w, h)
+	{
+		caret = new Mt_caret(*this);
+
+		text = new Mt_label(*this);
+		text->autoupdate = false;
 
 		color.color = normal_color;
 		frame_color.color = frame_normal_color;
 	}
 	~Mt_textbox()
 	{
-		SDL_DestroyTexture(texture);
+		delete caret;
+		delete text;
 	}
 
 	std::string str() const
 	{
-		return input;
+		return text->text;
 	}
 	void str(const std::string &str)
 	{
-		input = str;
-		caretPos = input.length();
-		render = true;
-		onTextModified();
-	}
+		text->text = str;
+		caretPos = text->text.length();
 
-	void caretLeft()
-	{
-		if (caretPos > 0)
-		{
-			caretPos--;
-			if (caret.destR.x < destR.x)
-			{
-				textSrc.x -= Mt_lib::substrWidth(application.renderer, font.getFont(), input, caretPos, 1);
-			}
-		}
-		else
-		{
-			textSrc.x = 0;
-		}
-	}
-	void caretRight(int len = 1)
-	{
-		if (caretPos + len <= input.length())
-		{
-			if (caret.destR.x + caret.destR.w > destR.x + destR.w)
-			{
-				textSrc.x += Mt_lib::substrWidth(application.renderer, font.getFont(), input, caretPos, len);
-			}
-			caretPos += len;
-		}
-		else
-		{
-			if (textSrc.w >= destR.w)
-				textSrc.x = Mt_lib::substrWidth(application.renderer, font.getFont(), input, 0) - destR.w;
-		}
+		onTextModified();
 	}
 
 	void handleEvents() override
 	{
+		return_if(!visible);
+
 		if (focused && editable)
 		{
 			if (application.event.type == SDL_KEYDOWN)
@@ -156,175 +124,213 @@ public:
 				switch (application.event.key.keysym.sym)
 				{
 				case SDLK_LEFT:
-					caretLeft();
+					if (caretPos > 0)
+					{
+						caretPos--;
+					}
+					pointCursor();
 					break;
 				case SDLK_RIGHT:
-					caretRight();
+					if (caretPos + 1 <= text->text.length())
+					{
+						caretPos++;
+					}
+					pointCursor();
 					break;
 				case SDLK_HOME:
 					caretPos = 0;
-					textSrc.x = 0;
+					geometry->srcR.x = 0;
+					pointCursor();
 					break;
 				case SDLK_END:
-					caretPos = input.length();
-					if (textSrc.w >= destR.w)
-						textSrc.x = Mt_lib::substrWidth(application.renderer, font.getFont(), input, 0) - destR.w;
+					caretPos = text->text.length();
+					if (text->geometry->srcR.w >= geometry->destR.w)
+						geometry->srcR.x = Mt_lib::substrWidth(application.renderer, font->getFont(), text->text, 0) - geometry->destR.w;
+					pointCursor();
 					break;
+
 				case SDLK_BACKSPACE:
-					if (input.size() > 0 && caretPos > 0)
+					if (text->text.size() > 0 && caretPos > 0)
 					{
 						caretPos--;
-						textSrc.x -= Mt_lib::substrWidth(application.renderer, font.getFont(), input, caretPos, 1);
-						if (textSrc.x < 0)
-							textSrc.x = 0;
-						input.erase(input.begin() + caretPos);
+						text->geometry->srcR.x -= Mt_lib::substrWidth(application.renderer, font->getFont(), text->text, caretPos, 1);
+						if (text->geometry->srcR.x < 0)
+							text->geometry->srcR.x = 0;
+						text->text.erase(text->text.begin() + caretPos);
 
-						render = true;
 						onTextModified();
+						pointCursor();
 					}
 					break;
 				case SDLK_DELETE:
-					if (input.size() > 0 && caretPos < input.length())
+					if (text->text.size() > 0 && caretPos < text->text.length())
 					{
-						input.erase(input.begin() + caretPos);
+						text->text.erase(text->text.begin() + caretPos);
 
-						render = true;
 						onTextModified();
+						pointCursor();
 					}
 					break;
 				case SDLK_c:
 					if (SDL_GetModState() & KMOD_CTRL)
-					{
-						SDL_SetClipboardText(input.c_str());
-					}
+						SDL_SetClipboardText(str().c_str());
 					break;
 				case SDLK_v:
 					if (SDL_GetModState() & KMOD_CTRL)
 					{
-						std::string text(SDL_GetClipboardText());
-						input.insert(caretPos, SDL_GetClipboardText());
-						caretRight(text.length());
+						const char *content = SDL_GetClipboardText();
+						std::string ftext(content);
+						Mt_lib::replaceAll(ftext, "\t", "    ");
+						str(ftext);
+						delete[] content;
 
-						render = true;
 						onTextModified();
+						pointCursor();
 					}
 					break;
 				}
 			}
 			else if (application.event.type == SDL_TEXTINPUT)
 			{
-				std::string text(application.event.text.text);
-				if (!(SDL_GetModState() & KMOD_CTRL && (text[0] == 'c' || text[0] == 'C' || text[0] == 'v' || text[0] == 'V')))
+				std::string content(application.event.text.text);
+				if (!(SDL_GetModState() & KMOD_CTRL && (content[0] == 'c' || content[0] == 'C' || content[0] == 'v' || content[0] == 'V')))
 				{
-					input.insert(caretPos, text);
-					caretRight(text.length());
+					text->text.insert(caretPos, content);
+					text->update();
 
-					render = true;
+					caretPos += content.length();
+
 					onTextModified();
+					pointCursor();
 				}
 			}
+		}
+	}
+
+	void pointCursor()
+	{
+		updateCaretPosition();
+		if (caret->geometry->destR.x < geometry->destR.x)
+		{
+			geometry->srcR.x += geometry->destR.x - caret->geometry->destR.x;
+		}
+		else
+		{
+			int xw = geometry->destR.x + geometry->destR.w, cxw = caret->geometry->destR.x + caret->geometry->destR.w;
+			if (cxw >= xw)
+			{
+				geometry->srcR.x -= cxw - xw;
+			}
+		}
+		updateCaretPosition();
+	}
+	void updateCaretPosition()
+	{
+		if (caretPos > 0)
+		{
+			int tlen = Mt_lib::substrWidth(application.renderer, text->font->getFont(), text->text, 0, caretPos);
+			caret->geometry->destR.x = geometry->destR.x + tlen + geometry->srcR.x;
+		}
+		else
+		{
+			caret->geometry->destR.x = geometry->destR.x;
+		}
+
+		int vspace = text->font->getH();
+		caret->geometry->destR.y = geometry->destR.y;
+		if (caret->geometry->destR.y + vspace <= geometry->destR.y || caret->geometry->destR.y >= geometry->destR.y + geometry->destR.h ||
+			caret->geometry->destR.x + caret->geometry->getW() <= geometry->destR.x || caret->geometry->destR.x >= geometry->destR.x + geometry->destR.w)
+		{
+			caret->visible = false;
+		}
+		else
+		{
+			caret->visible = true;
+			Mt_lib::confine(caret->geometry->destR.y, caret->geometry->srcR.y, caret->geometry->destR.h, caret->geometry->srcR.h, vspace, geometry->destR.y, geometry->destR.h);
+			Mt_lib::confine(caret->geometry->destR.x, caret->geometry->srcR.x, caret->geometry->destR.w, caret->geometry->srcR.w, caret->geometry->getW(), geometry->destR.x, geometry->destR.w);
 		}
 	}
 
 	void update() override
 	{
+		return_if(!visible);
+
 		color.update();
 		frame_color.update();
-		if (visible)
+		text->update();
+
+		if (focused && editable)
+			caret->update();
+
+		text->geometry->srcR.x = -geometry->srcR.x;
+
+		text->geometry->destR.x = geometry->destR.x;
+		text->geometry->destR.y = geometry->srcR.y + geometry->destR.y;
+
+		text->geometry->srcR.w = text->geometry->destR.w = std::min(geometry->srcR.x + text->geometry->getW(), geometry->destR.w);
+		if (text->geometry->destR.w > 0)
 		{
-			Mt_vector<int> mouse(Mt_vector<int>::mousePos());
-			if (mouse.x < destR.x + destR.w && mouse.y < destR.y + destR.h &&
-				mouse.x >= destR.x && mouse.y >= destR.y)
+			text->visible = true;
+			Mt_lib::confine(text->geometry->destR.y, text->geometry->srcR.y, text->geometry->destR.h, text->geometry->srcR.h, text->font->getH(), geometry->destR.y, geometry->destR.h);
+		}
+		updateCaretPosition();
+
+		if (Mt_vector<int>::mousePos().intercept(geometry->destR))
+		{
+			if (!focused)
 			{
-				if (!focused)
+				onHover();
+				if (application.event.type == SDL_MOUSEBUTTONDOWN)
 				{
-					onHover();
-					if (application.event.type == SDL_MOUSEBUTTONDOWN)
+					switch (application.event.button.button)
 					{
-						switch (application.event.button.button)
-						{
-						case SDL_BUTTON_LEFT:
-							onMouseDown();
-							break;
-						default:
-							break;
-						}
+					case SDL_BUTTON_LEFT:
+						onMouseDown();
+						break;
+					default:
+						break;
 					}
 				}
 			}
-			else if (application.event.type == SDL_MOUSEBUTTONDOWN && released)
-			{
-				switch (application.event.button.button)
-				{
-				case SDL_BUTTON_LEFT:
-					onLostFocus();
-					break;
-				}
-			}
-			else
-			{
-				onMouseLeave();
-			}
-
-			if (application.event.type == SDL_MOUSEBUTTONUP)
-			{
-				switch (application.event.button.button)
-				{
-				case SDL_BUTTON_LEFT:
-					onMouseUp();
-					break;
-				default:
-					break;
-				}
-			}
 		}
-
-		if (render)
+		else if (application.event.type == SDL_MOUSEBUTTONDOWN && released)
 		{
-			if (texture != nullptr)
+			switch (application.event.button.button)
 			{
-				SDL_DestroyTexture(texture);
+			case SDL_BUTTON_LEFT:
+				onLostFocus();
+				break;
 			}
-			texture = Mt_lib::renderText(application.renderer, input, font.getFont(), textSrc, TTF_RenderUTF8_Blended);
-
-			textDest.x = destR.x;
-			textDest.y = destR.y + ((destR.h / 2) - (textSrc.h / 2));
-
-			if (textSrc.w < destR.w)
-			{
-				textSrc.x = 0;
-				textDest.w = textSrc.w;
-			}
-			else
-			{
-				textSrc.w = textDest.w = destR.w;
-			}
-
-			textDest.h = textSrc.h;
-			render = false;
-		}
-
-		if (caretPos > 0)
-		{
-			caret.destR.x = destR.x + Mt_lib::substrWidth(application.renderer, font.getFont(), input, 0, caretPos) - textSrc.x;
 		}
 		else
 		{
-			caret.destR.x = destR.x;
+			onMouseLeave();
+		}
+
+		if (application.event.type == SDL_MOUSEBUTTONUP)
+		{
+			switch (application.event.button.button)
+			{
+			case SDL_BUTTON_LEFT:
+				onMouseUp();
+				break;
+			default:
+				break;
+			}
 		}
 	}
 
 	void draw() override
 	{
-		Mt_lib::drawFillRectangle(application.renderer, destR, color.color);
-		Mt_lib::drawRectangle(application.renderer, destR, frame_color.color);
-		if (texture != nullptr)
-			Mt_lib::drawTexture(application.renderer, texture, &textSrc, &textDest);
+		return_if(!visible);
+
+		Mt_lib::drawFillRectangle(application.renderer, geometry->destR, color.color);
+		Mt_lib::drawRectangle(application.renderer, geometry->destR, frame_color.color);
+
+		text->draw();
 
 		if (focused && editable)
-		{
-			caret.draw();
-		}
+			caret->draw();
 	}
 };
 

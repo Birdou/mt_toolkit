@@ -9,94 +9,62 @@
 #include "mt_vector.hpp"
 #include "mt_widget.hpp"
 #include "mt_color.hpp"
+#include "mt_label.hpp"
 
 class Mt_button : public Mt_widget
 {
 private:
-	SDL_Rect btn;
-	std::string buttonText;
-	SDL_Rect destR;
 	bool pressed = false;
 	int scale = 1;
 	std::function<void()> func;
 
-	SDL_Texture *font_texture = nullptr;
-	SDL_Color font_color;
-
 	Mt_color color;
-	Mt_color frame_color;
+	Mt_color frameColor;
 
 	bool clicked = false;
-
-	void onHover()
-	{
-		if (application.hovering == nullptr)
-		{
-			application.hovering = this;
-			color.fadeInto(&hover_color);
-			frame_color.fadeInto(&frame_hover_color);
-		}
-	}
-	void onMouseDown()
-	{
-		if (application.hovering == this)
-		{
-			pressed = true;
-			color.fadeInto(&clicked_color);
-			frame_color.fadeInto(&frame_clicked_color);
-		}
-	}
-	void onMouseUp()
-	{
-		if (application.hovering == this)
-		{
-			pressed = false;
-			clicked = true;
-			onHover();
-			func();
-		}
-	}
-	void onMouseLeave()
-	{
-		if (application.hovering == this)
-		{
-			pressed = false;
-			application.hovering = nullptr;
-			color.fadeInto(&normal_color);
-			frame_color.fadeInto(&frame_normal_color);
-		}
-	}
 
 public:
 	SDL_Color normal_color = {225, 225, 225, 255};
 	SDL_Color hover_color = {229, 241, 251, 255};
 	SDL_Color clicked_color = {204, 228, 247, 255};
-
 	SDL_Color frame_normal_color = {173, 173, 173, 255};
 	SDL_Color frame_hover_color = {0, 120, 215, 255};
 	SDL_Color frame_clicked_color = {0, 84, 153, 255};
 
-	Mt_font font;
+	Mt_label *label = nullptr;
 
-	Mt_button(Mt_application &application, int xpos, int ypos, int width, int height, const std::string &text, std::function<void()> func) : Mt_widget(application), buttonText(text), func(func), font(application)
+	Mt_button(Mt_widget &widget) : Mt_widget(widget)
 	{
-
-		font.setFont("assets/fonts/segoeui.ttf", 11);
-		font_color = {0, 0, 0, 0};
-
-		destR.w = width;
-		destR.h = height;
-		destR.x = xpos - (destR.w / 2);
-		destR.y = ypos - (destR.h / 2);
+		label = new Mt_label(*this);
+		label->geometry->setAnchor(Mt_geometry::middle_center);
+		label->renderMethod = [&](Mt_label *label)
+		{
+			return Mt_lib::renderWrapped(application.renderer, label->text, label->font, label->geometry, geometry->destR.w, TTF_RenderUTF8_Blended_Wrapped);
+		};
 
 		color.color = normal_color;
-		frame_color.color = frame_normal_color;
+		frameColor.color = frame_normal_color;
+	}
+	Mt_button(Mt_application &application, int x, int y, int w, int h, std::function<void()> func) : Mt_widget(application, x, y, w, h), func(func)
+	{
+		label = new Mt_label(*this);
+		label->geometry->setAnchor(Mt_geometry::middle_center);
+		label->renderMethod = [&](Mt_label *label)
+		{
+			return Mt_lib::renderWrapped(application.renderer, label->text, label->font, label->geometry, geometry->destR.w, TTF_RenderUTF8_Blended_Wrapped);
+		};
 
-		SetButtonText(text);
+		color.color = normal_color;
+		frameColor.color = frame_normal_color;
 	}
 	~Mt_button()
 	{
-		SDL_DestroyTexture(font_texture);
+		delete label;
+	}
+
+	void setFunction(std::function<void()> function)
+	{
+		this->func = function;
 	}
 
 	void setVisible(bool visible)
@@ -104,48 +72,20 @@ public:
 		this->visible = visible;
 	}
 
-	int getX() const { return destR.x; }
-	int getY() const { return destR.y; }
-	int getH() const { return destR.h; }
-	int getW() const { return destR.w; }
-
-	void setX(int x)
-	{
-		destR.x = x;
-		updateTextPosition();
-	}
-	void setY(int y)
-	{
-		destR.y = y;
-		updateTextPosition();
-	}
-	void fitH(int padding = 0)
-	{
-		destR.h = btn.h + padding;
-		updateTextPosition();
-	}
-
-	void SetButtonText(const std::string &text)
-	{
-		if (buttonText == text)
-			return;
-
-		buttonText = text;
-
-		font_texture = Mt_lib::renderWrapped(application.renderer, text, font.getFont(), destR.w, btn, TTF_RenderUTF8_Blended_Wrapped);
-
-		updateTextPosition();
-	}
-
 	void updateTextPosition()
 	{
-		btn.x = destR.x + ((destR.w - btn.w) / 2);
-		btn.y = destR.y + ((destR.h - btn.h) / 2);
+		label->geometry->setX(geometry->destR.x + (geometry->destR.w / 2));
+		label->geometry->setY(geometry->destR.y + (geometry->destR.h / 2));
 	}
 
 	bool actioned()
 	{
 		return clicked;
+	}
+
+	void fitH(int padding = 4)
+	{
+		geometry->setH(label->font->getH() + (2 * padding));
 	}
 
 	void handleEvents() override
@@ -156,43 +96,65 @@ public:
 	{
 		clicked = false;
 		color.update();
-		frame_color.update();
+		frameColor.update();
+
+		updateTextPosition();
+		label->update();
+
 		if (visible)
 		{
-			Mt_vector<int> mouse(Mt_vector<int>::mousePos());
-			if (mouse.x < destR.x + destR.w && mouse.y < destR.y + destR.h &&
-				mouse.x >= destR.x && mouse.y >= destR.y)
+			if (Mt_vector<int>::mousePos().intercept(geometry->destR))
 			{
+				onHover();
+				// SetCursor(SDL_SYSTEM_CURSOR_IBEAM);
+				if (application.hovering == nullptr)
+				{
+					application.hovering = this;
+					color.fadeInto(&hover_color);
+					frameColor.fadeInto(&frame_hover_color);
+				}
 				if (!pressed)
 				{
-					onHover();
 					if (application.event.type == SDL_MOUSEBUTTONDOWN)
 					{
-						switch (application.event.button.button)
+						if (application.event.button.button == SDL_BUTTON_LEFT)
 						{
-						case SDL_BUTTON_LEFT:
-							onMouseDown();
-							break;
-						default:
-							break;
+							if (application.hovering == this)
+							{
+								onMouseDown();
+
+								pressed = true;
+								color.fadeInto(&clicked_color);
+								frameColor.fadeInto(&frame_clicked_color);
+							}
 						}
 					}
 				}
 				else if (application.event.type == SDL_MOUSEBUTTONUP)
 				{
-					switch (application.event.button.button)
+					if (application.event.button.button == SDL_BUTTON_LEFT)
 					{
-					case SDL_BUTTON_LEFT:
-						onMouseUp();
-						break;
-					default:
-						break;
+						if (application.hovering == this)
+						{
+							onMouseUp();
+
+							pressed = false;
+							clicked = true;
+
+							func();
+						}
 					}
 				}
 			}
 			else
 			{
-				onMouseLeave();
+				if (application.hovering == this)
+				{
+					pressed = false;
+					application.hovering = nullptr;
+					color.fadeInto(&normal_color);
+					frameColor.fadeInto(&frame_normal_color);
+				}
 			}
 		}
 	}
@@ -201,12 +163,9 @@ public:
 	{
 		if (visible)
 		{
-			Mt_lib::drawFillRectangle(application.renderer, destR, color.color);
-			Mt_lib::drawRectangle(application.renderer, destR, frame_color.color);
-			if (buttonText != "")
-			{
-				Mt_lib::drawTexture(application.renderer, font_texture, nullptr, &btn);
-			}
+			Mt_lib::drawFillRectangle(application.renderer, geometry->destR, color.color);
+			Mt_lib::drawRectangle(application.renderer, geometry->destR, frameColor.color);
+			label->draw();
 		}
 	}
 };

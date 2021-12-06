@@ -7,18 +7,28 @@
 #include "mt_vector.hpp"
 #include "mt_font.hpp"
 
+class Mt_label;
+
+using RenderMethod = std::function<SDL_Texture *(Mt_label *)>;
+
 class Mt_label : public Mt_widget
 {
 private:
 	SDL_Texture *texture = nullptr;
 
-	std::string prev;
-
 public:
 	std::string text;
 	bool autoupdate = true;
 
-	Mt_label(Mt_application &application, int x, int y) : Mt_widget(application, x, y), text("")
+	RenderMethod renderMethod = [](Mt_label *label)
+	{
+		return Mt_lib::renderText(label->application.renderer, label->text, label->font, label->geometry, TTF_RenderUTF8_Blended);
+	};
+
+	Mt_label(Mt_widget &widget) : Mt_widget(widget)
+	{
+	}
+	Mt_label(Mt_application &application, int x, int y) : Mt_widget(application, x, y)
 	{
 	}
 	~Mt_label()
@@ -28,30 +38,25 @@ public:
 
 	void update() override
 	{
-		if (text != prev)
+		return_if(!visible);
+
+		if (texture != nullptr)
+			SDL_DestroyTexture(texture);
+
+		texture = renderMethod(this);
+
+		if (autoupdate)
 		{
-			if (texture != nullptr)
-				SDL_DestroyTexture(texture);
-
-			texture = Mt_lib::renderText(application.renderer, text, font.getFont(), geometry.srcR, TTF_RenderUTF8_Blended);
-			geometry.setW(geometry.srcR.w);
-			geometry.setH(geometry.srcR.h);
-
-			if (autoupdate)
-			{
-				geometry.posCenter();
-				geometry.srcR.x = geometry.srcR.y = 0;
-				geometry.destR.w = geometry.srcR.w;
-				geometry.destR.h = geometry.srcR.h;
-			}
-			prev = text;
+			geometry->normalize();
 		}
 	}
 
 	void draw() override
 	{
-		if (texture != nullptr && visible)
-			Mt_lib::drawTexture(application.renderer, texture, &geometry.srcR, &geometry.destR);
+		return_if(!visible);
+
+		if (texture != nullptr)
+			Mt_lib::drawTexture(application.renderer, texture, &geometry->srcR, &geometry->destR);
 	}
 };
 

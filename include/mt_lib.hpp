@@ -6,6 +6,8 @@
 #include <cstring>
 
 #include "mt_application.hpp"
+#include "mt_geometry.hpp"
+#include "mt_font.hpp"
 
 #ifdef DEBUG
 #define Debug(x) std::cout << x << std::endl
@@ -14,6 +16,9 @@
 #define Debug(x)
 #define DebugFrame(renderer, destR, color)
 #endif
+
+using DrawFunction = std::function<SDL_Surface *(TTF_Font *, const char *, SDL_Color)>;
+using DrawFunctionWrapped = std::function<SDL_Surface *(TTF_Font *, const char *, SDL_Color, Uint32)>;
 
 namespace Mt_lib
 {
@@ -27,16 +32,19 @@ namespace Mt_lib
 	TTF_Font *loadFont(const std::string &path, int fontSize);
 
 	void drawTexture(SDL_Renderer *renderer, SDL_Texture *texture, SDL_Rect *src, SDL_Rect *dest);
-	void drawFillRectangle(SDL_Renderer *renderer, const SDL_Rect &dest, const SDL_Color &color);
-	void drawRectangle(SDL_Renderer *renderer, const SDL_Rect &dest, const SDL_Color &color);
 
-	SDL_Texture *renderText(SDL_Renderer *renderer, const std::string &text, TTF_Font *font, SDL_Rect &src, std::function<SDL_Surface *(TTF_Font *, const char *, SDL_Color)> TTF_RenderFunction);
-	SDL_Texture *renderGlyph(SDL_Renderer *renderer, const Uint16 *text, TTF_Font *font, SDL_Rect &src, std::function<SDL_Surface *(TTF_Font *, const Uint16 *, SDL_Color)> TTF_GlyphRenderFunction);
-	SDL_Texture *renderWrapped(SDL_Renderer *renderer, const std::string &text, TTF_Font *font, Uint32 wrapLenght, SDL_Rect &src, std::function<SDL_Surface *(TTF_Font *, const char *, SDL_Color, Uint32)> TTF_RenderFunction);
+	void drawRectangle(SDL_Renderer *renderer, const SDL_Rect &dest, const SDL_Color &color);
+	void drawFillRectangle(SDL_Renderer *renderer, const SDL_Rect &dest, const SDL_Color &color);
+
+	SDL_Texture *renderText(SDL_Renderer *renderer, const std::string &text, Mt_font *font, Mt_geometry *geometry, DrawFunction TTF_RenderFunction);
+	SDL_Texture *renderWrapped(SDL_Renderer *renderer, const std::string &text, Mt_font *font, Mt_geometry *geometry, Uint32 wrapLenght, DrawFunctionWrapped TTF_RenderFunction);
 
 	void replaceAll(std::string &str, const std::string &from, const std::string &to);
 
 	void confine(int &destCoord, int &srcCoord, int &destSize, int &srcSize, int maxSize, int boxCoordinate, int boxSize);
+
+	void confineX(Mt_geometry *geometry, const SDL_Rect &box);
+	void confineY(Mt_geometry *geometry, const SDL_Rect &box);
 }
 
 #endif /* A7276862_9029_49C2_B946_EC319AF33AAE */

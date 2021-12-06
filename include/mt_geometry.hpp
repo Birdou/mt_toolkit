@@ -7,6 +7,7 @@ class Mt_geometry
 public:
 	enum center
 	{
+		none,
 		top_left,
 		top_center,
 		top_right,
@@ -25,6 +26,10 @@ private:
 public:
 	SDL_Rect destR, srcR;
 
+	Mt_geometry()
+	{
+		anchor = none;
+	}
 	Mt_geometry(int x, int y) : x(x), y(y)
 	{
 	}
@@ -73,10 +78,20 @@ public:
 		posCenter();
 	}
 
+	void normalize()
+	{
+		posCenter();
+		srcR.x = srcR.y = 0;
+		destR.w = srcR.w = w;
+		destR.h = srcR.h = h;
+	}
+
 	void posCenter()
 	{
 		switch (anchor)
 		{
+		case none:
+			break;
 		case top_left:
 			destR.y = y;
 			destR.x = x;

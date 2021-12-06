@@ -13,6 +13,8 @@ private:
 	int maxHeight;
 
 public:
+	SDL_Color color = {0, 0, 0, 255};
+
 	Mt_font(Mt_application &application) : application(application)
 	{
 	}
@@ -34,12 +36,12 @@ public:
 		return font;
 	}
 
-	unsigned short getSize()
+	unsigned short getSize() const
 	{
 		return fontSize;
 	}
 
-	int getHeight()
+	int getH() const
 	{
 		return maxHeight;
 	}

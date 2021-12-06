@@ -48,6 +48,7 @@ public:
 	TTF_Font *getFont(const std::string &path, int fontSize);
 
 	void *hovering = nullptr;
+	bool hover(void *obj);
 
 	Mt_application(int width, int height, const std::string &title);
 	~Mt_application();
@@ -55,11 +56,11 @@ public:
 	void setIcon(const char *path);
 	void setSize(int w, int h);
 
-	int getHeight() const;
-	int getWidth() const;
+	int getH() const;
+	int getW() const;
 
 	void init();
-	void run();
+	int run();
 };
 
 #endif /* B8D83158_3027_49A9_BAA8_0A7468DAD697 */

@@ -66,9 +66,9 @@ public:
 
 	Mt_checkbox(Mt_application &application, int x, int y, int size) : Mt_widget(application, x, y, size, size)
 	{
-		geometry.destR.w = geometry.destR.h = size;
-		geometry.destR.x = x;
-		geometry.destR.y = y;
+		geometry->destR.w = geometry->destR.h = size;
+		geometry->destR.x = x;
+		geometry->destR.y = y;
 
 		checkDest.w = checkDest.h = size * checked_size;
 
@@ -86,13 +86,15 @@ public:
 
 	void update() override
 	{
+		return_if(!visible);
+
 		color.update();
 		frame_color.update();
 		if (visible)
 		{
 			Mt_vector<int> mouse(Mt_vector<int>::mousePos());
-			if (mouse.x < geometry.destR.x + geometry.destR.w && mouse.y < geometry.destR.y + geometry.destR.h &&
-				mouse.x >= geometry.destR.x && mouse.y >= geometry.destR.y)
+			if (mouse.x < geometry->destR.x + geometry->destR.w && mouse.y < geometry->destR.y + geometry->destR.h &&
+				mouse.x >= geometry->destR.x && mouse.y >= geometry->destR.y)
 			{
 				if (!pressed)
 				{
@@ -130,12 +132,14 @@ public:
 
 	void draw() override
 	{
-		Mt_lib::drawFillRectangle(application.renderer, geometry.destR, color.color);
-		Mt_lib::drawRectangle(application.renderer, geometry.destR, frame_color.color);
+		return_if(!visible);
+
+		Mt_lib::drawFillRectangle(application.renderer, geometry->destR, color.color);
+		Mt_lib::drawRectangle(application.renderer, geometry->destR, frame_color.color);
 		if (isChecked)
 		{
-			checkDest.x = geometry.destR.x + ((geometry.destR.w - checkDest.w) / 2);
-			checkDest.y = geometry.destR.y + ((geometry.destR.h - checkDest.h) / 2);
+			checkDest.x = geometry->destR.x + ((geometry->destR.w - checkDest.w) / 2);
+			checkDest.y = geometry->destR.y + ((geometry->destR.h - checkDest.h) / 2);
 			Mt_lib::drawFillRectangle(application.renderer, checkDest, frame_color.color);
 		}
 	}

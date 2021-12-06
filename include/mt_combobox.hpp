@@ -15,22 +15,23 @@ private:
 
 	bool show = false;
 
-	int x, y, w, h;
-
 public:
 	Mt_textbox *textbox = nullptr;
 	Mt_button *button = nullptr;
-	Mt_comboBox(Mt_application &application, int x, int y, int w, int h, int fontSize, SDL_Color textColor) : Mt_widget(application), x(x), y(y), w(w), h(h)
+	Mt_comboBox(Mt_application &application, int x, int y, int w, int h) : Mt_widget(application, x, y, w, h)
 	{
-		int tbox_x = x - (h / 2);
-		int btn_x = x + ((w - h) / 2);
+		textbox = new Mt_textbox(*this);
+		textbox->geometry->normalize();
 
-		textbox = new Mt_textbox(application, tbox_x, y, w - h, h, fontSize, textColor);
-		button = new Mt_button(application, btn_x, y, h, h, "\u25BC",
-							   [this]()
-							   {
-								   show = !show;
-							   });
+		button = new Mt_button(*this);
+		button->label->text = "\u25BC";
+		button->setFunction(
+			[this]()
+			{
+				show = !show;
+			});
+
+		updatePosition();
 	}
 	~Mt_comboBox()
 	{
@@ -40,17 +41,44 @@ public:
 
 	void addOption(const std::string &string, std::function<void()> function)
 	{
-		int ny = y + (h / 2);
-		if (options.size() != 0)
-		{
-			auto last = options.back().second;
-			ny = last->getH() + last->getY();
-		}
-		Mt_button *button = new Mt_button(application, x, 0, w, h, string, function);
-		button->fitH(10);
-		button->setY(ny);
+		Mt_button *button = new Mt_button(*this);
+
+		button->label->text = string;
+		button->setFunction(function);
+
+		button->geometry->setW(geometry->getW());
+
 		options.emplace_back(std::pair<std::string, Mt_button *>(string, button));
 	}
+
+	void updatePosition()
+	{
+		textbox->geometry->destR.x = geometry->destR.x;
+		textbox->geometry->destR.y = geometry->destR.y;
+		textbox->geometry->destR.w = geometry->getW() - geometry->getH();
+		textbox->geometry->destR.h = geometry->getH();
+
+		button->geometry->destR.x = geometry->destR.x + textbox->geometry->destR.w;
+		button->geometry->destR.y = geometry->destR.y;
+		button->geometry->destR.w = button->geometry->destR.h = geometry->getH();
+	}
+	void updateOptions()
+	{
+		int prev_y = geometry->destR.y + geometry->getH();
+		for (size_t i = 0; i < options.size(); ++i)
+		{
+			auto button = options[i].second;
+
+			button->geometry->destR.x = geometry->destR.x;
+			button->geometry->destR.y = prev_y;
+
+			button->fitH();
+			button->geometry->normalize();
+
+			prev_y = button->geometry->destR.y + button->geometry->destR.h;
+		}
+	}
+
 	std::string option()
 	{
 		return textbox->str();
@@ -58,6 +86,8 @@ public:
 
 	void handleEvents() override
 	{
+		return_if(!visible);
+
 		textbox->handleEvents();
 		button->handleEvents();
 		if (show)
@@ -70,17 +100,22 @@ public:
 	}
 	void update() override
 	{
+		return_if(!visible);
+
 		textbox->update();
 		button->update();
+
+		updatePosition();
+		updateOptions();
+
 		if (show)
 		{
 			Mt_vector<int> mouse(Mt_vector<int>::mousePos());
-			auto first = options.front().second;
 			auto last = options.back().second;
-			int x = first->getX();
-			int y = first->getY();
-			int w = first->getW();
-			int h = (last->getY() + last->getH()) - y;
+			int x = geometry->destR.x;
+			int y = geometry->destR.y;
+			int w = geometry->destR.w;
+			int h = (last->geometry->destR.y + last->geometry->destR.h) - y;
 			if (mouse.x >= x + w || mouse.x < x ||
 				mouse.y >= y + h || mouse.y < y)
 			{
@@ -108,6 +143,8 @@ public:
 	}
 	void draw() override
 	{
+		return_if(!visible);
+
 		textbox->draw();
 		button->draw();
 		if (show)
@@ -117,7 +154,6 @@ public:
 				btn.second->draw();
 			}
 		}
-		//Mt_lib::drawRectangle(application.renderer, destR, Mt_lib::color(255, 0, 0));
 	}
 };
 

@@ -49,6 +49,7 @@ void Mt_lib::drawTexture(SDL_Renderer *renderer, SDL_Texture *texture, SDL_Rect 
 {
 	if (texture == nullptr)
 	{
+		drawFillRectangle(renderer, *dest, color(255, 0, 0, 122));
 		std::cout << "Mt_lib::drawTexture: invalid texture" << std::endl;
 	}
 	else
@@ -59,6 +60,14 @@ void Mt_lib::drawTexture(SDL_Renderer *renderer, SDL_Texture *texture, SDL_Rect 
 	DebugFrame(renderer, *dest, color(255, 0, 0));
 }
 
+void Mt_lib::drawRectangle(SDL_Renderer *renderer, const SDL_Rect &dest, const SDL_Color &color)
+{
+	SDL_Color renderColor;
+	SDL_GetRenderDrawColor(renderer, &renderColor.r, &renderColor.g, &renderColor.b, &renderColor.a);
+	SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+	SDL_RenderDrawRect(renderer, &dest);
+	SDL_SetRenderDrawColor(renderer, renderColor.r, renderColor.g, renderColor.b, renderColor.a);
+}
 void Mt_lib::drawFillRectangle(SDL_Renderer *renderer, const SDL_Rect &dest, const SDL_Color &color)
 {
 	SDL_Color renderColor;
@@ -68,19 +77,10 @@ void Mt_lib::drawFillRectangle(SDL_Renderer *renderer, const SDL_Rect &dest, con
 	SDL_SetRenderDrawColor(renderer, renderColor.r, renderColor.g, renderColor.b, renderColor.a);
 }
 
-void Mt_lib::drawRectangle(SDL_Renderer *renderer, const SDL_Rect &dest, const SDL_Color &color)
-{
-	SDL_Color renderColor;
-	SDL_GetRenderDrawColor(renderer, &renderColor.r, &renderColor.g, &renderColor.b, &renderColor.a);
-	SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-	SDL_RenderDrawRect(renderer, &dest);
-	SDL_SetRenderDrawColor(renderer, renderColor.r, renderColor.g, renderColor.b, renderColor.a);
-}
-
-SDL_Texture *Mt_lib::renderText(SDL_Renderer *renderer, const std::string &text, TTF_Font *font, SDL_Rect &src, std::function<SDL_Surface *(TTF_Font *, const char *, SDL_Color)> TTF_RenderFunction)
+SDL_Texture *Mt_lib::renderText(SDL_Renderer *renderer, const std::string &text, Mt_font *font, Mt_geometry *geometry, DrawFunction TTF_RenderFunction)
 {
 	SDL_Texture *texture = nullptr;
-	SDL_Surface *textSurface = TTF_RenderFunction(font, text.c_str(), Mt_lib::color(0, 0, 0));
+	SDL_Surface *textSurface = TTF_RenderFunction(font->getFont(), text.c_str(), font->color);
 	if (textSurface != NULL)
 	{
 		texture = SDL_CreateTextureFromSurface(renderer, textSurface);
@@ -90,15 +90,18 @@ SDL_Texture *Mt_lib::renderText(SDL_Renderer *renderer, const std::string &text,
 		}
 		SDL_FreeSurface(textSurface);
 
-		SDL_QueryTexture(texture, nullptr, nullptr, &src.w, &src.h);
+		int w, h;
+		SDL_QueryTexture(texture, nullptr, nullptr, &w, &h);
+		geometry->setW(w);
+		geometry->setH(h);
 	}
 	return texture;
 }
 
-SDL_Texture *Mt_lib::renderWrapped(SDL_Renderer *renderer, const std::string &text, TTF_Font *font, Uint32 wrapLenght, SDL_Rect &src, std::function<SDL_Surface *(TTF_Font *, const char *, SDL_Color, Uint32)> TTF_RenderFunction)
+SDL_Texture *Mt_lib::renderWrapped(SDL_Renderer *renderer, const std::string &text, Mt_font *font, Mt_geometry *geometry, Uint32 wrapLenght, DrawFunctionWrapped TTF_RenderFunction)
 {
 	SDL_Texture *texture = nullptr;
-	SDL_Surface *textSurface = TTF_RenderFunction(font, text.c_str(), Mt_lib::color(0, 0, 0), wrapLenght);
+	SDL_Surface *textSurface = TTF_RenderFunction(font->getFont(), text.c_str(), font->color, wrapLenght);
 	if (textSurface != NULL)
 	{
 		texture = SDL_CreateTextureFromSurface(renderer, textSurface);
@@ -108,7 +111,10 @@ SDL_Texture *Mt_lib::renderWrapped(SDL_Renderer *renderer, const std::string &te
 		}
 		SDL_FreeSurface(textSurface);
 
-		SDL_QueryTexture(texture, nullptr, nullptr, &src.w, &src.h);
+		int w, h;
+		SDL_QueryTexture(texture, nullptr, nullptr, &w, &h);
+		geometry->setW(w);
+		geometry->setH(h);
 	}
 	return texture;
 }
@@ -139,5 +145,42 @@ void Mt_lib::confine(int &destCoord, int &srcCoord, int &destSize, int &srcSize,
 	else if (destCoord < boxCoordinate + boxSize && destCoord + maxSize > boxCoordinate + boxSize)
 	{
 		destSize = srcSize = (boxCoordinate + boxSize) - destCoord;
+	}
+}
+
+void Mt_lib::confineX(Mt_geometry *geometry, const SDL_Rect &box)
+{
+	if (geometry->destR.x >= box.x && geometry->destR.x + geometry->getW() < box.x + box.w)
+	{
+		geometry->srcR.x = 0;
+		geometry->destR.w = geometry->srcR.w = geometry->getW();
+	}
+	else if (geometry->destR.x < box.x && geometry->destR.x + geometry->getW() > box.x)
+	{
+		geometry->destR.w = geometry->srcR.w = (geometry->destR.x + geometry->getW()) - box.x;
+		geometry->srcR.x = box.x - geometry->destR.x;
+		geometry->destR.x = box.x;
+	}
+	else if (geometry->destR.x < box.x + box.w && geometry->destR.x + geometry->getW() > box.x + box.w)
+	{
+		geometry->destR.w = geometry->srcR.w = (box.x + box.w) - geometry->destR.x;
+	}
+}
+void Mt_lib::confineY(Mt_geometry *geometry, const SDL_Rect &box)
+{
+	if (geometry->destR.y >= box.y && geometry->destR.y + geometry->getH() < box.y + box.h)
+	{
+		geometry->srcR.y = 0;
+		geometry->destR.h = geometry->srcR.h = geometry->getH();
+	}
+	else if (geometry->destR.y < box.y && geometry->destR.y + geometry->getH() > box.y)
+	{
+		geometry->destR.h = geometry->srcR.h = (geometry->destR.y + geometry->getH()) - box.y;
+		geometry->srcR.y = box.y - geometry->destR.y;
+		geometry->destR.y = box.y;
+	}
+	else if (geometry->destR.y < box.y + box.h && geometry->destR.y + geometry->getH() > box.y + box.h)
+	{
+		geometry->destR.h = geometry->srcR.h = (box.y + box.h) - geometry->destR.y;
 	}
 }

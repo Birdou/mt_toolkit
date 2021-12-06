@@ -5,11 +5,9 @@
 #include "mt_lib.hpp"
 #include "mt_font.hpp"
 
-class Mt_caret
+class Mt_caret : public Mt_widget
 {
 private:
-	Mt_application &application;
-
 	SDL_Texture *texture = nullptr;
 
 	const unsigned short blinkInterval = 500;
@@ -17,39 +15,25 @@ private:
 
 	bool show = true;
 
-	int width, height;
-
 public:
-	SDL_Rect destR = {0, 0, 0, 0};
-	SDL_Rect srcR = {0, 0, 0, 0};
-
-	Mt_font font;
-
-	bool visible = true;
-
-	Mt_caret(Mt_application &application, int fontSize) : application(application), font(application)
+	Mt_caret(Mt_widget &widget) : Mt_widget(widget)
 	{
-		font.setFont("assets/fonts/segoeui.ttf", fontSize);
-		texture = Mt_lib::renderText(application.renderer, "|", font.getFont(), srcR, TTF_RenderUTF8_Blended);
-
-		width = destR.w = srcR.w;
-		height = destR.h = srcR.h;
+		geometry->destR.w = geometry->srcR.w = geometry->getW();
+		geometry->destR.h = geometry->srcR.h = geometry->getH();
 	}
 	~Mt_caret()
 	{
 		SDL_DestroyTexture(texture);
 	}
 
-	int getHeight() const
+	void update() override
 	{
-		return height;
-	}
-	int getWidth() const
-	{
-		return width;
+		if (texture != nullptr)
+			SDL_DestroyTexture(texture);
+		texture = Mt_lib::renderText(application.renderer, "|", font, geometry, TTF_RenderUTF8_Blended);
 	}
 
-	void draw()
+	void draw() override
 	{
 		if (visible)
 		{
@@ -60,7 +44,7 @@ public:
 			}
 			if (show)
 			{
-				Mt_lib::drawTexture(application.renderer, texture, &srcR, &destR);
+				Mt_lib::drawTexture(application.renderer, texture, &geometry->srcR, &geometry->destR);
 			}
 		}
 	}

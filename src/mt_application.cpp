@@ -42,12 +42,12 @@ void Mt_application::setSize(int w, int h)
 	SDL_SetWindowSize(window, w, h);
 }
 
-int Mt_application::getHeight() const
+int Mt_application::getH() const
 {
 	return height;
 }
 
-int Mt_application::getWidth() const
+int Mt_application::getW() const
 {
 	return width;
 }
@@ -103,23 +103,23 @@ void Mt_application::init()
 	initialized = true;
 }
 
-void Mt_application::run()
+int Mt_application::run()
 {
 	if (!initialized)
 	{
 		std::cout << "The application cannot run without first being initialized." << std::endl;
-		return;
+		return -1;
 	}
 	running = true;
 	while (running)
 	{
-		//FRAME START
+		// FRAME START
 		fStart = SDL_GetTicks();
 
 		SDL_RenderClear(renderer);
 		SDL_SetRenderDrawColor(renderer, renderColor.r, renderColor.g, renderColor.b, renderColor.a);
 
-		//HANDLE EVENTS
+		// HANDLE EVENTS
 		while (SDL_PollEvent(&event))
 		{
 			switch (event.type)
@@ -133,15 +133,15 @@ void Mt_application::run()
 				widget->handleEvents();
 		}
 
-		//UPDATE
+		// UPDATE
 		for (auto widget : widgets)
 			widget->update();
 
-		//DRAW
+		// DRAW
 		for (auto widget : widgets)
 			widget->draw();
 
-		//FRAME END
+		// FRAME END
 		SDL_RenderPresent(renderer);
 
 		frameTime = SDL_GetTicks() - fStart;
@@ -151,4 +151,5 @@ void Mt_application::run()
 			SDL_Delay(frameDelay - frameTime);
 		}
 	}
+	return 0;
 }
