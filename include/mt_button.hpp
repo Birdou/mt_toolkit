@@ -5,6 +5,7 @@
 #include <functional>
 
 #include "mt_application.hpp"
+#include "mt_window.hpp"
 #include "mt_lib.hpp"
 #include "mt_vector.hpp"
 #include "mt_widget.hpp"
@@ -39,19 +40,19 @@ public:
 		label->geometry->setAnchor(Mt_geometry::middle_center);
 		label->renderMethod = [&](Mt_label *label)
 		{
-			return Mt_lib::renderWrapped(application.renderer, label->text, label->font, label->geometry, geometry->destR.w, TTF_RenderUTF8_Blended_Wrapped);
+			return Mt_lib::renderWrapped(window.renderer, label->text, label->font, label->geometry, geometry->destR.w, TTF_RenderUTF8_Blended_Wrapped);
 		};
 
 		color.color = normal_color;
 		frameColor.color = frame_normal_color;
 	}
-	Mt_button(Mt_application &application, int x, int y, int w, int h, std::function<void()> func) : Mt_widget(application, x, y, w, h), func(func)
+	Mt_button(Mt_window &window, int x, int y, int w, int h, std::function<void()> func) : Mt_widget(window, x, y, w, h), func(func)
 	{
 		label = new Mt_label(*this);
 		label->geometry->setAnchor(Mt_geometry::middle_center);
 		label->renderMethod = [&](Mt_label *label)
 		{
-			return Mt_lib::renderWrapped(application.renderer, label->text, label->font, label->geometry, geometry->destR.w, TTF_RenderUTF8_Blended_Wrapped);
+			return Mt_lib::renderWrapped(window.renderer, label->text, label->font, label->geometry, geometry->destR.w, TTF_RenderUTF8_Blended_Wrapped);
 		};
 
 		color.color = normal_color;
@@ -88,7 +89,7 @@ public:
 		geometry->setH(label->font->getH() + (2 * padding));
 	}
 
-	void handleEvents() override
+	void handleEvent() override
 	{
 	}
 
@@ -107,19 +108,19 @@ public:
 			{
 				onHover();
 				// SetCursor(SDL_SYSTEM_CURSOR_IBEAM);
-				if (application.hovering == nullptr)
+				if (window.hovering == nullptr)
 				{
-					application.hovering = this;
+					window.hovering = this;
 					color.fadeInto(&hover_color);
 					frameColor.fadeInto(&frame_hover_color);
 				}
 				if (!pressed)
 				{
-					if (application.event.type == SDL_MOUSEBUTTONDOWN)
+					if (window.event.type == SDL_MOUSEBUTTONDOWN)
 					{
-						if (application.event.button.button == SDL_BUTTON_LEFT)
+						if (window.event.button.button == SDL_BUTTON_LEFT)
 						{
-							if (application.hovering == this)
+							if (window.hovering == this)
 							{
 								onMouseDown();
 
@@ -130,11 +131,11 @@ public:
 						}
 					}
 				}
-				else if (application.event.type == SDL_MOUSEBUTTONUP)
+				else if (window.event.type == SDL_MOUSEBUTTONUP)
 				{
-					if (application.event.button.button == SDL_BUTTON_LEFT)
+					if (window.event.button.button == SDL_BUTTON_LEFT)
 					{
-						if (application.hovering == this)
+						if (window.hovering == this)
 						{
 							onMouseUp();
 
@@ -148,10 +149,10 @@ public:
 			}
 			else
 			{
-				if (application.hovering == this)
+				if (window.hovering == this)
 				{
 					pressed = false;
-					application.hovering = nullptr;
+					window.hovering = nullptr;
 					color.fadeInto(&normal_color);
 					frameColor.fadeInto(&frame_normal_color);
 				}
@@ -163,8 +164,8 @@ public:
 	{
 		if (visible)
 		{
-			Mt_lib::drawFillRectangle(application.renderer, geometry->destR, color.color);
-			Mt_lib::drawRectangle(application.renderer, geometry->destR, frameColor.color);
+			Mt_lib::drawFillRectangle(window.renderer, geometry->destR, color.color);
+			Mt_lib::drawRectangle(window.renderer, geometry->destR, frameColor.color);
 			label->draw();
 		}
 	}

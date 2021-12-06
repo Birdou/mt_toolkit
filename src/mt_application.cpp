@@ -4,9 +4,9 @@
 #include <algorithm>
 
 #include "mt_lib.hpp"
-#include "mt_widget.hpp"
+#include "mt_window.hpp"
 
-Mt_application::Mt_application(int width, int height, const std::string &title) : title(title), width(width), height(height)
+Mt_application::Mt_application()
 {
 	SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
 }
@@ -18,38 +18,6 @@ Mt_application::~Mt_application()
 	{
 		TTF_CloseFont(font.second);
 	}
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
-}
-
-void Mt_application::setIcon(const char *path)
-{
-	if (!initialized)
-		std::cout << "Warning: " << __func__ << " must be used after Application init to work properly." << std::endl;
-
-	SDL_Surface *surf = IMG_Load(path);
-	SDL_SetWindowIcon(window, surf);
-	SDL_FreeSurface(surf);
-}
-
-void Mt_application::setSize(int w, int h)
-{
-	if (!initialized)
-		std::cout << "Warning: " << __func__ << " must be used after Application init to work properly." << std::endl;
-
-	width = w;
-	height = h;
-	SDL_SetWindowSize(window, w, h);
-}
-
-int Mt_application::getH() const
-{
-	return height;
-}
-
-int Mt_application::getW() const
-{
-	return width;
 }
 
 TTF_Font *Mt_application::getFont(const std::string &path, int fontSize)
@@ -75,15 +43,8 @@ void Mt_application::init()
 {
 	frameDelay = 1000 / targetFPS;
 
-	if (fullscreen)
-		flags |= SDL_WINDOW_FULLSCREEN;
-	if (resizable)
-		flags |= SDL_WINDOW_RESIZABLE;
-
 	if (SDL_Init(SDL_INIT_EVERYTHING) == 0)
 	{
-		window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, flags);
-		renderer = SDL_CreateRenderer(window, -1, 0);
 
 		const int flags = IMG_INIT_JPG | IMG_INIT_PNG | IMG_INIT_TIF;
 		if (IMG_Init(flags) != flags)
@@ -103,47 +64,47 @@ void Mt_application::init()
 	initialized = true;
 }
 
+Mt_window *Mt_application::createWindow(const std::string &title, int w, int h)
+{
+	auto window = new Mt_window(*this, title, w, h);
+	window->init();
+
+	windows.emplace(title, window);
+
+	return window;
+}
+
+int Mt_application::operator()()
+{
+	return run();
+}
+
 int Mt_application::run()
 {
-	if (!initialized)
-	{
-		std::cout << "The application cannot run without first being initialized." << std::endl;
-		return -1;
-	}
 	running = true;
 	while (running)
 	{
 		// FRAME START
 		fStart = SDL_GetTicks();
 
-		SDL_RenderClear(renderer);
-		SDL_SetRenderDrawColor(renderer, renderColor.r, renderColor.g, renderColor.b, renderColor.a);
-
-		// HANDLE EVENTS
-		while (SDL_PollEvent(&event))
+		for (auto &window : windows)
 		{
-			switch (event.type)
+			while (SDL_PollEvent(&event))
 			{
-			case SDL_QUIT:
-				running = false;
-				break;
-			}
+				switch (event.type)
+				{
+				case SDL_QUIT:
+					running = false;
+					break;
+				}
 
-			for (auto widget : widgets)
-				widget->handleEvents();
+				window.second->handleEvents();
+			}
+			window.second->update();
+			window.second->draw();
 		}
 
-		// UPDATE
-		for (auto widget : widgets)
-			widget->update();
-
-		// DRAW
-		for (auto widget : widgets)
-			widget->draw();
-
 		// FRAME END
-		SDL_RenderPresent(renderer);
-
 		frameTime = SDL_GetTicks() - fStart;
 
 		if (frameDelay > frameTime)
@@ -151,5 +112,10 @@ int Mt_application::run()
 			SDL_Delay(frameDelay - frameTime);
 		}
 	}
+
 	return 0;
+}
+void Mt_application::stop()
+{
+	running = false;
 }

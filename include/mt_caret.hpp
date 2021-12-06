@@ -2,6 +2,7 @@
 #define AE945488_D359_47A3_81D7_5EC2E140A8A2
 
 #include "mt_application.hpp"
+#include "mt_window.hpp"
 #include "mt_lib.hpp"
 #include "mt_font.hpp"
 
@@ -28,24 +29,25 @@ public:
 
 	void update() override
 	{
+		return_if(!visible);
+
 		if (texture != nullptr)
 			SDL_DestroyTexture(texture);
-		texture = Mt_lib::renderText(application.renderer, "|", font, geometry, TTF_RenderUTF8_Blended);
+		texture = Mt_lib::renderText(window.renderer, "|", font, geometry, TTF_RenderUTF8_Blended);
 	}
 
 	void draw() override
 	{
-		if (visible)
+		return_if(!visible);
+
+		if (SDL_GetTicks() - lastBlink > blinkInterval)
 		{
-			if (SDL_GetTicks() - lastBlink > blinkInterval)
-			{
-				lastBlink = SDL_GetTicks();
-				show = !show;
-			}
-			if (show)
-			{
-				Mt_lib::drawTexture(application.renderer, texture, &geometry->srcR, &geometry->destR);
-			}
+			lastBlink = SDL_GetTicks();
+			show = !show;
+		}
+		if (show)
+		{
+			Mt_lib::drawTexture(window.renderer, texture, &geometry->srcR, &geometry->destR);
 		}
 	}
 };

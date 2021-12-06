@@ -4,6 +4,7 @@
 #include <functional>
 
 #include "mt_application.hpp"
+#include "mt_window.hpp"
 #include "mt_font.hpp"
 #include "mt_geometry.hpp"
 
@@ -18,7 +19,7 @@ using event = std::function<void()>;
 class Mt_widget
 {
 protected:
-	Mt_application &application;
+	Mt_window &window;
 
 	bool focused = false;
 	bool released = true;
@@ -48,25 +49,25 @@ public:
 	static std::string defaultFont;
 	static int defaultFontSize;
 
-	Mt_widget(Mt_widget &widget) : application(widget.application), font(widget.font)
+	Mt_widget(Mt_widget &widget) : window(widget.window), font(widget.font)
 	{
 		geometry = new Mt_geometry();
 		parent = &widget;
 	}
-	Mt_widget(Mt_application &application, int x, int y) : application(application)
+	Mt_widget(Mt_window &window, int x, int y) : window(window)
 	{
-		font = new Mt_font(application, defaultFont, defaultFontSize);
+		font = new Mt_font(window.getApplication(), defaultFont, defaultFontSize);
 		geometry = new Mt_geometry(x, y);
 
-		application.widgets.emplace_back(this);
+		window.widgets.emplace_back(this);
 	}
-	Mt_widget(Mt_application &application, int x, int y, int w, int h) : application(application)
+	Mt_widget(Mt_window &window, int x, int y, int w, int h) : window(window)
 	{
-		font = new Mt_font(application, defaultFont, defaultFontSize);
+		font = new Mt_font(window.getApplication(), defaultFont, defaultFontSize);
 		geometry = new Mt_geometry(x, y, w, h);
 		geometry->normalize();
 
-		application.widgets.emplace_back(this);
+		window.widgets.emplace_back(this);
 	}
 	virtual ~Mt_widget()
 	{
@@ -78,7 +79,7 @@ public:
 			SDL_FreeCursor(cursor);
 	}
 
-	Mt_application &getApplication() const { return application; }
+	Mt_window &getApplication() const { return window; }
 
 	const event none = []() {};
 	event onHovering = none;
@@ -93,7 +94,7 @@ public:
 	event onTextModified = none;
 	event onWindowResized = none;
 
-	virtual void handleEvents() {}
+	virtual void handleEvent() {}
 	virtual void update() {}
 	virtual void draw() {}
 };

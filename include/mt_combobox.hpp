@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "mt_application.hpp"
+#include "mt_window.hpp"
 #include "mt_widget.hpp"
 #include "mt_textbox.hpp"
 #include "mt_button.hpp"
@@ -18,7 +19,7 @@ private:
 public:
 	Mt_textbox *textbox = nullptr;
 	Mt_button *button = nullptr;
-	Mt_comboBox(Mt_application &application, int x, int y, int w, int h) : Mt_widget(application, x, y, w, h)
+	Mt_comboBox(Mt_window &window, int x, int y, int w, int h) : Mt_widget(window, x, y, w, h)
 	{
 		textbox = new Mt_textbox(*this);
 		textbox->geometry->normalize();
@@ -84,17 +85,17 @@ public:
 		return textbox->str();
 	}
 
-	void handleEvents() override
+	void handleEvent() override
 	{
 		return_if(!visible);
 
-		textbox->handleEvents();
-		button->handleEvents();
+		textbox->handleEvent();
+		button->handleEvent();
 		if (show)
 		{
 			for (auto btn : options)
 			{
-				btn.second->handleEvents();
+				btn.second->handleEvent();
 			}
 		}
 	}
@@ -119,9 +120,9 @@ public:
 			if (mouse.x >= x + w || mouse.x < x ||
 				mouse.y >= y + h || mouse.y < y)
 			{
-				if (application.event.type == SDL_MOUSEBUTTONDOWN)
+				if (window.event.type == SDL_MOUSEBUTTONDOWN)
 				{
-					switch (application.event.button.button)
+					switch (window.event.button.button)
 					{
 					case SDL_BUTTON_LEFT:
 						show = false;
@@ -134,7 +135,7 @@ public:
 				btn.second->update();
 				if (btn.second->actioned())
 				{
-					application.hovering = nullptr;
+					window.hovering = nullptr;
 					textbox->str(btn.first);
 					show = false;
 				}

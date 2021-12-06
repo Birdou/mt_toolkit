@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "mt_application.hpp"
+#include "mt_window.hpp"
 #include "mt_widget.hpp"
 #include "mt_caret.hpp"
 #include "mt_lib.hpp"
@@ -37,7 +38,7 @@ public:
 
 	bool editable = true;
 
-	Mt_textarea(Mt_application &application, int x, int y, int w, int h) : Mt_widget(application, x, y, w, h)
+	Mt_textarea(Mt_window &window, int x, int y, int w, int h) : Mt_widget(window, x, y, w, h)
 	{
 		caret = new Mt_caret(*this);
 
@@ -123,7 +124,7 @@ public:
 	{
 		if (caretPos_x > 0)
 		{
-			int tlen = Mt_lib::substrWidth(application.renderer, input->font->getFont(), input->text, 0, caretPos_x);
+			int tlen = Mt_lib::substrWidth(window.renderer, input->font->getFont(), input->text, 0, caretPos_x);
 			caret->geometry->destR.x = geometry->destR.x + tlen + geometry->srcR.x;
 		}
 		else
@@ -195,13 +196,13 @@ public:
 		return line;
 	}
 
-	void handleEvents() override
+	void handleEvent() override
 	{
 		return_if(!visible);
 
-		if (application.event.type == SDL_WINDOWEVENT)
+		if (window.event.type == SDL_WINDOWEVENT)
 		{
-			switch (application.event.window.event)
+			switch (window.event.window.event)
 			{
 			case SDL_WINDOWEVENT_RESIZED:
 			{
@@ -212,11 +213,11 @@ public:
 		}
 		if (focused)
 		{
-			switch (application.event.type)
+			switch (window.event.type)
 			{
 			case SDL_KEYDOWN:
 			{
-				switch (application.event.key.keysym.sym)
+				switch (window.event.key.keysym.sym)
 				{
 				case SDLK_c:
 					if (SDL_GetModState() & KMOD_CTRL)
@@ -224,7 +225,7 @@ public:
 						SDL_SetClipboardText(str().c_str());
 					}
 					break;
-				} // switch (application.event.key.keysym.sym)
+				} // switch (window.event.key.keysym.sym)
 				break;
 			}
 			case SDL_MOUSEWHEEL:
@@ -232,37 +233,37 @@ public:
 				const short pixels = 7;
 				if (SDL_GetModState() & KMOD_SHIFT)
 				{
-					if (application.event.wheel.y > 0)
+					if (window.event.wheel.y > 0)
 					{
 						geometry->srcR.x = std::min(0, geometry->srcR.x + pixels);
 					}
-					else if (application.event.wheel.y < 0)
+					else if (window.event.wheel.y < 0)
 					{
 						geometry->srcR.x -= pixels;
 					}
 				}
 				else
 				{
-					if (application.event.wheel.y > 0)
+					if (window.event.wheel.y > 0)
 					{
 						geometry->srcR.y = std::min(0, geometry->srcR.y + pixels);
 					}
-					else if (application.event.wheel.y < 0)
+					else if (window.event.wheel.y < 0)
 					{
 						geometry->srcR.y -= pixels;
 					}
 				}
 				break;
 			}
-			} // switch (application.event.type)
+			} // switch (window.event.type)
 
 			if (editable)
 			{
-				switch (application.event.type)
+				switch (window.event.type)
 				{
 				case SDL_KEYDOWN:
 				{
-					switch (application.event.key.keysym.sym)
+					switch (window.event.key.keysym.sym)
 					{
 					case SDLK_UP:
 						if (caretPos_y > 0)
@@ -396,12 +397,12 @@ public:
 						}
 						break;
 					}
-					} // switch (application.event.key.keysym.sym)
+					} // switch (window.event.key.keysym.sym)
 					break;
 				}
 				case SDL_TEXTINPUT:
 				{
-					std::string text(application.event.text.text);
+					std::string text(window.event.text.text);
 					if (!(SDL_GetModState() & KMOD_CTRL && (text[0] == 'c' || text[0] == 'C' || text[0] == 'v' || text[0] == 'V')))
 					{
 						input->text.insert(caretPos_x, text);
@@ -414,42 +415,29 @@ public:
 					}
 					break;
 				}
-				} // switch (application.event.type)
+				} // switch (window.event.type)
 			}
 		}
-	}
-
-	void update() override
-	{
-		return_if(!visible);
-
-		color.update();
-		frameColor.update();
-		updateLines();
-		for (auto label : lines)
-			label->update();
-		if (focused && editable)
-			caret->update();
 
 		if (Mt_vector<int>::mousePos().intercept(geometry->destR))
 		{
 			onHover();
 			SetCursor(SDL_SYSTEM_CURSOR_IBEAM);
-			if (application.hovering == nullptr)
+			if (window.hovering == nullptr)
 			{
-				application.hovering = this;
+				window.hovering = this;
 				color.fadeInto(&hover_color);
 				frameColor.fadeInto(&frame_hover_color);
 			}
 			if (!focused)
 			{
-				if (application.event.type == SDL_MOUSEBUTTONDOWN)
+				if (window.event.type == SDL_MOUSEBUTTONDOWN)
 				{
-					switch (application.event.button.button)
+					switch (window.event.button.button)
 					{
 					case SDL_BUTTON_LEFT:
 						onMouseDown();
-						if (application.hovering == this)
+						if (window.hovering == this)
 						{
 							onFocus();
 							color.fadeInto(&focused_color);
@@ -464,10 +452,10 @@ public:
 				}
 			}
 		}
-		else if (application.event.type == SDL_MOUSEBUTTONDOWN && released)
+		else if (window.event.type == SDL_MOUSEBUTTONDOWN && released)
 		{
 			SetCursor(SDL_SYSTEM_CURSOR_ARROW);
-			switch (application.event.button.button)
+			switch (window.event.button.button)
 			{
 			case SDL_BUTTON_LEFT:
 				onLostFocus();
@@ -481,11 +469,11 @@ public:
 		{
 			SetCursor(SDL_SYSTEM_CURSOR_ARROW);
 			onMouseLeave();
-			if (application.hovering == this)
+			if (window.hovering == this)
 			{
 				color.fadeInto(&normal_color);
 				frameColor.fadeInto(&frame_normal_color);
-				application.hovering = nullptr;
+				window.hovering = nullptr;
 			}
 		}
 		else if (released)
@@ -493,9 +481,9 @@ public:
 			SetCursor(SDL_SYSTEM_CURSOR_ARROW);
 		}
 
-		if (application.event.type == SDL_MOUSEBUTTONUP)
+		if (window.event.type == SDL_MOUSEBUTTONUP)
 		{
-			switch (application.event.button.button)
+			switch (window.event.button.button)
 			{
 			case SDL_BUTTON_LEFT:
 				onMouseUp();
@@ -507,12 +495,27 @@ public:
 		}
 	}
 
+	void update() override
+	{
+		return_if(!visible);
+
+		color.update();
+		frameColor.update();
+		updateLines();
+
+		for (auto label : lines)
+			label->update();
+
+		if (focused && editable)
+			caret->update();
+	}
+
 	void draw() override
 	{
 		return_if(!visible);
 
-		Mt_lib::drawFillRectangle(application.renderer, geometry->destR, color.color);
-		Mt_lib::drawRectangle(application.renderer, geometry->destR, frameColor.color);
+		Mt_lib::drawFillRectangle(window.renderer, geometry->destR, color.color);
+		Mt_lib::drawRectangle(window.renderer, geometry->destR, frameColor.color);
 
 		for (auto label : lines)
 			label->draw();

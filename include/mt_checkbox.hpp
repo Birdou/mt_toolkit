@@ -2,6 +2,7 @@
 #define B8EAFDEA_B267_4EC6_896F_9F8F363AFC52
 
 #include "mt_application.hpp"
+#include "mt_window.hpp"
 #include "mt_widget.hpp"
 #include "mt_lib.hpp"
 #include "mt_color.hpp"
@@ -19,16 +20,16 @@ private:
 
 	void onHover()
 	{
-		if (application.hovering == nullptr)
+		if (window.hovering == nullptr)
 		{
-			application.hovering = this;
+			window.hovering = this;
 			color.fadeInto(&hover_color);
 			frame_color.fadeInto(&frame_hover_color);
 		}
 	}
 	void onMouseDown()
 	{
-		if (application.hovering == this)
+		if (window.hovering == this)
 		{
 			pressed = true;
 			color.fadeInto(&clicked_color);
@@ -37,7 +38,7 @@ private:
 	}
 	void onMouseUp()
 	{
-		if (application.hovering == this)
+		if (window.hovering == this)
 		{
 			isChecked = !isChecked;
 			pressed = false;
@@ -45,10 +46,10 @@ private:
 	}
 	void onMouseLeave()
 	{
-		if (application.hovering == this)
+		if (window.hovering == this)
 		{
 			pressed = false;
-			application.hovering = nullptr;
+			window.hovering = nullptr;
 			color.fadeInto(&normal_color);
 			frame_color.fadeInto(&frame_normal_color);
 		}
@@ -64,7 +65,7 @@ public:
 
 	float checked_size = .7f;
 
-	Mt_checkbox(Mt_application &application, int x, int y, int size) : Mt_widget(application, x, y, size, size)
+	Mt_checkbox(Mt_window &window, int x, int y, int size) : Mt_widget(window, x, y, size, size)
 	{
 		geometry->destR.w = geometry->destR.h = size;
 		geometry->destR.x = x;
@@ -84,63 +85,66 @@ public:
 		return isChecked;
 	}
 
-	void update() override
+	void handleEvent() override
 	{
 		return_if(!visible);
 
-		color.update();
-		frame_color.update();
-		if (visible)
+		Mt_vector<int> mouse(Mt_vector<int>::mousePos());
+		if (mouse.x < geometry->destR.x + geometry->destR.w && mouse.y < geometry->destR.y + geometry->destR.h &&
+			mouse.x >= geometry->destR.x && mouse.y >= geometry->destR.y)
 		{
-			Mt_vector<int> mouse(Mt_vector<int>::mousePos());
-			if (mouse.x < geometry->destR.x + geometry->destR.w && mouse.y < geometry->destR.y + geometry->destR.h &&
-				mouse.x >= geometry->destR.x && mouse.y >= geometry->destR.y)
+			if (!pressed)
 			{
-				if (!pressed)
+				onHover();
+				if (window.event.type == SDL_MOUSEBUTTONDOWN)
 				{
-					onHover();
-					if (application.event.type == SDL_MOUSEBUTTONDOWN)
-					{
-						switch (application.event.button.button)
-						{
-						case SDL_BUTTON_LEFT:
-							onMouseDown();
-							break;
-						default:
-							break;
-						}
-					}
-				}
-				else if (application.event.type == SDL_MOUSEBUTTONUP)
-				{
-					switch (application.event.button.button)
+					switch (window.event.button.button)
 					{
 					case SDL_BUTTON_LEFT:
-						onMouseUp();
+						onMouseDown();
 						break;
 					default:
 						break;
 					}
 				}
 			}
-			else
+			else if (window.event.type == SDL_MOUSEBUTTONUP)
 			{
-				onMouseLeave();
+				switch (window.event.button.button)
+				{
+				case SDL_BUTTON_LEFT:
+					onMouseUp();
+					break;
+				default:
+					break;
+				}
 			}
 		}
+		else
+		{
+			onMouseLeave();
+		}
+	}
+
+	void update() override
+	{
+		return_if(!visible);
+
+		color.update();
+		frame_color.update();
 	}
 
 	void draw() override
 	{
 		return_if(!visible);
 
-		Mt_lib::drawFillRectangle(application.renderer, geometry->destR, color.color);
-		Mt_lib::drawRectangle(application.renderer, geometry->destR, frame_color.color);
+		Mt_lib::drawFillRectangle(window.renderer, geometry->destR, color.color);
+		Mt_lib::drawRectangle(window.renderer, geometry->destR, frame_color.color);
 		if (isChecked)
 		{
 			checkDest.x = geometry->destR.x + ((geometry->destR.w - checkDest.w) / 2);
 			checkDest.y = geometry->destR.y + ((geometry->destR.h - checkDest.h) / 2);
-			Mt_lib::drawFillRectangle(application.renderer, checkDest, frame_color.color);
+			Mt_lib::drawFillRectangle(window.renderer, checkDest, frame_color.color);
 		}
 	}
 };

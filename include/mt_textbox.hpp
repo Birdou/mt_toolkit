@@ -2,7 +2,7 @@
 #define A09E3D2A_8B1E_4F55_AB69_136314F85BE0
 
 #include "mt_application.hpp"
-
+#include "mt_window.hpp"
 #include "mt_widget.hpp"
 #include "mt_caret.hpp"
 #include "mt_lib.hpp"
@@ -23,16 +23,16 @@ private:
 
 	void onHover()
 	{
-		if (application.hovering == nullptr)
+		if (window.hovering == nullptr)
 		{
-			application.hovering = this;
+			window.hovering = this;
 			color.fadeInto(&hover_color);
 			frame_color.fadeInto(&frame_hover_color);
 		}
 	}
 	void onMouseDown()
 	{
-		if (application.hovering == this)
+		if (window.hovering == this)
 		{
 			onFocus();
 			released = false;
@@ -44,14 +44,14 @@ private:
 	}
 	void onMouseLeave()
 	{
-		if (application.hovering == this)
+		if (window.hovering == this)
 		{
-			application.hovering = nullptr;
+			window.hovering = nullptr;
 		}
 	}
 	void onFocus()
 	{
-		if (application.hovering == this)
+		if (window.hovering == this)
 		{
 			color.fadeInto(&focused_color);
 			frame_color.fadeInto(&frame_focused_color);
@@ -85,7 +85,7 @@ public:
 		color.color = normal_color;
 		frame_color.color = frame_normal_color;
 	}
-	Mt_textbox(Mt_application &application, int x, int y, int w, int h) : Mt_widget(application, x, y, w, h)
+	Mt_textbox(Mt_window &window, int x, int y, int w, int h) : Mt_widget(window, x, y, w, h)
 	{
 		caret = new Mt_caret(*this);
 
@@ -113,15 +113,15 @@ public:
 		onTextModified();
 	}
 
-	void handleEvents() override
+	void handleEvent() override
 	{
 		return_if(!visible);
 
 		if (focused && editable)
 		{
-			if (application.event.type == SDL_KEYDOWN)
+			if (window.event.type == SDL_KEYDOWN)
 			{
-				switch (application.event.key.keysym.sym)
+				switch (window.event.key.keysym.sym)
 				{
 				case SDLK_LEFT:
 					if (caretPos > 0)
@@ -145,7 +145,7 @@ public:
 				case SDLK_END:
 					caretPos = text->text.length();
 					if (text->geometry->srcR.w >= geometry->destR.w)
-						geometry->srcR.x = Mt_lib::substrWidth(application.renderer, font->getFont(), text->text, 0) - geometry->destR.w;
+						geometry->srcR.x = Mt_lib::substrWidth(window.renderer, font->getFont(), text->text, 0) - geometry->destR.w;
 					pointCursor();
 					break;
 
@@ -153,7 +153,7 @@ public:
 					if (text->text.size() > 0 && caretPos > 0)
 					{
 						caretPos--;
-						text->geometry->srcR.x -= Mt_lib::substrWidth(application.renderer, font->getFont(), text->text, caretPos, 1);
+						text->geometry->srcR.x -= Mt_lib::substrWidth(window.renderer, font->getFont(), text->text, caretPos, 1);
 						if (text->geometry->srcR.x < 0)
 							text->geometry->srcR.x = 0;
 						text->text.erase(text->text.begin() + caretPos);
@@ -190,9 +190,9 @@ public:
 					break;
 				}
 			}
-			else if (application.event.type == SDL_TEXTINPUT)
+			else if (window.event.type == SDL_TEXTINPUT)
 			{
-				std::string content(application.event.text.text);
+				std::string content(window.event.text.text);
 				if (!(SDL_GetModState() & KMOD_CTRL && (content[0] == 'c' || content[0] == 'C' || content[0] == 'v' || content[0] == 'V')))
 				{
 					text->text.insert(caretPos, content);
@@ -228,7 +228,7 @@ public:
 	{
 		if (caretPos > 0)
 		{
-			int tlen = Mt_lib::substrWidth(application.renderer, text->font->getFont(), text->text, 0, caretPos);
+			int tlen = Mt_lib::substrWidth(window.renderer, text->font->getFont(), text->text, 0, caretPos);
 			caret->geometry->destR.x = geometry->destR.x + tlen + geometry->srcR.x;
 		}
 		else
@@ -280,9 +280,9 @@ public:
 			if (!focused)
 			{
 				onHover();
-				if (application.event.type == SDL_MOUSEBUTTONDOWN)
+				if (window.event.type == SDL_MOUSEBUTTONDOWN)
 				{
-					switch (application.event.button.button)
+					switch (window.event.button.button)
 					{
 					case SDL_BUTTON_LEFT:
 						onMouseDown();
@@ -293,9 +293,9 @@ public:
 				}
 			}
 		}
-		else if (application.event.type == SDL_MOUSEBUTTONDOWN && released)
+		else if (window.event.type == SDL_MOUSEBUTTONDOWN && released)
 		{
-			switch (application.event.button.button)
+			switch (window.event.button.button)
 			{
 			case SDL_BUTTON_LEFT:
 				onLostFocus();
@@ -307,9 +307,9 @@ public:
 			onMouseLeave();
 		}
 
-		if (application.event.type == SDL_MOUSEBUTTONUP)
+		if (window.event.type == SDL_MOUSEBUTTONUP)
 		{
-			switch (application.event.button.button)
+			switch (window.event.button.button)
 			{
 			case SDL_BUTTON_LEFT:
 				onMouseUp();
@@ -324,8 +324,8 @@ public:
 	{
 		return_if(!visible);
 
-		Mt_lib::drawFillRectangle(application.renderer, geometry->destR, color.color);
-		Mt_lib::drawRectangle(application.renderer, geometry->destR, frame_color.color);
+		Mt_lib::drawFillRectangle(window.renderer, geometry->destR, color.color);
+		Mt_lib::drawRectangle(window.renderer, geometry->destR, frame_color.color);
 
 		text->draw();
 
