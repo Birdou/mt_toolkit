@@ -3,37 +3,39 @@
 #include "mt_application.hpp"
 
 #include "mt_button.hpp"
+#include "mt_label.hpp"
 #include "mt_checkbox.hpp"
 #include "mt_combobox.hpp"
 #include "mt_textbox.hpp"
 #include "mt_textarea.hpp"
 
-void foo()
-{
-	for (int i = 0; i < 10; ++i)
-		std::cout << "oi ";
-	std::cout << std::endl;
-}
-
 int main(/*int argc, char *argv[]*/)
 {
-	Mt_application app;
-	app.init();
+	Mt_application app("Application");
 
-	auto window = app.createWindow("Main window", 600, 400);
-	window->setIcon("assets/icon.png");
+	app.window.setIcon("assets/icon.png");
 
-	Mt_label label1(*window, 0, 0);
-	label1.text = "OLÁ MUNDO";
+	auto &window = app.createWindow("Dialog 01", 150, 50);
+	SDL_SetWindowBordered(window.window, SDL_FALSE);
+	window.setFlags(WINDOW_BORDERLESS, WINDOW_HIDDEN, WINDOW_ALWAYS_ON_TOP);
 
-	Mt_comboBox cbox1(*window, window->getW() / 2, window->getH() / 2, 200, 25);
-	cbox1.geometry->setAnchor(Mt_geometry::middle_center);
-	cbox1.addOption("opção 1", []() {});
-	cbox1.addOption("opção 2", []() {});
+	window.border = true;
 
-	auto window2 = app.createWindow("Second window", 600, 400);
-	Mt_label label2(*window2, 0, 0);
-	label2.text = "OLÁ MUNDORRR";
+	auto &btn1 = Mt_button::create(app.window, app.window.getW() / 2, app.window.getH() / 2, 100, 20);
+	btn1.function = [&]()
+	{
+		window.show();
+	};
+	btn1.label->text = "Show dialog";
+	btn1.geometry->setAnchor(Mt_geometry::middle_center);
+
+	auto &btn2 = Mt_button::create(window, window.getW() / 2, window.getH() / 2, 20, 20);
+	btn2.function = [&]()
+	{
+		window.hide();
+	};
+	btn2.label->text = "OK";
+	btn2.geometry->setAnchor(Mt_geometry::middle_center);
 
 	return app();
 }

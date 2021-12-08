@@ -65,7 +65,39 @@ private:
 		focused = false;
 	}
 
+	Mt_textbox(Mt_widget &widget) : Mt_widget(widget)
+	{
+		caret = &Mt_caret::create(*this);
+
+		text = &Mt_label::create(*this);
+		text->autoupdate = false;
+
+		color.color = normal_color;
+		frame_color.color = frame_normal_color;
+	}
+	Mt_textbox(Mt_window &window, int x, int y, int w, int h) : Mt_widget(window, x, y, w, h)
+	{
+		caret = &Mt_caret::create(*this);
+
+		text = &Mt_label::create(*this);
+		text->autoupdate = false;
+
+		color.color = normal_color;
+		frame_color.color = frame_normal_color;
+	}
+	Mt_textbox(const Mt_textbox &) = delete;
+
 public:
+	static Mt_textbox &create(Mt_widget &widget) { return *(new Mt_textbox(widget)); }
+	static Mt_textbox &create(Mt_window &window, int x, int y, int w, int h) { return *(new Mt_textbox(window, x, y, w, h)); }
+
+	~Mt_textbox()
+	{
+		Debug("Destroying textbox");
+		delete caret;
+		delete text;
+	}
+
 	bool editable = true;
 
 	SDL_Color normal_color = {255, 255, 255, 255};
@@ -74,32 +106,6 @@ public:
 	SDL_Color frame_normal_color = {122, 122, 122, 255};
 	SDL_Color frame_focused_color = {0, 120, 215, 255};
 	SDL_Color frame_hover_color = {23, 23, 23, 255};
-
-	Mt_textbox(Mt_widget &widget) : Mt_widget(widget)
-	{
-		caret = new Mt_caret(*this);
-
-		text = new Mt_label(*this);
-		text->autoupdate = false;
-
-		color.color = normal_color;
-		frame_color.color = frame_normal_color;
-	}
-	Mt_textbox(Mt_window &window, int x, int y, int w, int h) : Mt_widget(window, x, y, w, h)
-	{
-		caret = new Mt_caret(*this);
-
-		text = new Mt_label(*this);
-		text->autoupdate = false;
-
-		color.color = normal_color;
-		frame_color.color = frame_normal_color;
-	}
-	~Mt_textbox()
-	{
-		delete caret;
-		delete text;
-	}
 
 	std::string str() const
 	{

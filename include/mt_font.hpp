@@ -9,8 +9,8 @@ private:
 	Mt_application &application;
 
 	TTF_Font *font = nullptr;
-	unsigned short fontSize;
-	int maxHeight;
+	unsigned short fontSize = 0;
+	int maxHeight = 0;
 
 public:
 	SDL_Color color = {0, 0, 0, 255};
@@ -22,13 +22,23 @@ public:
 	{
 		setFont(path, fontSize);
 	}
-
-	void setFont(const std::string &path, unsigned short fontSize)
+	~Mt_font()
 	{
-		this->fontSize = fontSize;
-		this->font = application.getFont(path, fontSize);
+		Debug("Destroying font");
+	}
 
-		TTF_SizeUTF8(font, "0", nullptr, &maxHeight);
+	void setFont(const std::string &path, unsigned short size)
+	{
+		fontSize = size;
+		font = application.getFont(path, size);
+		if (!font)
+		{
+			Warn("Invalid font");
+		}
+		else
+		{
+			TTF_SizeUTF8(font, "0", nullptr, &maxHeight);
+		}
 	}
 
 	TTF_Font *getFont()

@@ -9,14 +9,6 @@
 #include "mt_geometry.hpp"
 #include "mt_font.hpp"
 
-#ifdef DEBUG
-#define Debug(x) std::cout << x << std::endl
-#define DebugFrame(renderer, destR, color) drawRectangle(renderer, destR, color)
-#else
-#define Debug(x)
-#define DebugFrame(renderer, destR, color)
-#endif
-
 using DrawFunction = std::function<SDL_Surface *(TTF_Font *, const char *, SDL_Color)>;
 using DrawFunctionWrapped = std::function<SDL_Surface *(TTF_Font *, const char *, SDL_Color, Uint32)>;
 

@@ -24,23 +24,9 @@ private:
 	Mt_color color;
 	Mt_color frameColor;
 
-public:
-	SDL_Color textColor = {0, 0, 0, 255};
-
-	SDL_Color normal_color = {255, 255, 255, 255};
-	SDL_Color focused_color = {255, 255, 255, 255};
-	SDL_Color hover_color = {255, 255, 255, 255};
-	SDL_Color frame_normal_color = {122, 122, 122, 255};
-	SDL_Color frame_focused_color = {0, 120, 215, 255};
-	SDL_Color frame_hover_color = {23, 23, 23, 255};
-
-	Mt_caret *caret = nullptr;
-
-	bool editable = true;
-
 	Mt_textarea(Mt_window &window, int x, int y, int w, int h) : Mt_widget(window, x, y, w, h)
 	{
-		caret = new Mt_caret(*this);
+		caret = &Mt_caret::create(*this);
 
 		geometry->destR.x = x;
 		geometry->destR.y = y;
@@ -56,11 +42,30 @@ public:
 		color.color = normal_color;
 		frameColor.color = frame_normal_color;
 	}
+	Mt_textarea(const Mt_textarea &) = delete;
+
+public:
+	static Mt_textarea &create(Mt_window &window, int x, int y, int w, int h) { return *(new Mt_textarea(window, x, y, w, h)); }
+
 	~Mt_textarea()
 	{
+		Debug("Destroying textarea");
 		for (auto line : lines)
 			delete line;
 	}
+
+	SDL_Color textColor = {0, 0, 0, 255};
+
+	SDL_Color normal_color = {255, 255, 255, 255};
+	SDL_Color focused_color = {255, 255, 255, 255};
+	SDL_Color hover_color = {255, 255, 255, 255};
+	SDL_Color frame_normal_color = {122, 122, 122, 255};
+	SDL_Color frame_focused_color = {0, 120, 215, 255};
+	SDL_Color frame_hover_color = {23, 23, 23, 255};
+
+	Mt_caret *caret = nullptr;
+
+	bool editable = true;
 
 	std::string str() const
 	{
@@ -183,11 +188,11 @@ public:
 		Mt_label *line = nullptr;
 		if (lines.size() > 0)
 		{
-			line = *lines.insert(lines.begin() + (caretPos_y + 1), new Mt_label(*this));
+			line = *lines.insert(lines.begin() + (caretPos_y + 1), &Mt_label::create(*this));
 		}
 		else
 		{
-			line = *lines.insert(lines.begin(), new Mt_label(*this));
+			line = *lines.insert(lines.begin(), &Mt_label::create(*this));
 		}
 
 		line->text = content;

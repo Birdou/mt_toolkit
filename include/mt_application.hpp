@@ -11,35 +11,47 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 
+#include "escolor.hpp"
+
+#ifdef DEBUG
+#define Debug(x) std::cout << colorstream("[DEBUG] " << __PRETTY_FUNCTION__ << ": " << x, fDARK_GRAY) << std::endl
+#define DebugFrame(renderer, destR, color) drawRectangle(renderer, destR, color)
+#else
+#define Debug(x)
+#define DebugFrame(renderer, destR, color)
+#endif
+#define Log(x) std::cout << "[LOG] " << __FUNCTION__ << ": " << x << std::endl
+#define Warn(x) std::cout << colorstream("[WARN] " << __FUNCTION__ << ": " << x, fLIGHT_YELLOW) << std::endl
+#define Error(x) std::cout << colorstream("[ERROR] " << __FUNCTION__ << ": " << x, fRED) << std::endl
+#define Critical(x) std::cout << colorstream("[CRITICAL] " << __FUNCTION__ << ": " << x, bWHITE << fRED) << std::endl
+
 class Mt_window;
 
 class Mt_application
 {
 private:
 	bool running = false;
-	bool initialized = false;
 
 	std::map<std::pair<std::string, int>, TTF_Font *> fonts;
 
-	Uint32 fStart;
-	Uint32 frameTime;
+	Uint32 fStart = 0;
+	Uint32 frameTime = 0;
 
 	unsigned frameDelay;
+
+	const unsigned short targetFPS = 60;
 
 public:
 	std::map<std::string, Mt_window *> windows;
 	SDL_Event event;
 
-	unsigned short targetFPS = 60;
-
 	TTF_Font *getFont(const std::string &path, int fontSize);
 
-	Mt_application();
+	Mt_application(const std::string &);
 	~Mt_application();
 
-	void init();
-
-	Mt_window *createWindow(const std::string &title, int w, int h);
+	Mt_window &window;
+	Mt_window &createWindow(const std::string &title, int w, int h);
 
 	int operator()();
 	int run();

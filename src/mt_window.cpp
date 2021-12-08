@@ -2,26 +2,42 @@
 #include "mt_window.hpp"
 
 #include "mt_widget.hpp"
+#include "mt_lib.hpp"
 
-Mt_window::Mt_window(Mt_application &application, const std::string &title, int w, int h) : application(application), title(title), width(w), height(h)
+Mt_window::Mt_window(Mt_application &application, const std::string &title, int w, int h) : application(application), title(title)
 {
+	rect.w = w;
+	rect.h = h;
+}
+
+Mt_window &Mt_window::create(Mt_application &application, const std::string &title, int w, int h)
+{
+	return *(new Mt_window(application, title, w, h));
 }
 
 Mt_window::~Mt_window()
 {
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
+	Debug("Destroying window");
+	for (auto widget : widgets)
+		delete widget;
+
+	if (renderer)
+		SDL_DestroyRenderer(renderer);
+
+	if (window)
+		SDL_DestroyWindow(window);
 }
 
 void Mt_window::init()
 {
-	if (fullscreen)
-		flags |= SDL_WINDOW_FULLSCREEN;
-	if (resizable)
-		flags |= SDL_WINDOW_RESIZABLE;
+	return_if(initialized);
 
-	window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, flags);
-	renderer = SDL_CreateRenderer(window, -1, 0);
+	window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, rect.w, rect.h, flags);
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
+	windowID = SDL_GetWindowID(window);
+
+	active = true;
 }
 
 void Mt_window::setIcon(const char *path)
@@ -33,19 +49,19 @@ void Mt_window::setIcon(const char *path)
 
 void Mt_window::setSize(int w, int h)
 {
-	width = w;
-	height = h;
+	rect.w = w;
+	rect.h = h;
 	SDL_SetWindowSize(window, w, h);
 }
 
 int Mt_window::getH() const
 {
-	return height;
+	return rect.h;
 }
 
 int Mt_window::getW() const
 {
-	return width;
+	return rect.w;
 }
 
 Mt_application &Mt_window::getApplication() const
@@ -55,34 +71,46 @@ Mt_application &Mt_window::getApplication() const
 
 void Mt_window::handleEvents()
 {
+	return_if(!shown);
+
 	this->event = application.event;
 
-	switch (event.window.event)
+	if (event.window.windowID == windowID)
 	{
-		switch (event.type)
+		switch (event.window.event)
 		{
 		case SDL_WINDOWEVENT_CLOSE:
-			SDL_HideWindow(window);
+			if (destroyOnClose)
+				active = false;
+			shown = false;
 			break;
 		}
+
+		for (auto widget : widgets)
+			widget->handleEvent();
 	}
-	for (auto widget : widgets)
-		widget->handleEvent();
 }
 
 void Mt_window::update()
 {
+	return_if(!shown);
+
 	for (auto widget : widgets)
 		widget->update();
 }
 
 void Mt_window::draw()
 {
+	return_if(!shown);
+
 	SDL_RenderClear(renderer);
 	SDL_SetRenderDrawColor(renderer, renderColor.r, renderColor.g, renderColor.b, renderColor.a);
 
 	for (auto widget : widgets)
 		widget->draw();
+
+	if (border)
+		Mt_lib::drawRectangle(renderer, rect, Mt_lib::color(0, 0, 0));
 
 	SDL_RenderPresent(renderer);
 }

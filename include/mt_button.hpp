@@ -17,14 +17,48 @@ class Mt_button : public Mt_widget
 private:
 	bool pressed = false;
 	int scale = 1;
-	std::function<void()> func;
 
 	Mt_color color;
 	Mt_color frameColor;
 
 	bool clicked = false;
 
+	Mt_button(Mt_widget &widget) : Mt_widget(widget)
+	{
+		label = &Mt_label::create(*this);
+		label->geometry->setAnchor(Mt_geometry::middle_center);
+		label->renderMethod = [&](Mt_label *label)
+		{
+			return Mt_lib::renderWrapped(window.renderer, label->text, label->font, label->geometry, geometry->destR.w, TTF_RenderUTF8_Blended_Wrapped);
+		};
+
+		color.color = normal_color;
+		frameColor.color = frame_normal_color;
+	}
+	Mt_button(Mt_window &window, int x, int y, int w, int h) : Mt_widget(window, x, y, w, h)
+	{
+		label = &Mt_label::create(*this);
+		label->geometry->setAnchor(Mt_geometry::middle_center);
+		label->renderMethod = [&](Mt_label *label)
+		{
+			return Mt_lib::renderWrapped(window.renderer, label->text, label->font, label->geometry, geometry->destR.w, TTF_RenderUTF8_Blended_Wrapped);
+		};
+
+		color.color = normal_color;
+		frameColor.color = frame_normal_color;
+	}
+	Mt_button(const Mt_button &) = delete;
+
 public:
+	static Mt_button &create(Mt_widget &widget) { return *(new Mt_button(widget)); }
+	static Mt_button &create(Mt_window &window, int x, int y, int w, int h) { return *(new Mt_button(window, x, y, w, h)); }
+
+	~Mt_button()
+	{
+		Debug("Destroying button");
+		delete label;
+	}
+
 	SDL_Color normal_color = {225, 225, 225, 255};
 	SDL_Color hover_color = {229, 241, 251, 255};
 	SDL_Color clicked_color = {204, 228, 247, 255};
@@ -34,44 +68,7 @@ public:
 
 	Mt_label *label = nullptr;
 
-	Mt_button(Mt_widget &widget) : Mt_widget(widget)
-	{
-		label = new Mt_label(*this);
-		label->geometry->setAnchor(Mt_geometry::middle_center);
-		label->renderMethod = [&](Mt_label *label)
-		{
-			return Mt_lib::renderWrapped(window.renderer, label->text, label->font, label->geometry, geometry->destR.w, TTF_RenderUTF8_Blended_Wrapped);
-		};
-
-		color.color = normal_color;
-		frameColor.color = frame_normal_color;
-	}
-	Mt_button(Mt_window &window, int x, int y, int w, int h, std::function<void()> func) : Mt_widget(window, x, y, w, h), func(func)
-	{
-		label = new Mt_label(*this);
-		label->geometry->setAnchor(Mt_geometry::middle_center);
-		label->renderMethod = [&](Mt_label *label)
-		{
-			return Mt_lib::renderWrapped(window.renderer, label->text, label->font, label->geometry, geometry->destR.w, TTF_RenderUTF8_Blended_Wrapped);
-		};
-
-		color.color = normal_color;
-		frameColor.color = frame_normal_color;
-	}
-	~Mt_button()
-	{
-		delete label;
-	}
-
-	void setFunction(std::function<void()> function)
-	{
-		this->func = function;
-	}
-
-	void setVisible(bool visible)
-	{
-		this->visible = visible;
-	}
+	std::function<void()> function = none;
 
 	void updateTextPosition()
 	{
@@ -142,7 +139,7 @@ public:
 							pressed = false;
 							clicked = true;
 
-							func();
+							function();
 						}
 					}
 				}

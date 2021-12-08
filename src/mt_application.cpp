@@ -6,18 +6,46 @@
 #include "mt_lib.hpp"
 #include "mt_window.hpp"
 
-Mt_application::Mt_application()
+Mt_application::Mt_application(const std::string &title) : window(createWindow(title, 600, 400))
 {
 	SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
+
+	frameDelay = 1000 / targetFPS;
+	if (SDL_Init(SDL_INIT_EVERYTHING) == 0)
+	{
+		const int flags = IMG_INIT_JPG | IMG_INIT_PNG | IMG_INIT_TIF;
+		if (IMG_Init(flags) != flags)
+		{
+			Warn("IMG_Init: " << IMG_GetError());
+		}
+		if (TTF_Init() != 0)
+		{
+			Warn("TTF_Init: " << TTF_GetError());
+		}
+	}
+	else
+	{
+		Error("SDL_Init: " << SDL_GetError());
+	}
+	SDL_StartTextInput();
+
+	window.destroyOnClose = true;
 }
 
 Mt_application::~Mt_application()
 {
+	Debug("Destroying application");
 	SDL_StopTextInput();
+
+	for (auto window : windows)
+		delete window.second;
+
 	for (auto font : fonts)
-	{
 		TTF_CloseFont(font.second);
-	}
+
+	TTF_Quit();
+	IMG_Quit();
+	SDL_Quit();
 }
 
 TTF_Font *Mt_application::getFont(const std::string &path, int fontSize)
@@ -39,37 +67,11 @@ TTF_Font *Mt_application::getFont(const std::string &path, int fontSize)
 	}
 }
 
-void Mt_application::init()
+Mt_window &Mt_application::createWindow(const std::string &title, int w, int h)
 {
-	frameDelay = 1000 / targetFPS;
+	auto &window = Mt_window::create(*this, title, w, h);
 
-	if (SDL_Init(SDL_INIT_EVERYTHING) == 0)
-	{
-
-		const int flags = IMG_INIT_JPG | IMG_INIT_PNG | IMG_INIT_TIF;
-		if (IMG_Init(flags) != flags)
-		{
-			std::cout << "IMG_Init: " << IMG_GetError() << std::endl;
-		}
-		if (TTF_Init() != 0)
-		{
-			std::cout << "TTF_Init: " << TTF_GetError() << std::endl;
-		}
-	}
-	else
-	{
-		std::cout << "SDL_Init: " << SDL_GetError() << std::endl;
-	}
-	SDL_StartTextInput();
-	initialized = true;
-}
-
-Mt_window *Mt_application::createWindow(const std::string &title, int w, int h)
-{
-	auto window = new Mt_window(*this, title, w, h);
-	window->init();
-
-	windows.emplace(title, window);
+	windows.emplace(title, &window);
 
 	return window;
 }
@@ -81,32 +83,45 @@ int Mt_application::operator()()
 
 int Mt_application::run()
 {
+	for (auto window : windows)
+		window.second->init();
+
 	running = true;
+
 	while (running)
 	{
-		// FRAME START
 		fStart = SDL_GetTicks();
 
-		for (auto &window : windows)
+		while (SDL_PollEvent(&event))
 		{
-			while (SDL_PollEvent(&event))
+			for (auto &window : windows)
+				window.second->handleEvents();
+		}
+
+		for (auto it = windows.begin(); it != windows.end(); ++it)
+		{
+			if (!it->second->isActive())
 			{
-				switch (event.type)
+				if (it == windows.begin())
 				{
-				case SDL_QUIT:
 					running = false;
 					break;
 				}
-
-				window.second->handleEvents();
+				else
+				{
+					delete it->second;
+					windows.erase(it);
+				}
 			}
+		}
+
+		for (auto &window : windows)
+		{
 			window.second->update();
 			window.second->draw();
 		}
 
-		// FRAME END
 		frameTime = SDL_GetTicks() - fStart;
-
 		if (frameDelay > frameTime)
 		{
 			SDL_Delay(frameDelay - frameTime);
@@ -115,6 +130,7 @@ int Mt_application::run()
 
 	return 0;
 }
+
 void Mt_application::stop()
 {
 	running = false;

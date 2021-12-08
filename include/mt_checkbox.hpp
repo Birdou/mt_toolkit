@@ -55,16 +55,6 @@ private:
 		}
 	}
 
-public:
-	SDL_Color normal_color = {255, 255, 255, 255};
-	SDL_Color hover_color = {255, 255, 255, 255};
-	SDL_Color clicked_color = {204, 228, 247, 255};
-	SDL_Color frame_normal_color = {51, 51, 51, 255};
-	SDL_Color frame_hover_color = {0, 120, 215, 255};
-	SDL_Color frame_clicked_color = {0, 84, 153, 255};
-
-	float checked_size = .7f;
-
 	Mt_checkbox(Mt_window &window, int x, int y, int size) : Mt_widget(window, x, y, size, size)
 	{
 		geometry->destR.w = geometry->destR.h = size;
@@ -76,9 +66,24 @@ public:
 		color.color = normal_color;
 		frame_color.color = frame_normal_color;
 	}
+	Mt_checkbox(const Mt_checkbox &) = delete;
+
+public:
+	static Mt_checkbox &create(Mt_window &window, int x, int y, int size) { return *(new Mt_checkbox(window, x, y, size)); }
+
 	~Mt_checkbox()
 	{
+		Debug("Destroying checkbox");
 	}
+
+	SDL_Color normal_color = {255, 255, 255, 255};
+	SDL_Color hover_color = {255, 255, 255, 255};
+	SDL_Color clicked_color = {204, 228, 247, 255};
+	SDL_Color frame_normal_color = {51, 51, 51, 255};
+	SDL_Color frame_hover_color = {0, 120, 215, 255};
+	SDL_Color frame_clicked_color = {0, 84, 153, 255};
+
+	float checked_size = .7f;
 
 	bool checked()
 	{

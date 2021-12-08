@@ -71,6 +71,7 @@ public:
 	}
 	virtual ~Mt_widget()
 	{
+		Debug("Destroying widget");
 		if (parent == nullptr)
 			delete font;
 		delete geometry;

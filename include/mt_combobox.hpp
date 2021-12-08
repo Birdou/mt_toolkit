@@ -1,7 +1,7 @@
 #ifndef BB5DE797_DB7E_4395_ACCD_25EE508CE326
 #define BB5DE797_DB7E_4395_ACCD_25EE508CE326
 
-#include <vector>
+#include <map>
 
 #include "mt_application.hpp"
 #include "mt_window.hpp"
@@ -12,44 +12,48 @@
 class Mt_comboBox : public Mt_widget
 {
 private:
-	std::vector<std::pair<std::string, Mt_button *>> options;
+	std::map<std::string, Mt_button &> options;
 
 	bool show = false;
 
-public:
-	Mt_textbox *textbox = nullptr;
-	Mt_button *button = nullptr;
 	Mt_comboBox(Mt_window &window, int x, int y, int w, int h) : Mt_widget(window, x, y, w, h)
 	{
-		textbox = new Mt_textbox(*this);
+		textbox = &Mt_textbox::create(*this);
 		textbox->geometry->normalize();
 
-		button = new Mt_button(*this);
+		button = &Mt_button::create(*this);
 		button->label->text = "\u25BC";
-		button->setFunction(
-			[this]()
-			{
-				show = !show;
-			});
+		button->function = [this]()
+		{
+			show = !show;
+		};
 
 		updatePosition();
 	}
+	Mt_comboBox(const Mt_comboBox &) = delete;
+
+public:
+	static Mt_comboBox &create(Mt_window &window, int x, int y, int w, int h) { return *(new Mt_comboBox(window, x, y, w, h)); }
+
 	~Mt_comboBox()
 	{
+		Debug("Destroying comboBox");
 		delete textbox;
 		delete button;
 	}
 
-	void addOption(const std::string &string, std::function<void()> function)
+	Mt_textbox *textbox = nullptr;
+	Mt_button *button = nullptr;
+
+	void addOption(const std::string &string)
 	{
-		Mt_button *button = new Mt_button(*this);
+		auto &button = Mt_button::create(*this);
 
-		button->label->text = string;
-		button->setFunction(function);
+		button.label->text = string;
 
-		button->geometry->setW(geometry->getW());
+		button.geometry->setW(geometry->getW());
 
-		options.emplace_back(std::pair<std::string, Mt_button *>(string, button));
+		options.emplace(string, button);
 	}
 
 	void updatePosition()
@@ -66,17 +70,18 @@ public:
 	void updateOptions()
 	{
 		int prev_y = geometry->destR.y + geometry->getH();
-		for (size_t i = 0; i < options.size(); ++i)
+		// for (size_t i = 0; i < options.size(); ++i)
+		for (auto option : options)
 		{
-			auto button = options[i].second;
+			auto &button = option.second;
 
-			button->geometry->destR.x = geometry->destR.x;
-			button->geometry->destR.y = prev_y;
+			button.geometry->destR.x = geometry->destR.x;
+			button.geometry->destR.y = prev_y;
 
-			button->fitH();
-			button->geometry->normalize();
+			button.fitH();
+			button.geometry->normalize();
 
-			prev_y = button->geometry->destR.y + button->geometry->destR.h;
+			prev_y = button.geometry->destR.y + button.geometry->destR.h;
 		}
 	}
 
@@ -95,7 +100,7 @@ public:
 		{
 			for (auto btn : options)
 			{
-				btn.second->handleEvent();
+				btn.second.handleEvent();
 			}
 		}
 	}
@@ -109,14 +114,14 @@ public:
 		updatePosition();
 		updateOptions();
 
-		if (show)
+		if (show && !options.empty())
 		{
 			Mt_vector<int> mouse(Mt_vector<int>::mousePos());
-			auto last = options.back().second;
+			auto &last = std::prev(options.end())->second;
 			int x = geometry->destR.x;
 			int y = geometry->destR.y;
 			int w = geometry->destR.w;
-			int h = (last->geometry->destR.y + last->geometry->destR.h) - y;
+			int h = (last.geometry->destR.y + last.geometry->destR.h) - y;
 			if (mouse.x >= x + w || mouse.x < x ||
 				mouse.y >= y + h || mouse.y < y)
 			{
@@ -132,8 +137,8 @@ public:
 			}
 			for (auto btn : options)
 			{
-				btn.second->update();
-				if (btn.second->actioned())
+				btn.second.update();
+				if (btn.second.actioned())
 				{
 					window.hovering = nullptr;
 					textbox->str(btn.first);
@@ -152,7 +157,7 @@ public:
 		{
 			for (auto btn : options)
 			{
-				btn.second->draw();
+				btn.second.draw();
 			}
 		}
 	}

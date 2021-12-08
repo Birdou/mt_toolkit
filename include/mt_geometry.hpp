@@ -36,6 +36,10 @@ public:
 	Mt_geometry(int x, int y, int w, int h) : x(x), y(y), w(w), h(h)
 	{
 	}
+	~Mt_geometry()
+	{
+		Debug("Destroying geometry");
+	}
 
 	void setAnchor(Mt_geometry::center anchor)
 	{

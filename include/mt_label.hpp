@@ -17,7 +17,20 @@ class Mt_label : public Mt_widget
 private:
 	SDL_Texture *texture = nullptr;
 
+	Mt_label(Mt_widget &widget) : Mt_widget(widget) {}
+	Mt_label(Mt_window &window, int x, int y) : Mt_widget(window, x, y) {}
+	Mt_label(const Mt_label &) = delete;
+
 public:
+	static Mt_label &create(Mt_window &window, int x, int y) { return *(new Mt_label(window, x, y)); }
+	static Mt_label &create(Mt_widget &widget) { return *(new Mt_label(widget)); }
+
+	~Mt_label()
+	{
+		Debug("Destroying label");
+		SDL_DestroyTexture(texture);
+	}
+
 	std::string text;
 	bool autoupdate = true;
 
@@ -25,17 +38,6 @@ public:
 	{
 		return Mt_lib::renderText(label->window.renderer, label->text, label->font, label->geometry, TTF_RenderUTF8_Blended);
 	};
-
-	Mt_label(Mt_widget &widget) : Mt_widget(widget)
-	{
-	}
-	Mt_label(Mt_window &window, int x, int y) : Mt_widget(window, x, y)
-	{
-	}
-	~Mt_label()
-	{
-		SDL_DestroyTexture(texture);
-	}
 
 	void update() override
 	{

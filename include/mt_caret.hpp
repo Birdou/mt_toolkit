@@ -16,14 +16,19 @@ private:
 
 	bool show = true;
 
-public:
 	Mt_caret(Mt_widget &widget) : Mt_widget(widget)
 	{
 		geometry->destR.w = geometry->srcR.w = geometry->getW();
 		geometry->destR.h = geometry->srcR.h = geometry->getH();
 	}
+	Mt_caret(const Mt_caret &) = delete;
+
+public:
+	static Mt_caret &create(Mt_widget &widget) { return *(new Mt_caret(widget)); }
+
 	~Mt_caret()
 	{
+		Debug("Destroying caret");
 		SDL_DestroyTexture(texture);
 	}
 
