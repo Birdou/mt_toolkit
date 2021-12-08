@@ -51,7 +51,6 @@ public:
 	~Mt_application();
 
 	Mt_window &window;
-	Mt_window &createWindow(const std::string &title, int w, int h);
 
 	int operator()();
 	int run();

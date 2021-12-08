@@ -3,11 +3,47 @@
 
 #include "mt_widget.hpp"
 #include "mt_lib.hpp"
+#include "mt_vector.hpp"
+
+#define RESIZE_BORDER 5
+SDL_HitTestResult SDLCALL Mt_window::hitTest(SDL_Window *, const SDL_Point *pt, void *data)
+{
+	Mt_window *window = (Mt_window *)data;
+	Mt_vector<int> vec(*pt);
+
+	for (auto &widget : window->widgets)
+		if (vec.intercept(widget->geometry->destR))
+			return SDL_HITTEST_NORMAL;
+
+	int w = window->getW();
+	int h = window->getH();
+
+	if (vec.x < RESIZE_BORDER && vec.y < RESIZE_BORDER)
+		return SDL_HITTEST_RESIZE_TOPLEFT;
+	else if (vec.x > RESIZE_BORDER && vec.x < w - RESIZE_BORDER && vec.y < RESIZE_BORDER)
+		return SDL_HITTEST_RESIZE_TOP;
+	else if (vec.x > w - RESIZE_BORDER && vec.y < RESIZE_BORDER)
+		return SDL_HITTEST_RESIZE_TOPRIGHT;
+	else if (vec.x > w - RESIZE_BORDER && vec.y > RESIZE_BORDER && vec.y < h - RESIZE_BORDER)
+		return SDL_HITTEST_RESIZE_RIGHT;
+	else if (vec.x > w - RESIZE_BORDER && vec.y > h - RESIZE_BORDER)
+		return SDL_HITTEST_RESIZE_BOTTOMRIGHT;
+	else if (vec.x < w - RESIZE_BORDER && vec.x > RESIZE_BORDER && vec.y > h - RESIZE_BORDER)
+		return SDL_HITTEST_RESIZE_BOTTOM;
+	else if (vec.x < RESIZE_BORDER && vec.y > h - RESIZE_BORDER)
+		return SDL_HITTEST_RESIZE_BOTTOMLEFT;
+	else if (vec.x < RESIZE_BORDER && vec.y < h - RESIZE_BORDER && vec.y > RESIZE_BORDER)
+		return SDL_HITTEST_RESIZE_LEFT;
+
+	return SDL_HITTEST_DRAGGABLE;
+}
 
 Mt_window::Mt_window(Mt_application &application, const std::string &title, int w, int h) : application(application), title(title)
 {
 	rect.w = w;
 	rect.h = h;
+
+	application.windows.emplace(title, this);
 }
 
 Mt_window &Mt_window::create(Mt_application &application, const std::string &title, int w, int h)
@@ -34,8 +70,10 @@ void Mt_window::init()
 
 	window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, rect.w, rect.h, flags);
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-
 	windowID = SDL_GetWindowID(window);
+
+	if (draggable)
+		SDL_SetWindowHitTest(this->window, hitTest, (void *)this);
 
 	active = true;
 }

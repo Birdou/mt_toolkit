@@ -4,6 +4,8 @@
 #include <sstream>
 #include <cmath>
 
+#include "mt_application.hpp"
+
 template <typename Type>
 class Mt_vector
 {
@@ -20,6 +22,11 @@ public:
 	Mt_vector(const Mt_vector<Type> &vec)
 	{
 		*this = vec;
+	}
+	Mt_vector(const SDL_Point &point)
+	{
+		this->x = point.x;
+		this->y = point.y;
 	}
 	~Mt_vector() {}
 

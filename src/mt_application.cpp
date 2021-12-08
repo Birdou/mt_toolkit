@@ -6,7 +6,7 @@
 #include "mt_lib.hpp"
 #include "mt_window.hpp"
 
-Mt_application::Mt_application(const std::string &title) : window(createWindow(title, 600, 400))
+Mt_application::Mt_application(const std::string &title) : window(Mt_window::create(*this, title, 600, 400))
 {
 	SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
 
@@ -65,15 +65,6 @@ TTF_Font *Mt_application::getFont(const std::string &path, int fontSize)
 		fonts.emplace(std::pair<std::string, int>(path, fontSize), font);
 		return font;
 	}
-}
-
-Mt_window &Mt_application::createWindow(const std::string &title, int w, int h)
-{
-	auto &window = Mt_window::create(*this, title, w, h);
-
-	windows.emplace(title, &window);
-
-	return window;
 }
 
 int Mt_application::operator()()

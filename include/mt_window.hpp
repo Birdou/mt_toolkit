@@ -13,7 +13,9 @@ enum WindowFlags
 	WINDOW_HIDDEN = SDL_WINDOW_HIDDEN,
 	WINDOW_MAXIMIZED = SDL_WINDOW_MAXIMIZED,
 	WINDOW_MINIMIZED = SDL_WINDOW_MINIMIZED,
-	WINDOW_RESIZABLE = SDL_WINDOW_RESIZABLE
+	WINDOW_RESIZABLE = SDL_WINDOW_RESIZABLE,
+
+	WINDOW_DRAGGABLE
 };
 
 class Mt_window
@@ -31,6 +33,8 @@ private:
 	bool shown = true;
 	bool active = false;
 	bool initialized = false;
+
+	bool draggable = false;
 
 	Mt_window(Mt_application &application, const std::string &title, int w, int h);
 	Mt_window(const Mt_window &) = delete;
@@ -54,7 +58,17 @@ public:
 		flags = 0;
 		std::vector<WindowFlags> vec = {args...};
 		for (auto flag : vec)
-			flags |= flag;
+		{
+			switch (flag)
+			{
+			case WINDOW_DRAGGABLE:
+				draggable = true;
+				break;
+			default:
+				flags |= flag;
+				break;
+			}
+		}
 	}
 
 	bool destroyOnClose = false;
@@ -87,6 +101,8 @@ public:
 
 	int getH() const;
 	int getW() const;
+
+	static SDL_HitTestResult SDLCALL hitTest(SDL_Window *, const SDL_Point *pt, void *data);
 
 	Mt_application &getApplication() const;
 

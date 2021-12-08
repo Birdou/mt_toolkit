@@ -15,10 +15,8 @@ int main(/*int argc, char *argv[]*/)
 
 	app.window.setIcon("assets/icon.png");
 
-	auto &window = app.createWindow("Dialog 01", 150, 50);
-	SDL_SetWindowBordered(window.window, SDL_FALSE);
-	window.setFlags(WINDOW_BORDERLESS, WINDOW_HIDDEN, WINDOW_ALWAYS_ON_TOP);
-
+	auto &window = Mt_window::create(app, "Dialog 01", 150, 50);
+	window.setFlags(WINDOW_BORDERLESS, WINDOW_DRAGGABLE, WINDOW_ALWAYS_ON_TOP, WINDOW_HIDDEN);
 	window.border = true;
 
 	auto &btn1 = Mt_button::create(app.window, app.window.getW() / 2, app.window.getH() / 2, 100, 20);
