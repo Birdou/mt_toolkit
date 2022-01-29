@@ -15,7 +15,7 @@ enum WindowFlags
 	WINDOW_MINIMIZED = SDL_WINDOW_MINIMIZED,
 	WINDOW_RESIZABLE = SDL_WINDOW_RESIZABLE,
 
-	WINDOW_DRAGGABLE
+	WINDOW_DRAGGABLE = 0x00100000
 };
 
 class Mt_window
@@ -99,8 +99,8 @@ public:
 	void setIcon(const char *path);
 	void setSize(int w, int h);
 
-	int getH() const;
-	int getW() const;
+	int height() const { return rect.h; }
+	int width() const { return rect.w; }
 
 	static SDL_HitTestResult SDLCALL hitTest(SDL_Window *, const SDL_Point *pt, void *data);
 

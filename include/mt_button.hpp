@@ -23,6 +23,8 @@ private:
 
 	bool clicked = false;
 
+	Uint32 lastPressed;
+
 	Mt_button(Mt_widget &widget) : Mt_widget(widget)
 	{
 		label = &Mt_label::create(*this);
@@ -55,8 +57,11 @@ public:
 
 	~Mt_button()
 	{
-		Debug("Destroying button");
+		Debug("Destroying button...");
+
 		delete label;
+
+		Debug("Done.");
 	}
 
 	SDL_Color normal_color = {225, 225, 225, 255};
@@ -88,83 +93,84 @@ public:
 
 	void handleEvent() override
 	{
+		HANDLE_WINDOW_EVENTS;
 	}
 
 	void update() override
 	{
-		clicked = false;
+		if (clicked)
+		{
+			function();
+			clicked = false;
+		}
+
 		color.update();
 		frameColor.update();
 
 		updateTextPosition();
 		label->update();
 
-		if (visible)
+		return_if(!visible);
+
+		if (Mt_vector<int>::mousePos().intercept(geometry->destR))
 		{
-			if (Mt_vector<int>::mousePos().intercept(geometry->destR))
+			if (window.hovering == nullptr)
+			{
+				window.hovering = this;
+				color.fadeInto(&hover_color);
+				frameColor.fadeInto(&frame_hover_color);
+			}
+			if (window.hovering == this)
 			{
 				onHover();
-				// SetCursor(SDL_SYSTEM_CURSOR_IBEAM);
-				if (window.hovering == nullptr)
+				if (pressed)
 				{
-					window.hovering = this;
-					color.fadeInto(&hover_color);
-					frameColor.fadeInto(&frame_hover_color);
-				}
-				if (!pressed)
-				{
-					if (window.event.type == SDL_MOUSEBUTTONDOWN)
-					{
-						if (window.event.button.button == SDL_BUTTON_LEFT)
-						{
-							if (window.hovering == this)
-							{
-								onMouseDown();
+					if (SDL_GetTicks() - lastPressed > 300)
+						onClicked();
 
-								pressed = true;
-								color.fadeInto(&clicked_color);
-								frameColor.fadeInto(&frame_clicked_color);
-							}
-						}
+					if (window.event.type == SDL_MOUSEBUTTONUP && window.event.button.button == SDL_BUTTON_LEFT)
+					{
+						onMouseUp();
+
+						pressed = false;
+						clicked = true;
 					}
 				}
-				else if (window.event.type == SDL_MOUSEBUTTONUP)
+				else
 				{
-					if (window.event.button.button == SDL_BUTTON_LEFT)
+					if (window.event.type == SDL_MOUSEBUTTONDOWN && window.event.button.button == SDL_BUTTON_LEFT)
 					{
-						if (window.hovering == this)
-						{
-							onMouseUp();
+						onMouseDown();
+						onClicked();
 
-							pressed = false;
-							clicked = true;
+						pressed = true;
+						lastPressed = SDL_GetTicks();
 
-							function();
-						}
+						color.fadeInto(&clicked_color);
+						frameColor.fadeInto(&frame_clicked_color);
 					}
 				}
 			}
-			else
+		}
+		else
+		{
+			if (window.hovering == this)
 			{
-				if (window.hovering == this)
-				{
-					pressed = false;
-					window.hovering = nullptr;
-					color.fadeInto(&normal_color);
-					frameColor.fadeInto(&frame_normal_color);
-				}
+				pressed = false;
+				window.hovering = nullptr;
+				color.fadeInto(&normal_color);
+				frameColor.fadeInto(&frame_normal_color);
 			}
 		}
 	}
 
 	void draw() override
 	{
-		if (visible)
-		{
-			Mt_lib::drawFillRectangle(window.renderer, geometry->destR, color.color);
-			Mt_lib::drawRectangle(window.renderer, geometry->destR, frameColor.color);
-			label->draw();
-		}
+		return_if(!visible);
+
+		Mt_lib::drawFillRectangle(window.renderer, geometry->destR, color.color);
+		Mt_lib::drawRectangle(window.renderer, geometry->destR, frameColor.color);
+		label->draw();
 	}
 };
 

@@ -15,13 +15,7 @@ private:
 	float sr, sg, sb, sa;
 
 public:
-	SDL_Color color;
-	Mt_color()
-	{
-	}
-	~Mt_color()
-	{
-	}
+	SDL_Color color = {0, 0, 0, 0};
 
 	void fadeInto(SDL_Color *target_color, int frames = 8)
 	{

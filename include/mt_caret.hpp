@@ -29,7 +29,10 @@ public:
 	~Mt_caret()
 	{
 		Debug("Destroying caret");
+
 		SDL_DestroyTexture(texture);
+
+		// Debug("Done.");
 	}
 
 	void update() override

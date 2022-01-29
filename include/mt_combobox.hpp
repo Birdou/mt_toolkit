@@ -12,7 +12,7 @@
 class Mt_comboBox : public Mt_widget
 {
 private:
-	std::map<std::string, Mt_button &> options;
+	std::map<std::string, Mt_button *> options;
 
 	bool show = false;
 
@@ -26,6 +26,8 @@ private:
 		button->function = [this]()
 		{
 			show = !show;
+			for (auto btn : options)
+				btn.second->visible = show;
 		};
 
 		updatePosition();
@@ -37,9 +39,12 @@ public:
 
 	~Mt_comboBox()
 	{
-		Debug("Destroying comboBox");
+		Debug("Destroying comboBox...");
+
 		delete textbox;
 		delete button;
+
+		Debug("Done.");
 	}
 
 	Mt_textbox *textbox = nullptr;
@@ -47,11 +52,12 @@ public:
 
 	void addOption(const std::string &string)
 	{
-		auto &button = Mt_button::create(*this);
+		auto button = &Mt_button::create(*this);
 
-		button.label->text = string;
+		button->label->text = string;
 
-		button.geometry->setW(geometry->getW());
+		button->geometry->setW(geometry->getW());
+		button->visible = show;
 
 		options.emplace(string, button);
 	}
@@ -70,18 +76,17 @@ public:
 	void updateOptions()
 	{
 		int prev_y = geometry->destR.y + geometry->getH();
-		// for (size_t i = 0; i < options.size(); ++i)
 		for (auto option : options)
 		{
 			auto &button = option.second;
 
-			button.geometry->destR.x = geometry->destR.x;
-			button.geometry->destR.y = prev_y;
+			button->geometry->destR.x = geometry->destR.x;
+			button->geometry->destR.y = prev_y;
 
-			button.fitH();
-			button.geometry->normalize();
+			button->fitH();
+			button->geometry->normalize();
 
-			prev_y = button.geometry->destR.y + button.geometry->destR.h;
+			prev_y = button->geometry->destR.y + button->geometry->destR.h;
 		}
 	}
 
@@ -92,17 +97,15 @@ public:
 
 	void handleEvent() override
 	{
+		HANDLE_WINDOW_EVENTS;
+
 		return_if(!visible);
 
 		textbox->handleEvent();
 		button->handleEvent();
-		if (show)
-		{
-			for (auto btn : options)
-			{
-				btn.second.handleEvent();
-			}
-		}
+
+		for (auto btn : options)
+			btn.second->handleEvent();
 	}
 	void update() override
 	{
@@ -114,6 +117,9 @@ public:
 		updatePosition();
 		updateOptions();
 
+		for (auto btn : options)
+			btn.second->update();
+
 		if (show && !options.empty())
 		{
 			Mt_vector<int> mouse(Mt_vector<int>::mousePos());
@@ -121,7 +127,7 @@ public:
 			int x = geometry->destR.x;
 			int y = geometry->destR.y;
 			int w = geometry->destR.w;
-			int h = (last.geometry->destR.y + last.geometry->destR.h) - y;
+			int h = (last->geometry->destR.y + last->geometry->destR.h) - y;
 			if (mouse.x >= x + w || mouse.x < x ||
 				mouse.y >= y + h || mouse.y < y)
 			{
@@ -137,29 +143,25 @@ public:
 			}
 			for (auto btn : options)
 			{
-				btn.second.update();
-				if (btn.second.actioned())
+				if (btn.second->actioned())
 				{
-					window.hovering = nullptr;
+					// window.hovering = nullptr;
 					textbox->str(btn.first);
 					show = false;
 				}
 			}
 		}
 	}
+
 	void draw() override
 	{
 		return_if(!visible);
 
 		textbox->draw();
 		button->draw();
-		if (show)
-		{
-			for (auto btn : options)
-			{
-				btn.second.draw();
-			}
-		}
+
+		for (auto btn : options)
+			btn.second->draw();
 	}
 };
 

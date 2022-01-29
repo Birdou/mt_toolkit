@@ -18,43 +18,6 @@ private:
 	Mt_color color;
 	Mt_color frame_color;
 
-	void onHover()
-	{
-		if (window.hovering == nullptr)
-		{
-			window.hovering = this;
-			color.fadeInto(&hover_color);
-			frame_color.fadeInto(&frame_hover_color);
-		}
-	}
-	void onMouseDown()
-	{
-		if (window.hovering == this)
-		{
-			pressed = true;
-			color.fadeInto(&clicked_color);
-			frame_color.fadeInto(&frame_clicked_color);
-		}
-	}
-	void onMouseUp()
-	{
-		if (window.hovering == this)
-		{
-			isChecked = !isChecked;
-			pressed = false;
-		}
-	}
-	void onMouseLeave()
-	{
-		if (window.hovering == this)
-		{
-			pressed = false;
-			window.hovering = nullptr;
-			color.fadeInto(&normal_color);
-			frame_color.fadeInto(&frame_normal_color);
-		}
-	}
-
 	Mt_checkbox(Mt_window &window, int x, int y, int size) : Mt_widget(window, x, y, size, size)
 	{
 		geometry->destR.w = geometry->destR.h = size;
@@ -74,6 +37,7 @@ public:
 	~Mt_checkbox()
 	{
 		Debug("Destroying checkbox");
+		// Debug("Done.");
 	}
 
 	SDL_Color normal_color = {255, 255, 255, 255};
@@ -92,54 +56,76 @@ public:
 
 	void handleEvent() override
 	{
+		HANDLE_WINDOW_EVENTS;
+
+		return_if(!visible);
+	}
+
+	void update() override
+	{
+		color.update();
+		frame_color.update();
+
 		return_if(!visible);
 
-		Mt_vector<int> mouse(Mt_vector<int>::mousePos());
-		if (mouse.x < geometry->destR.x + geometry->destR.w && mouse.y < geometry->destR.y + geometry->destR.h &&
-			mouse.x >= geometry->destR.x && mouse.y >= geometry->destR.y)
+		if (Mt_vector<int>::mousePos().intercept(geometry->destR))
 		{
-			if (!pressed)
+			if (window.hovering == nullptr)
+			{
+				window.hovering = this;
+				color.fadeInto(&hover_color);
+				frame_color.fadeInto(&frame_hover_color);
+			}
+			if (window.hovering == this)
 			{
 				onHover();
-				if (window.event.type == SDL_MOUSEBUTTONDOWN)
+				if (window.event.type == SDL_MOUSEBUTTONDOWN && !pressed)
 				{
 					switch (window.event.button.button)
 					{
 					case SDL_BUTTON_LEFT:
 						onMouseDown();
+
+						pressed = true;
+						color.fadeInto(&clicked_color);
+						frame_color.fadeInto(&frame_clicked_color);
+						break;
+					default:
+						break;
+					}
+				}
+				else if (window.event.type == SDL_MOUSEBUTTONUP && pressed)
+				{
+					switch (window.event.button.button)
+					{
+					case SDL_BUTTON_LEFT:
+						onMouseUp();
+
+						isChecked = !isChecked;
+						pressed = false;
 						break;
 					default:
 						break;
 					}
 				}
 			}
-			else if (window.event.type == SDL_MOUSEBUTTONUP)
-			{
-				switch (window.event.button.button)
-				{
-				case SDL_BUTTON_LEFT:
-					onMouseUp();
-					break;
-				default:
-					break;
-				}
-			}
 		}
 		else
 		{
-			onMouseLeave();
+			if (window.hovering == this)
+			{
+				onMouseLeave();
+
+				pressed = false;
+				window.hovering = nullptr;
+				color.fadeInto(&normal_color);
+				frame_color.fadeInto(&frame_normal_color);
+			}
 		}
 	}
 
-	void update() override
-	{
-		return_if(!visible);
-
-		color.update();
-		frame_color.update();
-	}
-
-	void draw() override
+	void
+	draw() override
 	{
 		return_if(!visible);
 

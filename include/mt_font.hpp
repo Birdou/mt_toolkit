@@ -25,6 +25,8 @@ public:
 	~Mt_font()
 	{
 		Debug("Destroying font");
+
+		// Debug("Done.");
 	}
 
 	void setFont(const std::string &path, unsigned short size)

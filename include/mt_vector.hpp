@@ -28,7 +28,11 @@ public:
 		this->x = point.x;
 		this->y = point.y;
 	}
-	~Mt_vector() {}
+	~Mt_vector()
+	{
+		// Debug("Destroying vector");
+		// Debug("Done.");
+	}
 
 	Mt_vector<Type> &operator=(const Mt_vector<Type> &vec)
 	{

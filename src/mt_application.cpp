@@ -34,7 +34,7 @@ Mt_application::Mt_application(const std::string &title) : window(Mt_window::cre
 
 Mt_application::~Mt_application()
 {
-	Debug("Destroying application");
+	Debug("Destroying application...");
 	SDL_StopTextInput();
 
 	for (auto window : windows)
@@ -46,6 +46,8 @@ Mt_application::~Mt_application()
 	TTF_Quit();
 	IMG_Quit();
 	SDL_Quit();
+
+	Debug("Done.");
 }
 
 TTF_Font *Mt_application::getFont(const std::string &path, int fontSize)
@@ -89,7 +91,7 @@ int Mt_application::run()
 				window.second->handleEvents();
 		}
 
-		for (auto it = windows.begin(); it != windows.end(); ++it)
+		for (auto it = windows.begin(); it != windows.end();)
 		{
 			if (!it->second->isActive())
 			{
@@ -103,6 +105,10 @@ int Mt_application::run()
 					delete it->second;
 					windows.erase(it);
 				}
+			}
+			else
+			{
+				it++;
 			}
 		}
 

@@ -12,11 +12,11 @@ SDL_HitTestResult SDLCALL Mt_window::hitTest(SDL_Window *, const SDL_Point *pt, 
 	Mt_vector<int> vec(*pt);
 
 	for (auto &widget : window->widgets)
-		if (vec.intercept(widget->geometry->destR))
+		if (widget->visible && vec.intercept(widget->geometry->destR))
 			return SDL_HITTEST_NORMAL;
 
-	int w = window->getW();
-	int h = window->getH();
+	int w = window->width();
+	int h = window->height();
 
 	if (vec.x < RESIZE_BORDER && vec.y < RESIZE_BORDER)
 		return SDL_HITTEST_RESIZE_TOPLEFT;
@@ -40,8 +40,7 @@ SDL_HitTestResult SDLCALL Mt_window::hitTest(SDL_Window *, const SDL_Point *pt, 
 
 Mt_window::Mt_window(Mt_application &application, const std::string &title, int w, int h) : application(application), title(title)
 {
-	rect.w = w;
-	rect.h = h;
+	rect = {0, 0, w, h};
 
 	application.windows.emplace(title, this);
 }
@@ -53,15 +52,19 @@ Mt_window &Mt_window::create(Mt_application &application, const std::string &tit
 
 Mt_window::~Mt_window()
 {
-	Debug("Destroying window");
+	Debug("Destroying window...");
+
 	for (auto widget : widgets)
-		delete widget;
+		if (!widget->getParent())
+			delete widget;
 
 	if (renderer)
 		SDL_DestroyRenderer(renderer);
 
 	if (window)
 		SDL_DestroyWindow(window);
+
+	Debug("Done.");
 }
 
 void Mt_window::init()
@@ -69,11 +72,12 @@ void Mt_window::init()
 	return_if(initialized);
 
 	window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, rect.w, rect.h, flags);
-	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	windowID = SDL_GetWindowID(window);
-
 	if (draggable)
 		SDL_SetWindowHitTest(this->window, hitTest, (void *)this);
+
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
 	active = true;
 }
@@ -92,16 +96,6 @@ void Mt_window::setSize(int w, int h)
 	SDL_SetWindowSize(window, w, h);
 }
 
-int Mt_window::getH() const
-{
-	return rect.h;
-}
-
-int Mt_window::getW() const
-{
-	return rect.w;
-}
-
 Mt_application &Mt_window::getApplication() const
 {
 	return application;
@@ -115,17 +109,25 @@ void Mt_window::handleEvents()
 
 	if (event.window.windowID == windowID)
 	{
-		switch (event.window.event)
+		if (event.type == SDL_WINDOWEVENT)
 		{
-		case SDL_WINDOWEVENT_CLOSE:
-			if (destroyOnClose)
-				active = false;
-			shown = false;
-			break;
+			switch (event.window.event)
+			{
+			case SDL_WINDOWEVENT_CLOSE:
+				shown = false;
+				if (destroyOnClose)
+					active = false;
+				break;
+			case SDL_WINDOWEVENT_RESIZED:
+				rect.w = event.window.data1;
+				rect.h = event.window.data2;
+				break;
+			}
 		}
 
 		for (auto widget : widgets)
-			widget->handleEvent();
+			if (!widget->getParent())
+				widget->handleEvent();
 	}
 }
 
@@ -133,8 +135,24 @@ void Mt_window::update()
 {
 	return_if(!shown);
 
+	// refresh
+	for (auto it = widgets.begin(); it != widgets.end();)
+	{
+		if (!(*it)->isActive())
+		{
+			delete (*it);
+			widgets.erase(it);
+		}
+		else
+		{
+			it++;
+		}
+	}
+
+	// update
 	for (auto widget : widgets)
-		widget->update();
+		if (!widget->getParent())
+			widget->update();
 }
 
 void Mt_window::draw()
@@ -145,10 +163,11 @@ void Mt_window::draw()
 	SDL_SetRenderDrawColor(renderer, renderColor.r, renderColor.g, renderColor.b, renderColor.a);
 
 	for (auto widget : widgets)
-		widget->draw();
+		if (!widget->getParent())
+			widget->draw();
 
 	if (border)
-		Mt_lib::drawRectangle(renderer, rect, Mt_lib::color(0, 0, 0));
+		Mt_lib::drawRectangle(renderer, rect, borderColor);
 
 	SDL_RenderPresent(renderer);
 }
