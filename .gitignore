@@ -1,3 +1,6 @@
 .vscode
 objects
+gallery
+*.jpg
+*.png
 *.exe

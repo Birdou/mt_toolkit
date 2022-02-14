@@ -5,6 +5,156 @@
 #include "mt_lib.hpp"
 #include "mt_vector.hpp"
 
+Mt_window::Mt_window(Mt_application &application, const std::string &title, int w, int h, int flags) : application(application), title(title)
+{
+	rect = {0, 0, w, h};
+
+	window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, flags);
+	windowID = SDL_GetWindowID(window);
+
+	renderer = new Mt_renderer(window);
+
+	active = true;
+}
+
+Mt_window::Mt_window(Mt_window &parentWindow, const std::string &title, int w, int h, int flags) : application(parentWindow.application), title(title)
+{
+	rect = {0, 0, w, h};
+
+	int posx, posy;
+	parentWindow.getPostition(posx, posy);
+	int x = posx + (parentWindow.rect.w / 2) - (w / 2);
+	int y = posy + (parentWindow.rect.h / 2) - (h / 2);
+
+	window = SDL_CreateWindow(title.c_str(), x, y, w, h, flags);
+	windowID = SDL_GetWindowID(window);
+
+	renderer = new Mt_renderer(window);
+
+	active = true;
+}
+
+void Mt_window::setDraggable(bool draggable)
+{
+	this->draggable = draggable;
+	if (draggable)
+		SDL_SetWindowHitTest(window, hitTest, (void *)this);
+	else
+		SDL_SetWindowHitTest(window, NULL, NULL);
+}
+bool Mt_window::isDraggable()
+{
+	return draggable;
+}
+
+Mt_window::Mt_messageBox Mt_window::createMessageBox()
+{
+	return Mt_messageBox(*this);
+}
+void Mt_window::showSimpleMessageBox(const char *title, const char *message, int flags)
+{
+	SDL_ShowSimpleMessageBox(flags, title, message, window);
+}
+
+void Mt_window::getPostition(int &x, int &y)
+{
+	SDL_GetWindowPosition(window, &x, &y);
+}
+Mt_window::~Mt_window()
+{
+	Debug("Destroying window...");
+
+	for (auto widget : widgets)
+		if (!widget->getParent())
+			delete widget;
+
+	for (auto window : windows)
+		delete window.second;
+
+	for (auto coroutine : coroutines)
+	{
+		coroutine->join();
+		delete coroutine;
+	}
+
+	delete renderer;
+
+	if (window)
+		SDL_DestroyWindow(window);
+
+	Debug("Done.");
+}
+
+bool Mt_window::isActive() const
+{
+	return active;
+}
+
+Mt_window &Mt_window::createChild(const std::string &title, const std::string &id, int width, int height, int flags)
+{
+	Mt_window *window = new Mt_window(*this, title, width, height, flags);
+	windows.emplace(id, window);
+	return *window;
+}
+Mt_window &Mt_window::getChildById(const std::string &id)
+{
+	if (windows.find(id) == windows.end())
+		throw window_not_found();
+	return *windows[id];
+}
+
+void Mt_window::hide()
+{
+	if (window)
+		SDL_HideWindow(window);
+	shown = false;
+}
+
+void Mt_window::show()
+{
+	if (window)
+		SDL_ShowWindow(window);
+	shown = true;
+}
+
+void Mt_window::destroy()
+{
+	active = false;
+}
+
+void Mt_window::setSize(int w, int h)
+{
+	if (w <= 0 || h <= 0)
+		return;
+
+	if (window)
+		SDL_SetWindowSize(window, w, h);
+
+	int x, y;
+	SDL_GetWindowPosition(window, &x, &y);
+
+	rect.w = w;
+	rect.h = h;
+}
+
+void Mt_window::setIcon(const char *file)
+{
+	SDL_Surface *surf = IMG_Load(file);
+	if (surf == nullptr)
+		SDL_PrintError(Error);
+	SDL_SetWindowIcon(window, surf);
+	SDL_FreeSurface(surf);
+}
+
+int Mt_window::height() const
+{
+	return rect.h;
+}
+int Mt_window::width() const
+{
+	return rect.w;
+}
+
 #define RESIZE_BORDER 5
 SDL_HitTestResult SDLCALL Mt_window::hitTest(SDL_Window *, const SDL_Point *pt, void *data)
 {
@@ -38,64 +188,6 @@ SDL_HitTestResult SDLCALL Mt_window::hitTest(SDL_Window *, const SDL_Point *pt, 
 	return SDL_HITTEST_DRAGGABLE;
 }
 
-Mt_window::Mt_window(Mt_application &application, const std::string &title, int w, int h) : application(application), title(title)
-{
-	rect = {0, 0, w, h};
-
-	application.windows.emplace(title, this);
-}
-
-Mt_window &Mt_window::create(Mt_application &application, const std::string &title, int w, int h)
-{
-	return *(new Mt_window(application, title, w, h));
-}
-
-Mt_window::~Mt_window()
-{
-	Debug("Destroying window...");
-
-	for (auto widget : widgets)
-		if (!widget->getParent())
-			delete widget;
-
-	if (renderer)
-		SDL_DestroyRenderer(renderer);
-
-	if (window)
-		SDL_DestroyWindow(window);
-
-	Debug("Done.");
-}
-
-void Mt_window::init()
-{
-	return_if(initialized);
-
-	window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, rect.w, rect.h, flags);
-	windowID = SDL_GetWindowID(window);
-	if (draggable)
-		SDL_SetWindowHitTest(this->window, hitTest, (void *)this);
-
-	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-
-	active = true;
-}
-
-void Mt_window::setIcon(const char *path)
-{
-	SDL_Surface *surf = IMG_Load(path);
-	SDL_SetWindowIcon(window, surf);
-	SDL_FreeSurface(surf);
-}
-
-void Mt_window::setSize(int w, int h)
-{
-	rect.w = w;
-	rect.h = h;
-	SDL_SetWindowSize(window, w, h);
-}
-
 Mt_application &Mt_window::getApplication() const
 {
 	return application;
@@ -114,7 +206,7 @@ void Mt_window::handleEvents()
 			switch (event.window.event)
 			{
 			case SDL_WINDOWEVENT_CLOSE:
-				shown = false;
+				hide();
 				if (destroyOnClose)
 					active = false;
 				break;
@@ -129,13 +221,16 @@ void Mt_window::handleEvents()
 			if (!widget->getParent())
 				widget->handleEvent();
 	}
+
+	for (auto &window : windows)
+		window.second->handleEvents();
 }
 
 void Mt_window::update()
 {
 	return_if(!shown);
 
-	// refresh
+	// refresh widgets
 	for (auto it = widgets.begin(); it != widgets.end();)
 	{
 		if (!(*it)->isActive())
@@ -148,26 +243,45 @@ void Mt_window::update()
 			it++;
 		}
 	}
+	// refresh windows
+	for (auto it = windows.begin(); it != windows.end();)
+	{
+		if (!it->second->isActive())
+		{
+			delete it->second;
+			windows.erase(it);
+		}
+		else
+		{
+			it++;
+		}
+	}
 
 	// update
 	for (auto widget : widgets)
 		if (!widget->getParent())
 			widget->update();
+
+	for (auto &window : windows)
+		window.second->update();
 }
 
 void Mt_window::draw()
 {
 	return_if(!shown);
 
-	SDL_RenderClear(renderer);
-	SDL_SetRenderDrawColor(renderer, renderColor.r, renderColor.g, renderColor.b, renderColor.a);
+	renderer->clear();
+	renderer->setDrawColor(backgroundColor);
 
 	for (auto widget : widgets)
 		if (!widget->getParent())
 			widget->draw();
 
 	if (border)
-		Mt_lib::drawRectangle(renderer, rect, borderColor);
+		renderer->drawRectangle(rect, borderColor);
 
-	SDL_RenderPresent(renderer);
+	renderer->present();
+
+	for (auto &window : windows)
+		window.second->draw();
 }

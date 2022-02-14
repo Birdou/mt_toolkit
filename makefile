@@ -30,7 +30,7 @@ COMPILATION_FLAGS=-Wall -Wextra -pedantic -std=c++11 $(SDL_COMP_FLAGS) -O3
 LINKER_FLAGS=$(SDL_LINK_FLAGS)
 
 #environment defines (to use with #ifdef for example)
-DEFINES=#DEBUG
+DEFINES=DEBUG
 ################################
 
 PERCENT=0

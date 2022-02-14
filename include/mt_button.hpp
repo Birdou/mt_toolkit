@@ -18,160 +18,35 @@ private:
 	bool pressed = false;
 	int scale = 1;
 
-	Mt_color color;
-	Mt_color frameColor;
-
 	bool clicked = false;
 
 	Uint32 lastPressed;
 
-	Mt_button(Mt_widget &widget) : Mt_widget(widget)
-	{
-		label = &Mt_label::create(*this);
-		label->geometry->setAnchor(Mt_geometry::middle_center);
-		label->renderMethod = [&](Mt_label *label)
-		{
-			return Mt_lib::renderWrapped(window.renderer, label->text, label->font, label->geometry, geometry->destR.w, TTF_RenderUTF8_Blended_Wrapped);
-		};
+	Mt_button(Mt_widget &widget);
+	Mt_button(Mt_window &window, int x, int y, int w, int h);
+	Mt_button(const Mt_button &);
 
-		color.color = normal_color;
-		frameColor.color = frame_normal_color;
-	}
-	Mt_button(Mt_window &window, int x, int y, int w, int h) : Mt_widget(window, x, y, w, h)
-	{
-		label = &Mt_label::create(*this);
-		label->geometry->setAnchor(Mt_geometry::middle_center);
-		label->renderMethod = [&](Mt_label *label)
-		{
-			return Mt_lib::renderWrapped(window.renderer, label->text, label->font, label->geometry, geometry->destR.w, TTF_RenderUTF8_Blended_Wrapped);
-		};
-
-		color.color = normal_color;
-		frameColor.color = frame_normal_color;
-	}
-	Mt_button(const Mt_button &) = delete;
+	void init();
 
 public:
-	static Mt_button &create(Mt_widget &widget) { return *(new Mt_button(widget)); }
-	static Mt_button &create(Mt_window &window, int x, int y, int w, int h) { return *(new Mt_button(window, x, y, w, h)); }
+	static Mt_button &create(Mt_widget &widget);
+	static Mt_button &create(Mt_window &window, int x, int y, int w, int h);
 
-	~Mt_button()
-	{
-		Debug("Destroying button...");
-
-		delete label;
-
-		Debug("Done.");
-	}
-
-	SDL_Color normal_color = {225, 225, 225, 255};
-	SDL_Color hover_color = {229, 241, 251, 255};
-	SDL_Color clicked_color = {204, 228, 247, 255};
-	SDL_Color frame_normal_color = {173, 173, 173, 255};
-	SDL_Color frame_hover_color = {0, 120, 215, 255};
-	SDL_Color frame_clicked_color = {0, 84, 153, 255};
+	~Mt_button();
 
 	Mt_label *label = nullptr;
 
 	std::function<void()> function = none;
 
-	void updateTextPosition()
-	{
-		label->geometry->setX(geometry->destR.x + (geometry->destR.w / 2));
-		label->geometry->setY(geometry->destR.y + (geometry->destR.h / 2));
-	}
+	void updateTextPosition();
 
-	bool actioned()
-	{
-		return clicked;
-	}
+	bool actioned();
 
-	void fitH(int padding = 4)
-	{
-		geometry->setH(label->font->getH() + (2 * padding));
-	}
+	void fitH(int padding = 4);
 
-	void handleEvent() override
-	{
-		HANDLE_WINDOW_EVENTS;
-	}
-
-	void update() override
-	{
-		if (clicked)
-		{
-			function();
-			clicked = false;
-		}
-
-		color.update();
-		frameColor.update();
-
-		updateTextPosition();
-		label->update();
-
-		return_if(!visible);
-
-		if (Mt_vector<int>::mousePos().intercept(geometry->destR))
-		{
-			if (window.hovering == nullptr)
-			{
-				window.hovering = this;
-				color.fadeInto(&hover_color);
-				frameColor.fadeInto(&frame_hover_color);
-			}
-			if (window.hovering == this)
-			{
-				onHover();
-				if (pressed)
-				{
-					if (SDL_GetTicks() - lastPressed > 300)
-						onClicked();
-
-					if (window.event.type == SDL_MOUSEBUTTONUP && window.event.button.button == SDL_BUTTON_LEFT)
-					{
-						onMouseUp();
-
-						pressed = false;
-						clicked = true;
-					}
-				}
-				else
-				{
-					if (window.event.type == SDL_MOUSEBUTTONDOWN && window.event.button.button == SDL_BUTTON_LEFT)
-					{
-						onMouseDown();
-						onClicked();
-
-						pressed = true;
-						lastPressed = SDL_GetTicks();
-
-						color.fadeInto(&clicked_color);
-						frameColor.fadeInto(&frame_clicked_color);
-					}
-				}
-			}
-		}
-		else
-		{
-			if (window.hovering == this)
-			{
-				pressed = false;
-				window.hovering = nullptr;
-				color.fadeInto(&normal_color);
-				frameColor.fadeInto(&frame_normal_color);
-			}
-		}
-	}
-
-	void draw() override
-	{
-		return_if(!visible);
-
-		Mt_lib::drawFillRectangle(window.renderer, geometry->destR, color.color);
-		Mt_lib::drawRectangle(window.renderer, geometry->destR, frameColor.color);
-		label->draw();
-	}
+	void handleEvent() override;
+	void update() override;
+	void draw() override;
 };
 
 #endif /* FFA654A9_41EE_4A84_BF89_4157CBE82750 */

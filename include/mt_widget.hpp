@@ -25,6 +25,9 @@
 		}                                                                                  \
 	}
 
+template <typename... Args>
+using Event = std::function<void(Args...)>;
+
 class Mt_widget
 {
 protected:
@@ -35,18 +38,7 @@ protected:
 
 	SDL_SystemCursor cursorId;
 	SDL_Cursor *cursor = nullptr;
-	void SetCursor(SDL_SystemCursor id)
-	{
-		if (id == cursorId)
-			return;
-
-		if (cursor)
-			SDL_FreeCursor(cursor);
-
-		cursorId = id;
-		cursor = SDL_CreateSystemCursor(id);
-		SDL_SetCursor(cursor);
-	}
+	void SetCursor(SDL_SystemCursor id);
 
 	void *parent = nullptr;
 
@@ -60,50 +52,30 @@ public:
 	Mt_color backgroundColor;
 	Mt_color borderColor;
 
+	Mt_RGBA normalColor;
+	Mt_RGBA focusedColor;
+	Mt_RGBA hoverColor;
+	Mt_RGBA clickedColor;
+
+	Mt_RGBA frameNormalColor;
+	Mt_RGBA frameFocusedColor;
+	Mt_RGBA frameHoverColor;
+	Mt_RGBA frameClickedColor;
+
 	static std::string defaultFont;
 	static int defaultFontSize;
 
-	Mt_widget(Mt_widget &widget) : window(widget.window), font(widget.font)
-	{
-		geometry = new Mt_geometry();
-		parent = &widget;
+	Mt_widget(Mt_widget &widget);
+	Mt_widget(Mt_window &window, int x, int y);
+	Mt_widget(Mt_window &window, int x, int y, int w, int h);
+	virtual ~Mt_widget();
 
-		window.widgets.emplace_back(this);
-	}
-	Mt_widget(Mt_window &window, int x, int y) : window(window)
-	{
-		font = new Mt_font(window.getApplication(), defaultFont, defaultFontSize);
-		geometry = new Mt_geometry(x, y);
+	void destroy();
+	bool isActive();
 
-		window.widgets.emplace_back(this);
-	}
-	Mt_widget(Mt_window &window, int x, int y, int w, int h) : window(window)
-	{
-		font = new Mt_font(window.getApplication(), defaultFont, defaultFontSize);
-		geometry = new Mt_geometry(x, y, w, h);
-		geometry->normalize();
+	void *getParent();
 
-		window.widgets.emplace_back(this);
-	}
-	virtual ~Mt_widget()
-	{
-		Debug("Destroying widget...");
-		if (parent == nullptr)
-			delete font;
-		delete geometry;
-
-		if (cursor)
-			SDL_FreeCursor(cursor);
-
-		Debug("Done.");
-	}
-
-	void destroy() { active = false; }
-	bool isActive() { return active; }
-
-	void *getParent() { return parent; }
-
-	Mt_window &getApplication() const { return window; }
+	Mt_window &getApplication() const;
 
 	const Event<> none = []() {};
 
@@ -126,9 +98,9 @@ public:
 	Event<int, int> onWindowSizeChanged;
 	Event<int, int> onWindowResized;
 
-	virtual void handleEvent() {}
-	virtual void update() {}
-	virtual void draw() {}
+	virtual void handleEvent();
+	virtual void update();
+	virtual void draw();
 };
 
 #endif /* C7773821_9806_4DA9_86DA_A944C8E7E591 */

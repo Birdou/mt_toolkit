@@ -8,72 +8,33 @@
 #include "mt_vector.hpp"
 #include "mt_font.hpp"
 
-class Mt_label;
-
-using RenderMethod = std::function<SDL_Texture *(Mt_label *)>;
-
 class Mt_label : public Mt_widget
 {
 private:
 	SDL_Texture *texture = nullptr;
 
-	Mt_label(Mt_window &window, int x, int y, int w, int h) : Mt_widget(window, x, y, w, h) { autoupdate = false; }
-	Mt_label(Mt_window &window, int x, int y) : Mt_widget(window, x, y) {}
-	Mt_label(Mt_widget &widget) : Mt_widget(widget) {}
-	Mt_label(const Mt_label &) = delete;
+	bool wrap = false;
+
+	Mt_label(Mt_window &window, int x, int y, int w, int h);
+	Mt_label(Mt_window &window, int x, int y);
+	Mt_label(Mt_widget &widget);
+	Mt_label(const Mt_label &);
+
+	void init();
 
 public:
-	static Mt_label &create(Mt_window &window, int x, int y, int w, int h) { return *(new Mt_label(window, x, y, w, h)); }
-	static Mt_label &create(Mt_window &window, int x, int y) { return *(new Mt_label(window, x, y)); }
-	static Mt_label &create(Mt_widget &widget) { return *(new Mt_label(widget)); }
+	static Mt_label &create(Mt_window &window, int x, int y, int w, int h);
+	static Mt_label &create(Mt_window &window, int x, int y);
+	static Mt_label &create(Mt_widget &widget);
 
-	~Mt_label()
-	{
-		Debug("Destroying label");
-
-		SDL_DestroyTexture(texture);
-
-		// Debug("Done.");
-	}
+	~Mt_label();
 
 	std::string text;
 	bool autoupdate = true;
 
-	RenderMethod renderMethod = [](Mt_label *label)
-	{
-		return Mt_lib::renderText(label->window.renderer, label->text, label->font, label->geometry, TTF_RenderUTF8_Blended);
-	};
-
-	void handleEvent() override
-	{
-		HANDLE_WINDOW_EVENTS;
-	}
-
-	void update() override
-	{
-		return_if(!visible);
-
-		if (texture != nullptr)
-			SDL_DestroyTexture(texture);
-
-		texture = renderMethod(this);
-
-		if (autoupdate)
-		{
-			geometry->normalize();
-		}
-	}
-
-	void draw() override
-	{
-		return_if(!visible);
-
-		Mt_lib::drawFillRectangle(window.renderer, geometry->destR, backgroundColor.color);
-		Mt_lib::drawRectangle(window.renderer, geometry->destR, borderColor.color);
-
-		if (texture != nullptr)
-			Mt_lib::drawTexture(window.renderer, texture, &geometry->srcR, &geometry->destR);
-	}
+	void handleEvent() override;
+	void update() override;
+	void draw() override;
 };
 
 #endif /* DAB8A644_4736_40F5_A341_651834B4D009 */
