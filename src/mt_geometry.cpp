@@ -63,6 +63,60 @@ void Mt_geometry::setGeometry(int x, int y, int w, int h)
 	posCenter();
 }
 
+void Mt_geometry::confine(const SDL_Rect &box)
+{
+	confineX(box);
+	confineY(box);
+}
+
+void Mt_geometry::confineX(const SDL_Rect &box)
+{
+	srcR.x = 0;
+	destR.w = srcR.w = w;
+	if (destR.x >= box.x && destR.x + w < box.x + box.w)
+	{
+		srcR.x = 0;
+		destR.w = srcR.w = w;
+	}
+	else
+	{
+		if (destR.x < box.x && destR.x + w > box.x)
+		{
+			destR.w = srcR.w = (destR.x + w) - box.x;
+			srcR.x = box.x - destR.x;
+			destR.x = box.x;
+		}
+		if (destR.x < box.x + box.w && destR.x + w > box.x + box.w)
+		{
+			destR.w = srcR.w = (box.x + box.w) - destR.x;
+		}
+	}
+}
+
+void Mt_geometry::confineY(const SDL_Rect &box)
+{
+	srcR.y = 0;
+	destR.h = srcR.h = h;
+	if (destR.y >= box.y && destR.y + h < box.y + box.h)
+	{
+		srcR.y = 0;
+		destR.h = srcR.h = h;
+	}
+	else
+	{
+		if (destR.y < box.y && destR.y + h > box.y)
+		{
+			destR.h = srcR.h = (destR.y + h) - box.y;
+			srcR.y = box.y - destR.y;
+			destR.y = box.y;
+		}
+		if (destR.y < box.y + box.h && destR.y + h > box.y + box.h)
+		{
+			destR.h = srcR.h = (box.y + box.h) - destR.y;
+		}
+	}
+}
+
 void Mt_geometry::normalize()
 {
 	posCenter();
@@ -78,40 +132,85 @@ void Mt_geometry::posCenter()
 	case none:
 		break;
 	case top_left:
-		destR.y = y;
 		destR.x = x;
+		destR.y = y;
 		break;
 	case top_center:
-		destR.y = y;
 		destR.x = x - (w / 2);
+		destR.y = y;
 		break;
 	case top_right:
-		destR.y = y;
 		destR.x = x - w;
+		destR.y = y;
 		break;
 	case middle_left:
-		destR.y = y - (h / 2);
 		destR.x = x;
+		destR.y = y - (h / 2);
 		break;
 	case middle_center:
-		destR.y = y - (h / 2);
 		destR.x = x - (w / 2);
+		destR.y = y - (h / 2);
 		break;
 	case middle_right:
-		destR.y = y - (h / 2);
 		destR.x = x - w;
+		destR.y = y - (h / 2);
 		break;
 	case bottom_left:
-		destR.y = y - h;
 		destR.x = x;
+		destR.y = y - h;
 		break;
 	case bottom_center:
-		destR.y = y - h;
 		destR.x = x - (w / 2);
+		destR.y = y - h;
 		break;
 	case bottom_right:
-		destR.y = y - h;
 		destR.x = x - w;
+		destR.y = y - h;
+		break;
+	}
+}
+
+void Mt_geometry::adjustCenter()
+{
+	switch (anchor)
+	{
+	case none:
+		break;
+	case top_left:
+		destR.x = destR.x;
+		destR.y = destR.y;
+		break;
+	case top_center:
+		destR.x = destR.x - (w / 2);
+		destR.y = destR.y;
+		break;
+	case top_right:
+		destR.x = destR.x - w;
+		destR.y = destR.y;
+		break;
+	case middle_left:
+		destR.x = destR.x;
+		destR.y = destR.y - (h / 2);
+		break;
+	case middle_center:
+		destR.x = destR.x - (w / 2);
+		destR.y = destR.y - (h / 2);
+		break;
+	case middle_right:
+		destR.x = destR.x - w;
+		destR.y = destR.y - (h / 2);
+		break;
+	case bottom_left:
+		destR.x = destR.x;
+		destR.y = destR.y - h;
+		break;
+	case bottom_center:
+		destR.x = destR.x - (w / 2);
+		destR.y = destR.y - h;
+		break;
+	case bottom_right:
+		destR.x = destR.x - w;
+		destR.y = destR.y - h;
 		break;
 	}
 }

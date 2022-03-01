@@ -25,6 +25,82 @@
 		}                                                                                  \
 	}
 
+#define UI_BUTTON_COLOR_SCHEME        \
+	{                                 \
+		{                             \
+			{225, 225, 225, 255},     \
+			{229, 241, 251, 255},     \
+			{204, 228, 247, 255},     \
+			{0, 0, 0, 0},             \
+		},                            \
+			{                         \
+				{173, 173, 173, 255}, \
+				{0, 120, 215, 255},   \
+				{0, 84, 153, 255},    \
+				{0, 0, 0, 0},         \
+			},                        \
+	}
+#define BUTTON_COLOR_SCHEME       \
+	{                             \
+		{                         \
+			{240, 240, 240, 255}, \
+			{218, 218, 218, 255}, \
+			{96, 96, 96, 255},    \
+			{0, 0, 0, 0},         \
+		},                        \
+			{                     \
+				{0, 0, 0, 0},     \
+				{0, 0, 0, 0},     \
+				{0, 0, 0, 0},     \
+				{0, 0, 0, 0},     \
+			},                    \
+	}
+#define BAR_COLOR_SCHEME          \
+	{                             \
+		{                         \
+			{205, 205, 205, 255}, \
+			{166, 166, 166, 255}, \
+			{96, 96, 96, 255},    \
+			{0, 0, 0, 0},         \
+		},                        \
+			{                     \
+				{0, 0, 0, 0},     \
+				{0, 0, 0, 0},     \
+				{0, 0, 0, 0},     \
+				{0, 0, 0, 0},     \
+			},                    \
+	}
+#define UI_TEXTINPUT_COLOR_SCHEME     \
+	{                                 \
+		{                             \
+			{255, 255, 255, 255},     \
+			{255, 255, 255, 255},     \
+			{255, 255, 255, 255},     \
+			{255, 255, 255, 255},     \
+		},                            \
+			{                         \
+				{122, 122, 122, 255}, \
+				{23, 23, 23, 255},    \
+				{23, 23, 23, 255},    \
+				{0, 120, 215, 255},   \
+			},                        \
+	}
+#define UI_CHECKBOX_COLOR_SCHEME    \
+	{                               \
+		{                           \
+			{255, 255, 255, 255},   \
+			{255, 255, 255, 255},   \
+			{204, 228, 247, 255},   \
+			{0, 0, 0, 0},           \
+		},                          \
+			{                       \
+				{51, 51, 51, 255},  \
+				{0, 120, 215, 255}, \
+				{0, 84, 153, 255},  \
+				{0, 0, 0, 0},       \
+			},                      \
+	}
+
 template <typename... Args>
 using Event = std::function<void(Args...)>;
 
@@ -35,6 +111,7 @@ protected:
 
 	bool focused = false;
 	bool released = true;
+	bool hoverScroll = false;
 
 	SDL_SystemCursor cursorId;
 	SDL_Cursor *cursor = nullptr;
@@ -44,6 +121,8 @@ protected:
 
 	bool active = true;
 
+	virtual void init();
+
 public:
 	bool visible = true;
 	Mt_geometry *geometry = nullptr;
@@ -52,15 +131,20 @@ public:
 	Mt_color backgroundColor;
 	Mt_color borderColor;
 
-	Mt_RGBA normalColor;
-	Mt_RGBA focusedColor;
-	Mt_RGBA hoverColor;
-	Mt_RGBA clickedColor;
-
-	Mt_RGBA frameNormalColor;
-	Mt_RGBA frameFocusedColor;
-	Mt_RGBA frameHoverColor;
-	Mt_RGBA frameClickedColor;
+	struct Mt_colorScheme
+	{
+		struct Mt_colors
+		{
+			Mt_RGBA normalColor;
+			Mt_RGBA hoverColor;
+			Mt_RGBA clickedColor;
+			Mt_RGBA focusedColor;
+		};
+		Mt_colors background;
+		Mt_colors frame;
+		// Mt_colors font;
+	};
+	Mt_colorScheme scheme;
 
 	static std::string defaultFont;
 	static int defaultFontSize;
@@ -71,9 +155,17 @@ public:
 	virtual ~Mt_widget();
 
 	void destroy();
-	bool isActive();
+
+	bool isActive() const;
+	bool isHoverScrollable() const;
 
 	void *getParent();
+
+	void setScheme(Mt_colorScheme scheme);
+	void fadeToNormal();
+	void fadeToHover();
+	void fadeToClicked();
+	void fadeToFocused();
 
 	Mt_window &getApplication() const;
 

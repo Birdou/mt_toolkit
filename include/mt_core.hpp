@@ -64,10 +64,10 @@
 #define Debug(x)
 #define DebugFrame(destR, color)
 #endif
-#define Log(x) std::cout << "[LOG] " << __PRETTY_FUNCTION__ << ": " << x << std::endl
-#define Warn(x) std::cout << colorstream("[WARN] " << __PRETTY_FUNCTION__ << ": " << x, fLIGHT_YELLOW) << std::endl
-#define Error(x) std::cout << colorstream("[ERROR] " << __PRETTY_FUNCTION__ << ": " << x, fRED) << std::endl
-#define Critical(x) std::cout << colorstream("[CRITICAL] " << __PRETTY_FUNCTION__ << ": " << x, bWHITE << fRED) << std::endl
+#define Log(x) std::cout << "[LOG] " << __FILE__ << ":" << __LINE__ << ": " << x << std::endl
+#define Warn(x) std::cout << colorstream("[WARN] " << __FILE__ << ":" << __LINE__ << ": " << x, fLIGHT_YELLOW) << std::endl
+#define Error(x) std::cout << colorstream("[ERROR] " << __FILE__ << ":" << __LINE__ << ": " << x, fRED) << std::endl
+#define Critical(x) std::cout << colorstream("[CRITICAL] " << __FILE__ << ":" << __LINE__ << ": " << x, bWHITE << fRED) << std::endl
 
 #define return_if(x) \
 	if (x)           \

@@ -8,7 +8,9 @@ Mt_caret::Mt_caret(Mt_widget &widget) : Mt_widget(widget)
 	geometry->destR.w = geometry->srcR.w = geometry->getW();
 	geometry->destR.h = geometry->srcR.h = geometry->getH();
 }
-Mt_caret::Mt_caret(const Mt_caret &) = delete;
+void Mt_caret::init()
+{
+}
 Mt_caret &Mt_caret::create(Mt_widget &widget)
 {
 	return *(new Mt_caret(widget));

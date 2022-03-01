@@ -15,7 +15,9 @@ private:
 	bool show = true;
 
 	Mt_caret(Mt_widget &widget);
-	Mt_caret(const Mt_caret &);
+	Mt_caret(const Mt_caret &) = delete;
+
+	void init() override;
 
 public:
 	static Mt_caret &create(Mt_widget &widget);

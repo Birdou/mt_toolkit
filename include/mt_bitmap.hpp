@@ -5,7 +5,7 @@
 
 #include "mt_widget.hpp"
 #include "mt_lib.hpp"
-#include "mt_vector.hpp"
+#include "mt_point.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -55,7 +55,9 @@ private:
 
 	Mt_bitmap(Mt_window &window, int x, int y, size_t w, size_t h, size_t map_w, size_t map_h);
 	Mt_bitmap(Mt_window &window, int x, int y, size_t w, size_t h);
-	Mt_bitmap(const Mt_bitmap &);
+	Mt_bitmap(const Mt_bitmap &) = delete;
+
+	void init() override;
 
 public:
 	static Mt_bitmap &create(Mt_window &window, int x, int y, size_t w, size_t h, size_t map_w, size_t map_h);

@@ -3,7 +3,7 @@
 
 #include "mt_widget.hpp"
 #include "mt_lib.hpp"
-#include "mt_vector.hpp"
+#include "mt_point.hpp"
 
 Mt_window::Mt_window(Mt_application &application, const std::string &title, int w, int h, int flags) : application(application), title(title)
 {
@@ -141,7 +141,9 @@ void Mt_window::setIcon(const char *file)
 {
 	SDL_Surface *surf = IMG_Load(file);
 	if (surf == nullptr)
+	{
 		SDL_PrintError(Error);
+	}
 	SDL_SetWindowIcon(window, surf);
 	SDL_FreeSurface(surf);
 }
@@ -159,7 +161,7 @@ int Mt_window::width() const
 SDL_HitTestResult SDLCALL Mt_window::hitTest(SDL_Window *, const SDL_Point *pt, void *data)
 {
 	Mt_window *window = (Mt_window *)data;
-	Mt_vector<int> vec(*pt);
+	Mt_point vec(*pt);
 
 	for (auto &widget : window->widgets)
 		if (widget->visible && vec.intercept(widget->geometry->destR))

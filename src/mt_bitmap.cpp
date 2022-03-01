@@ -52,7 +52,9 @@ void Mt_pixelgrid::alloc(size_t width, size_t height)
 		data[i] = new Mt_RGBA[width];
 	surface = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
 	if (surface == nullptr)
+	{
 		SDL_PrintError(Error);
+	}
 }
 
 void Mt_pixelgrid::erase()
@@ -114,19 +116,25 @@ void Mt_pixelgrid::saveJPG(const std::string &file)
 {
 	updateSurface();
 	if (IMG_SaveJPG(surface, file.c_str(), 100) < 0)
+	{
 		SDL_PrintError(Error);
+	}
 }
 void Mt_pixelgrid::savePNG(const std::string &file)
 {
 	updateSurface();
 	if (IMG_SavePNG(surface, file.c_str()) < 0)
+	{
 		SDL_PrintError(Error);
+	}
 }
 void Mt_pixelgrid::saveBMP(const std::string &file)
 {
 	updateSurface();
 	if (SDL_SaveBMP(surface, file.c_str()) < 0)
+	{
 		SDL_PrintError(Error);
+	}
 }
 
 // ANCHOR BITMAP CLASS
@@ -138,7 +146,10 @@ Mt_bitmap::Mt_bitmap(Mt_window &window, int x, int y, size_t w, size_t h) : Mt_w
 {
 	alloc(w, h);
 }
-Mt_bitmap::Mt_bitmap(const Mt_bitmap &) = delete;
+
+void Mt_bitmap::init()
+{
+}
 
 Mt_bitmap &Mt_bitmap::create(Mt_window &window, int x, int y, size_t w, size_t h, size_t map_w, size_t map_h)
 {
@@ -172,7 +183,9 @@ void Mt_bitmap::alloc(size_t width, size_t height)
 		data[i] = new Mt_RGBA[width];
 	surface = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
 	if (surface == nullptr)
+	{
 		SDL_PrintError(Error);
+	}
 }
 
 void Mt_bitmap::erase()
@@ -202,7 +215,7 @@ void Mt_bitmap::update()
 {
 	return_if(!visible);
 
-	if (Mt_vector<int>::mousePos().intercept(geometry->destR))
+	if (Mt_point::mousePos().intercept(geometry->destR))
 	{
 		if (window.hovering == nullptr)
 		{

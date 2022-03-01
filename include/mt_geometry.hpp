@@ -46,9 +46,14 @@ public:
 
 	void setGeometry(int x, int y, int w, int h);
 
+	void confine(const SDL_Rect &box);
+	void confineX(const SDL_Rect &box);
+	void confineY(const SDL_Rect &box);
+
 	void normalize();
 
 	void posCenter();
+	void adjustCenter();
 };
 
 #endif /* F7EA772C_EBFE_449F_B91A_03E0F017F457 */

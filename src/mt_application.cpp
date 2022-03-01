@@ -8,7 +8,7 @@
 
 Mt_application::Mt_application(const std::string &title, int width, int height, int flags) : window(*new Mt_window(*this, title, width, height, flags))
 {
-	// SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
+	SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
 
 	frameDelay = 1000 / targetFPS;
 	if (SDL_Init(SDL_INIT_EVERYTHING) == 0)
@@ -27,6 +27,7 @@ Mt_application::Mt_application(const std::string &title, int width, int height, 
 	{
 		SDL_PrintError(Error);
 	}
+	// TODO seria mais apropriado que essa função fosse manipulada pelos widgets de textinput
 	SDL_StartTextInput();
 
 	window.destroyOnClose = true;
@@ -62,9 +63,17 @@ TTF_Font *Mt_application::getFont(const std::string &path, int fontSize)
 	}
 	else
 	{
-		TTF_Font *font = Mt_lib::loadFont(path, fontSize);
-		fonts.emplace(std::pair<std::string, int>(path, fontSize), font);
-		return font;
+		TTF_Font *font = TTF_OpenFont(path.c_str(), fontSize);
+		if (font)
+		{
+			fonts.emplace(std::pair<std::string, int>(path, fontSize), font);
+			return font;
+		}
+		else
+		{
+			Error("Invalid font. (did you enter the correct path?)");
+			return nullptr;
+		}
 	}
 }
 

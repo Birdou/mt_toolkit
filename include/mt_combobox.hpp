@@ -17,7 +17,9 @@ private:
 	bool show = false;
 
 	Mt_comboBox(Mt_window &window, int x, int y, int w, int h);
-	Mt_comboBox(const Mt_comboBox &);
+	Mt_comboBox(const Mt_comboBox &) = delete;
+
+	void init() override;
 
 	void turnVisible();
 

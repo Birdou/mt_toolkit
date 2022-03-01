@@ -12,9 +12,13 @@ Mt_renderer::Mt_renderer(SDL_Window *window)
 {
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	if (renderer == nullptr)
+	{
 		SDL_PrintError(Error);
+	}
 	if (SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND) < 0)
+	{
 		SDL_PrintError(Warn);
+	}
 }
 Mt_renderer::~Mt_renderer()
 {
@@ -24,12 +28,16 @@ Mt_renderer::~Mt_renderer()
 void Mt_renderer::clear()
 {
 	if (SDL_RenderClear(renderer) < 0)
+	{
 		SDL_PrintError(Error);
+	}
 }
 void Mt_renderer::setDrawColor(const Mt_RGBA &color)
 {
 	if (SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a) < 0)
+	{
 		SDL_PrintError(Error);
+	}
 }
 void Mt_renderer::present()
 {
@@ -39,7 +47,9 @@ SDL_Texture *Mt_renderer::createTextureFromSurface(SDL_Surface *surface)
 {
 	SDL_Texture *tex = SDL_CreateTextureFromSurface(renderer, surface);
 	if (tex == nullptr)
+	{
 		SDL_PrintError(Error);
+	}
 	return tex;
 }
 
@@ -60,16 +70,6 @@ int Mt_renderer::substrWidth(TTF_Font *font, const std::string &string, size_t f
 	SDL_FreeSurface(textSurface);
 
 	return twidth;
-}
-SDL_Texture *Mt_renderer::loadTexture(const std::string &texture)
-{
-	SDL_Surface *tmpSurface = IMG_Load(texture.c_str());
-	if (tmpSurface == nullptr)
-		SDL_PrintError(Error);
-	SDL_Texture *tex = createTextureFromSurface(tmpSurface);
-	SDL_FreeSurface(tmpSurface);
-
-	return tex;
 }
 
 void Mt_renderer::drawTexture(SDL_Texture *texture, SDL_Rect *src, SDL_Rect *dest)
@@ -111,7 +111,9 @@ SDL_Texture *Mt_renderer::renderText(const std::string &text, Mt_font *font, Mt_
 	SDL_Texture *texture = nullptr;
 	SDL_Surface *textSurface = TTF_RenderFunction(ttf, text.c_str(), font->color);
 	if (textSurface == nullptr)
+	{
 		SDL_PrintError(Error);
+	}
 
 	texture = createTextureFromSurface(textSurface);
 	SDL_FreeSurface(textSurface);
@@ -136,7 +138,9 @@ SDL_Texture *Mt_renderer::renderWrapped(const std::string &text, Mt_font *font, 
 	SDL_Texture *texture = nullptr;
 	SDL_Surface *textSurface = TTF_RenderFunction(ttf, text.c_str(), font->color, wrapLenght);
 	if (textSurface == nullptr)
+	{
 		SDL_PrintError(Error);
+	}
 
 	texture = createTextureFromSurface(textSurface);
 	SDL_FreeSurface(textSurface);

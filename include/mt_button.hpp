@@ -7,7 +7,7 @@
 #include "mt_application.hpp"
 #include "mt_window.hpp"
 #include "mt_lib.hpp"
-#include "mt_vector.hpp"
+#include "mt_point.hpp"
 #include "mt_widget.hpp"
 #include "mt_color.hpp"
 #include "mt_label.hpp"
@@ -24,7 +24,7 @@ private:
 
 	Mt_button(Mt_widget &widget);
 	Mt_button(Mt_window &window, int x, int y, int w, int h);
-	Mt_button(const Mt_button &);
+	Mt_button(const Mt_button &) = delete;
 
 	void init();
 
@@ -38,9 +38,12 @@ public:
 
 	std::function<void()> function = none;
 
+	SDL_Point clickOffset;
+	unsigned repeatInterval = 300;
+
 	void updateTextPosition();
 
-	bool actioned();
+	bool actioned() const;
 
 	void fitH(int padding = 4);
 

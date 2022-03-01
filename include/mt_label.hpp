@@ -5,7 +5,7 @@
 #include "mt_window.hpp"
 #include "mt_widget.hpp"
 #include "mt_lib.hpp"
-#include "mt_vector.hpp"
+#include "mt_point.hpp"
 #include "mt_font.hpp"
 
 class Mt_label : public Mt_widget
@@ -18,9 +18,11 @@ private:
 	Mt_label(Mt_window &window, int x, int y, int w, int h);
 	Mt_label(Mt_window &window, int x, int y);
 	Mt_label(Mt_widget &widget);
-	Mt_label(const Mt_label &);
+	Mt_label(const Mt_label &) = delete;
 
 	void init();
+
+	std::string textRendered;
 
 public:
 	static Mt_label &create(Mt_window &window, int x, int y, int w, int h);
@@ -31,6 +33,8 @@ public:
 
 	std::string text;
 	bool autoupdate = true;
+
+	void loadIcon(const std::string &path);
 
 	void handleEvent() override;
 	void update() override;

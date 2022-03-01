@@ -15,8 +15,6 @@ Mt_label::Mt_label(Mt_widget &widget) : Mt_widget(widget)
 	init();
 }
 
-Mt_label::Mt_label(const Mt_label &) = delete;
-
 void Mt_label::init()
 {
 	backgroundColor = Mt_RGBA(0, 0, 0, 0);
@@ -24,15 +22,15 @@ void Mt_label::init()
 }
 Mt_label &Mt_label::create(Mt_window &window, int x, int y, int w, int h)
 {
-	return *(new Mt_label(window, x, y, w, h));
+	return *new Mt_label(window, x, y, w, h);
 }
 Mt_label &Mt_label::create(Mt_window &window, int x, int y)
 {
-	return *(new Mt_label(window, x, y));
+	return *new Mt_label(window, x, y);
 }
 Mt_label &Mt_label::create(Mt_widget &widget)
 {
-	return *(new Mt_label(widget));
+	return *new Mt_label(widget);
 }
 Mt_label::~Mt_label()
 {
@@ -41,6 +39,25 @@ Mt_label::~Mt_label()
 	if (texture != nullptr)
 		SDL_DestroyTexture(texture);
 	SDL_PrintIfError(Warn);
+}
+
+void Mt_label::loadIcon(const std::string &path)
+{
+	SDL_Surface *surf = IMG_Load(path.c_str());
+	if (surf == nullptr)
+	{
+		SDL_PrintError(Error);
+	}
+	else
+	{
+		texture = window.renderer->createTextureFromSurface(surf);
+		geometry->setW(surf->w);
+		geometry->setH(surf->h);
+
+		SDL_FreeSurface(surf);
+
+		geometry->normalize();
+	}
 }
 
 void Mt_label::handleEvent()
@@ -52,17 +69,21 @@ void Mt_label::update()
 {
 	return_if(!visible || text.empty());
 
-	if (texture != nullptr)
-		SDL_DestroyTexture(texture);
-	SDL_PrintIfError(Warn);
+	if (text != textRendered)
+	{
+		if (texture != nullptr)
+			SDL_DestroyTexture(texture);
+		SDL_PrintIfError(Warn);
 
-	if (wrap)
-	{
-		texture = window.renderer->renderWrapped(text, font, geometry, geometry->destR.w, TTF_RenderUTF8_Blended_Wrapped);
-	}
-	else
-	{
-		texture = window.renderer->renderText(text, font, geometry, TTF_RenderUTF8_Blended);
+		if (wrap)
+		{
+			texture = window.renderer->renderWrapped(text, font, geometry, geometry->destR.w, TTF_RenderUTF8_Blended_Wrapped);
+		}
+		else
+		{
+			texture = window.renderer->renderText(text, font, geometry, TTF_RenderUTF8_Blended);
+		}
+		textRendered = text;
 	}
 
 	if (autoupdate)

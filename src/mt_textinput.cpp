@@ -17,15 +17,10 @@ void Mt_textinput::init()
 	input = &Mt_label::create(*this);
 	input->autoupdate = false;
 
-	normalColor = {255, 255, 255, 255};
-	focusedColor = {255, 255, 255, 255};
-	hoverColor = {255, 255, 255, 255};
-	frameNormalColor = {122, 122, 122, 255};
-	frameFocusedColor = {0, 120, 215, 255};
-	frameHoverColor = {23, 23, 23, 255};
+	scheme = UI_TEXTINPUT_COLOR_SCHEME;
 
-	backgroundColor = normalColor;
-	borderColor = frameNormalColor;
+	backgroundColor = scheme.background.normalColor;
+	borderColor = scheme.frame.normalColor;
 }
 
 void Mt_textinput::updateCaretPosition()
@@ -50,8 +45,8 @@ void Mt_textinput::updateCaretPosition()
 	else
 	{
 		caret->visible = true;
-		Mt_lib::confineX(caret->geometry, geometry->destR);
-		Mt_lib::confineY(caret->geometry, geometry->destR);
+		caret->geometry->confineX(geometry->destR);
+		caret->geometry->confineY(geometry->destR);
 	}
 }
 
@@ -202,15 +197,20 @@ void Mt_textinput::str(const std::string &text)
 
 void Mt_textinput::handleMouse()
 {
-	if (Mt_vector<int>::mousePos().intercept(geometry->destR))
+	hoverScroll = false;
+	if (window.hovering == this)
+		window.hovering = nullptr;
+
+	if (Mt_point::mousePos().intercept(geometry->destR))
 	{
 		onHover();
+		hoverScroll = true;
 		if (window.hovering == nullptr)
 		{
 			window.hovering = this;
 			SetCursor(SDL_SYSTEM_CURSOR_IBEAM);
-			backgroundColor.fadeInto(&hoverColor);
-			borderColor.fadeInto(&frameHoverColor);
+			backgroundColor.fadeInto(&scheme.background.hoverColor);
+			borderColor.fadeInto(&scheme.frame.hoverColor);
 		}
 		if (!focused)
 		{
@@ -223,8 +223,8 @@ void Mt_textinput::handleMouse()
 					if (window.hovering == this)
 					{
 						onFocus();
-						backgroundColor.fadeInto(&focusedColor);
-						borderColor.fadeInto(&frameFocusedColor);
+						backgroundColor.fadeInto(&scheme.background.focusedColor);
+						borderColor.fadeInto(&scheme.frame.focusedColor);
 						focused = true;
 						released = false;
 					}
@@ -242,8 +242,8 @@ void Mt_textinput::handleMouse()
 		{
 		case SDL_BUTTON_LEFT:
 			onLostFocus();
-			backgroundColor.fadeInto(&normalColor);
-			borderColor.fadeInto(&frameNormalColor);
+			backgroundColor.fadeInto(&scheme.background.normalColor);
+			borderColor.fadeInto(&scheme.frame.normalColor);
 			focused = false;
 			break;
 		}
@@ -254,8 +254,8 @@ void Mt_textinput::handleMouse()
 		onMouseLeave();
 		if (window.hovering == this)
 		{
-			backgroundColor.fadeInto(&normalColor);
-			borderColor.fadeInto(&frameNormalColor);
+			backgroundColor.fadeInto(&scheme.background.normalColor);
+			borderColor.fadeInto(&scheme.frame.normalColor);
 			window.hovering = nullptr;
 		}
 	}
@@ -284,6 +284,9 @@ void Mt_textinput::handleEvent()
 
 	return_if(!visible);
 
+	if (window.hovering == this && window.event.type == SDL_MOUSEWHEEL)
+		wheel();
+
 	if (focused)
 	{
 		switch (window.event.type)
@@ -295,9 +298,6 @@ void Mt_textinput::handleEvent()
 				copy();
 				break;
 			}
-			break;
-		case SDL_MOUSEWHEEL:
-			wheel();
 			break;
 		}
 
@@ -370,7 +370,7 @@ void Mt_textinput::update()
 	if (input->geometry->destR.w > 0)
 	{
 		input->visible = true;
-		Mt_lib::confineY(input->geometry, geometry->destR);
+		input->geometry->confineY(geometry->destR);
 	}
 
 	updateCaretPosition();
@@ -397,8 +397,6 @@ Mt_textbox::Mt_textbox(Mt_window &window, int x, int y, int w, int h) : Mt_texti
 {
 }
 
-Mt_textbox::Mt_textbox(const Mt_textbox &) = delete;
-
 Mt_textbox &Mt_textbox::create(Mt_widget &widget)
 {
 	return *(new Mt_textbox(widget));
@@ -419,7 +417,6 @@ Mt_textarea::Mt_textarea(Mt_window &window, int x, int y, int w, int h) : Mt_tex
 	lines.emplace_back(input);
 	pointCursor();
 }
-Mt_textarea::Mt_textarea(const Mt_textarea &) = delete;
 
 void Mt_textarea::pointCursor()
 {
@@ -476,7 +473,7 @@ void Mt_textarea::updateLines()
 			if (lines[i]->geometry->destR.w > 0)
 			{
 				lines[i]->visible = true;
-				Mt_lib::confineY(lines[i]->geometry, geometry->destR);
+				lines[i]->geometry->confineY(geometry->destR);
 			}
 		}
 	}

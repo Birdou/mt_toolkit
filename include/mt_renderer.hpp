@@ -4,6 +4,7 @@
 #include "mt_core.hpp"
 
 #include <functional>
+#include <unordered_map>
 
 using DrawFunction = std::function<SDL_Surface *(TTF_Font *, const char *, SDL_Color)>;
 using DrawFunctionWrapped = std::function<SDL_Surface *(TTF_Font *, const char *, SDL_Color, Uint32)>;
@@ -17,6 +18,8 @@ class Mt_renderer
 private:
 	SDL_Renderer *renderer = nullptr;
 
+	std::unordered_map<std::string, SDL_Surface *> surfaces;
+
 public:
 	Mt_renderer(SDL_Window *window);
 	~Mt_renderer();
@@ -27,8 +30,6 @@ public:
 	SDL_Texture *createTextureFromSurface(SDL_Surface *surface);
 
 	int substrWidth(TTF_Font *font, const std::string &string, size_t from, size_t length = std::string::npos);
-
-	SDL_Texture *loadTexture(const std::string &texture);
 
 	void drawTexture(SDL_Texture *texture, SDL_Rect *src, SDL_Rect *dest);
 	void drawRectangle(const SDL_Rect &dest, const Mt_RGBA &color);

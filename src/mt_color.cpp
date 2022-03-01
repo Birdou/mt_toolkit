@@ -48,14 +48,7 @@ std::ostream &operator<<(std::ostream &o, const Mt_RGBA &color)
 	return o;
 }
 
-void Mt_RGBA::negative()
-{
-	r = 255 - r;
-	g = 255 - g;
-	b = 255 - b;
-}
-
-void Mt_RGBA::hsl(float h, float s, float l)
+Mt_RGBA &Mt_RGBA::hsl(float h, float s, float l)
 {
 	float C = (1 - fabs((2 * l) - 1)) * s;
 	float X = C * (1 - fabs(fmod(h / 60., 2) - 1));
@@ -102,8 +95,10 @@ void Mt_RGBA::hsl(float h, float s, float l)
 	r = (rt + m) * 255;
 	g = (gt + m) * 255;
 	b = (bt + m) * 255;
+
+	return *this;
 }
-void Mt_RGBA::hsv(float h, float s, float v)
+Mt_RGBA &Mt_RGBA::hsv(float h, float s, float v)
 {
 	float C = v * s;
 	float X = C * (1 - fabs(fmod(h / 60., 2) - 1));
@@ -150,25 +145,58 @@ void Mt_RGBA::hsv(float h, float s, float v)
 	r = (rt + m) * 255;
 	g = (gt + m) * 255;
 	b = (bt + m) * 255;
+
+	return *this;
 }
-void Mt_RGBA::rgb(int r, int g, int b)
+Mt_RGBA &Mt_RGBA::rgb(int r, int g, int b)
 {
 	this->r = r;
 	this->g = g;
 	this->b = b;
+
+	return *this;
 }
-void Mt_RGBA::bw(int value)
+
+Mt_RGBA &Mt_RGBA::rgba(int r, int g, int b, int a)
 {
-	this->r = value;
-	this->g = value;
-	this->b = value;
+	this->r = r;
+	this->g = g;
+	this->b = b;
+	this->a = a;
+
+	return *this;
 }
-void Mt_RGBA::hex(int value)
+
+Mt_RGBA &Mt_RGBA::hex(int value)
 {
 	r = (value >> 16) & 0xFF;
 	g = (value >> 8) & 0xFF;
 	b = value & 0xFF;
-	a = 0xFF;
+
+	return *this;
+}
+
+Mt_RGBA &Mt_RGBA::bw(int value)
+{
+	this->r = value;
+	this->g = value;
+	this->b = value;
+
+	return *this;
+}
+Mt_RGBA &Mt_RGBA::negative()
+{
+	r = 255 - r;
+	g = 255 - g;
+	b = 255 - b;
+
+	return *this;
+}
+Mt_RGBA &Mt_RGBA::opaque()
+{
+	this->a = 255;
+
+	return *this;
 }
 
 // ANCHOR COLOR MANAGER CLASS
@@ -209,12 +237,12 @@ void Mt_color::fadeInto(Mt_RGBA *target, float frames)
 	this->target = target;
 
 	current.r = this->r;
-	step.r = (target->r - this->r) / frames;
 	current.g = this->g;
-	step.g = (target->g - this->g) / frames;
 	current.b = this->b;
-	step.b = (target->b - this->b) / frames;
 	current.a = this->a;
+	step.r = (target->r - this->r) / frames;
+	step.g = (target->g - this->g) / frames;
+	step.b = (target->b - this->b) / frames;
 	step.a = (target->a - this->a) / frames;
 }
 
@@ -224,12 +252,12 @@ void Mt_color::update()
 		return;
 
 	current.r += step.r;
-	this->r = static_cast<Uint8>(current.r);
 	current.g += step.g;
-	this->g = static_cast<Uint8>(current.g);
 	current.b += step.b;
-	this->b = static_cast<Uint8>(current.b);
 	current.a += step.a;
+	this->r = static_cast<Uint8>(current.r);
+	this->g = static_cast<Uint8>(current.g);
+	this->b = static_cast<Uint8>(current.b);
 	this->a = static_cast<Uint8>(current.a);
 
 	currentFrame++;

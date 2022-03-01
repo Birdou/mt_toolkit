@@ -8,7 +8,7 @@
 #include "mt_label.hpp"
 #include "mt_checkbox.hpp"
 #include "mt_bitmap.hpp"
-#include "mt_vector.hpp"
+#include "mt_point.hpp"
 #include "mt_textinput.hpp"
 
 using ld = long double;

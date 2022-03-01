@@ -25,7 +25,7 @@ OBJFOLDER=objects
 COMPILER=g++
 
 #flags that will be used when compiling binaries
-COMPILATION_FLAGS=-Wall -Wextra -pedantic -std=c++11 $(SDL_COMP_FLAGS) -O3
+COMPILATION_FLAGS=-Wall -Wextra -pedantic -std=c++11 $(SDL_COMP_FLAGS)
 #flags that will be used when linking the executable
 LINKER_FLAGS=$(SDL_LINK_FLAGS)
 

@@ -67,7 +67,7 @@ class Mt_textbox : public Mt_textinput
 private:
 	Mt_textbox(Mt_widget &widget);
 	Mt_textbox(Mt_window &window, int x, int y, int w, int h);
-	Mt_textbox(const Mt_textbox &);
+	Mt_textbox(const Mt_textbox &) = delete;
 
 public:
 	static Mt_textbox &create(Mt_widget &widget);
@@ -82,7 +82,7 @@ private:
 	std::vector<Mt_label *> lines;
 
 	Mt_textarea(Mt_window &window, int x, int y, int w, int h);
-	Mt_textarea(const Mt_textarea &);
+	Mt_textarea(const Mt_textarea &) = delete;
 
 	void pointCursor() override;
 

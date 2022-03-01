@@ -4,9 +4,14 @@
 Mt_comboBox::Mt_comboBox(Mt_window &window, int x, int y, int w, int h) : Mt_widget(window, x, y, w, h)
 {
 	textbox = &Mt_textbox::create(*this);
+	textbox->geometry->setW(w - 17);
+	textbox->geometry->setH(h);
 	textbox->geometry->normalize();
 
 	button = &Mt_button::create(*this);
+	button->geometry->setH(h);
+	button->geometry->setW(17);
+	button->geometry->normalize();
 	button->label->text = "\u25BC";
 	button->function = [this]()
 	{
@@ -15,8 +20,9 @@ Mt_comboBox::Mt_comboBox(Mt_window &window, int x, int y, int w, int h) : Mt_wid
 
 	updatePosition();
 }
-Mt_comboBox::Mt_comboBox(const Mt_comboBox &) = delete;
-
+void Mt_comboBox::init()
+{
+}
 void Mt_comboBox::turnVisible()
 {
 	show = !show;
@@ -51,15 +57,15 @@ void Mt_comboBox::addOption(const std::string &string)
 
 void Mt_comboBox::updatePosition()
 {
-	textbox->geometry->destR.x = geometry->destR.x;
-	textbox->geometry->destR.y = geometry->destR.y;
-	textbox->geometry->destR.w = geometry->getW() - geometry->getH();
-	textbox->geometry->destR.h = geometry->getH();
+	textbox->geometry->destR.x = (geometry->destR.x - geometry->srcR.x);
+	textbox->geometry->destR.y = (geometry->destR.y - geometry->srcR.y);
+	textbox->geometry->confine(geometry->destR);
 
-	button->geometry->destR.x = geometry->destR.x + textbox->geometry->destR.w;
-	button->geometry->destR.y = geometry->destR.y;
-	button->geometry->destR.w = button->geometry->destR.h = geometry->getH();
+	button->geometry->destR.x = (geometry->destR.x - geometry->srcR.x) + textbox->geometry->getW();
+	button->geometry->destR.y = (geometry->destR.y - geometry->srcR.y);
+	button->geometry->confine(geometry->destR);
 }
+
 void Mt_comboBox::updateOptions()
 {
 	int prev_y = geometry->destR.y + geometry->getH();
@@ -116,7 +122,7 @@ void Mt_comboBox::update()
 
 	if (show && !options.empty())
 	{
-		Mt_vector<int> mouse(Mt_vector<int>::mousePos());
+		Mt_point mouse(Mt_point::mousePos());
 		auto &last = std::prev(options.end())->second;
 		int x = geometry->destR.x;
 		int y = geometry->destR.y;
