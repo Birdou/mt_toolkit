@@ -39,21 +39,33 @@
 				{0, 84, 153, 255},    \
 				{0, 0, 0, 0},         \
 			},                        \
+			{                         \
+				{0, 0, 0, 255},       \
+				{0, 0, 0, 255},       \
+				{0, 0, 0, 255},       \
+				{0, 0, 0, 255},       \
+			},                        \
 	}
-#define BUTTON_COLOR_SCHEME       \
-	{                             \
-		{                         \
-			{240, 240, 240, 255}, \
-			{218, 218, 218, 255}, \
-			{96, 96, 96, 255},    \
-			{0, 0, 0, 0},         \
-		},                        \
-			{                     \
-				{0, 0, 0, 0},     \
-				{0, 0, 0, 0},     \
-				{0, 0, 0, 0},     \
-				{0, 0, 0, 0},     \
-			},                    \
+#define BUTTON_COLOR_SCHEME           \
+	{                                 \
+		{                             \
+			{240, 240, 240, 255},     \
+			{218, 218, 218, 255},     \
+			{96, 96, 96, 255},        \
+			{0, 0, 0, 0},             \
+		},                            \
+			{                         \
+				{0, 0, 0, 0},         \
+				{0, 0, 0, 0},         \
+				{0, 0, 0, 0},         \
+				{0, 0, 0, 0},         \
+			},                        \
+			{                         \
+				{96, 96, 96, 255},    \
+				{0, 0, 0, 255},       \
+				{255, 255, 255, 255}, \
+				{0, 0, 0, 255},       \
+			},                        \
 	}
 #define BAR_COLOR_SCHEME          \
 	{                             \
@@ -68,6 +80,12 @@
 				{0, 0, 0, 0},     \
 				{0, 0, 0, 0},     \
 				{0, 0, 0, 0},     \
+			},                    \
+			{                     \
+				{0, 0, 0, 255},   \
+				{0, 0, 0, 255},   \
+				{0, 0, 0, 255},   \
+				{0, 0, 0, 255},   \
 			},                    \
 	}
 #define UI_TEXTINPUT_COLOR_SCHEME     \
@@ -84,6 +102,12 @@
 				{23, 23, 23, 255},    \
 				{0, 120, 215, 255},   \
 			},                        \
+			{                         \
+				{0, 0, 0, 255},       \
+				{0, 0, 0, 255},       \
+				{0, 0, 0, 255},       \
+				{0, 0, 0, 255},       \
+			},                        \
 	}
 #define UI_CHECKBOX_COLOR_SCHEME    \
 	{                               \
@@ -99,10 +123,16 @@
 				{0, 84, 153, 255},  \
 				{0, 0, 0, 0},       \
 			},                      \
+			{                       \
+				{0, 0, 0, 255},     \
+				{0, 0, 0, 255},     \
+				{0, 0, 0, 255},     \
+				{0, 0, 0, 255},     \
+			},                      \
 	}
 
-template <typename... Args>
-using Event = std::function<void(Args...)>;
+template <typename T>
+using Event = std::function<T>;
 
 class Mt_widget
 {
@@ -135,14 +165,14 @@ public:
 	{
 		struct Mt_colors
 		{
-			Mt_RGBA normalColor;
-			Mt_RGBA hoverColor;
-			Mt_RGBA clickedColor;
-			Mt_RGBA focusedColor;
+			Mt_RGBA normal;
+			Mt_RGBA hover;
+			Mt_RGBA clicked;
+			Mt_RGBA focused;
 		};
 		Mt_colors background;
-		Mt_colors frame;
-		// Mt_colors font;
+		Mt_colors border;
+		Mt_colors font;
 	};
 	Mt_colorScheme scheme;
 
@@ -169,26 +199,26 @@ public:
 
 	Mt_window &getApplication() const;
 
-	const Event<> none = []() {};
+	const Event<void()> none = []() {};
 
-	Event<> onHovering = none;
-	Event<> onClicked = none;
-	Event<> onHover = none;
-	Event<> onMouseDown = none;
-	Event<> onMouseUp = none;
-	Event<> onMouseLeave = none;
-	Event<> onFocus = none;
-	Event<> onLostFocus = none;
+	Event<void()> onHovering = none;
+	Event<void()> onClicked = none;
+	Event<void()> onHover = none;
+	Event<void()> onMouseDown = none;
+	Event<void()> onMouseUp = none;
+	Event<void()> onMouseLeave = none;
+	Event<void()> onFocus = none;
+	Event<void()> onLostFocus = none;
 
-	Event<> onCaretMoved = none;
-	Event<> onTextModified = none;
+	Event<void()> onCaretMoved = none;
+	Event<void()> onTextModified = none;
 
-	Event<> onKeydown = none;
-	Event<> onKeyup = none;
-	Event<> onMouseWheelMoved = none;
+	Event<void()> onKeydown = none;
+	Event<void()> onKeyup = none;
+	Event<void()> onMouseWheelMoved = none;
 
-	Event<int, int> onWindowSizeChanged;
-	Event<int, int> onWindowResized;
+	Event<void(int width, int height)> onWindowSizeChanged;
+	Event<void(int width, int height)> onWindowResized;
 
 	virtual void handleEvent();
 	virtual void update();

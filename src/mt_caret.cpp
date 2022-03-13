@@ -31,7 +31,7 @@ void Mt_caret::update()
 	if (texture != nullptr)
 		SDL_DestroyTexture(texture);
 	SDL_PrintIfError(Warn);
-	texture = window.renderer->renderText("|", font, geometry, TTF_RenderUTF8_Blended);
+	texture = window.renderer->renderText("|", font->getFont(), geometry, TTF_RenderUTF8_Blended);
 }
 
 void Mt_caret::draw()

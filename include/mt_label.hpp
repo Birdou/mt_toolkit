@@ -23,6 +23,9 @@ private:
 	void init();
 
 	std::string textRendered;
+	Mt_color renderedColor;
+
+	void setColorMod();
 
 public:
 	static Mt_label &create(Mt_window &window, int x, int y, int w, int h);

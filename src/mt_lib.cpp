@@ -1,8 +1,6 @@
 
 #include "mt_lib.hpp"
 
-#include "mt_geometry.hpp"
-
 void Mt_lib::replaceAll(std::string &str, const std::string &from, const std::string &to)
 {
 	size_t start_pos = 0;

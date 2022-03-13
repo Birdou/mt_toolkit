@@ -9,8 +9,8 @@ Mt_checkbox::Mt_checkbox(Mt_window &window, int x, int y, int size) : Mt_widget(
 
 	scheme = UI_CHECKBOX_COLOR_SCHEME;
 
-	backgroundColor = scheme.background.normalColor;
-	borderColor = scheme.frame.normalColor;
+	backgroundColor = scheme.background.normal;
+	borderColor = scheme.border.normal;
 
 	check = &Mt_label::create(*this);
 	check->geometry->setW(size * checked_size);
@@ -56,8 +56,8 @@ void Mt_checkbox::update()
 		if (window.hovering == nullptr)
 		{
 			window.hovering = this;
-			backgroundColor.fadeInto(&scheme.background.hoverColor);
-			borderColor.fadeInto(&scheme.frame.hoverColor);
+			backgroundColor.fadeInto(scheme.background.hover);
+			borderColor.fadeInto(scheme.border.hover);
 		}
 		if (window.hovering == this)
 		{
@@ -70,8 +70,8 @@ void Mt_checkbox::update()
 					onMouseDown();
 
 					pressed = true;
-					backgroundColor.fadeInto(&scheme.background.clickedColor);
-					borderColor.fadeInto(&scheme.frame.clickedColor);
+					backgroundColor.fadeInto(scheme.background.clicked);
+					borderColor.fadeInto(scheme.border.clicked);
 					break;
 				default:
 					break;
@@ -101,8 +101,8 @@ void Mt_checkbox::update()
 
 			pressed = false;
 			window.hovering = nullptr;
-			backgroundColor.fadeInto(&scheme.background.normalColor);
-			borderColor.fadeInto(&scheme.frame.normalColor);
+			backgroundColor.fadeInto(scheme.background.normal);
+			borderColor.fadeInto(scheme.border.normal);
 		}
 	}
 }

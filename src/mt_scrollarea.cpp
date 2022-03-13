@@ -7,6 +7,7 @@ Mt_scrollarea::Mt_scrollarea(Mt_window &window, int x, int y, int w, int h, int 
 {
 	init();
 	up = &Mt_button::create(*this);
+	up->font = up->label->font = new Mt_font(window.getApplication(), defaultFont, defaultFontSize);
 	up->geometry->setW(scrollButtonWidth);
 	up->geometry->setH(scrollButtonHeight);
 	up->geometry->normalize();
@@ -23,6 +24,7 @@ Mt_scrollarea::Mt_scrollarea(Mt_window &window, int x, int y, int w, int h, int 
 	};
 
 	down = &Mt_button::create(*this);
+	down->font = down->label->font = new Mt_font(window.getApplication(), defaultFont, defaultFontSize);
 	down->geometry->setW(scrollButtonWidth);
 	down->geometry->setH(scrollButtonHeight);
 	down->geometry->normalize();
@@ -98,6 +100,7 @@ void Mt_scrollarea::addWidget(Mt_widget &widget)
 										{
 											if (&widget == ptr)
 											{
+												std::cout << "successfully removed from main vector" << std::endl;
 												widgets.emplace_back(&widget);
 												return true;
 											}

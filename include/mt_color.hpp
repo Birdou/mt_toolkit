@@ -177,8 +177,11 @@ public:
 	Mt_RGBA();
 
 	Mt_RGBA(Uint8 r, Uint8 g, Uint8 b, Uint8 a = 255);
+	Mt_RGBA(const Mt_RGBA &rgba);
+	Mt_RGBA(int hex);
 
 	bool operator==(const SDL_Color &color);
+	bool operator==(const Mt_RGBA &color);
 
 	bool operator!=(const SDL_Color &color);
 
@@ -224,22 +227,22 @@ public:
 class Mt_color : public Mt_RGBA
 {
 private:
-	float currentFrame = 0.f;
-	float frames = 0.f;
+	Uint16 currentFrame = -1;
+	Uint16 frames = 0;
 
-	Mt_RGBA *target = nullptr;
+	Mt_RGBA target;
 
 	Mt_GenericRGBA<float> current;
 	Mt_GenericRGBA<float> step;
 
 public:
 	Mt_color();
-
 	Mt_color(Uint8 r, Uint8 g, Uint8 b, Uint8 a = 255);
 
 	Mt_color &operator=(const SDL_Color &color);
+	Mt_color &operator=(const Mt_color &color);
 
-	void fadeInto(Mt_RGBA *target, float frames = 8.f);
+	void fadeInto(Mt_RGBA target, Uint16 frames = 8);
 
 	void update();
 };

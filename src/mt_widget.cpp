@@ -49,9 +49,10 @@ Mt_widget::Mt_widget(Mt_window &window, int x, int y, int w, int h) : window(win
 Mt_widget::~Mt_widget()
 {
 	Debug("Destroying widget...");
-	if (parent == nullptr)
-		delete font;
+
 	delete geometry;
+	if (parent != nullptr)
+		delete font;
 
 	if (cursor)
 		SDL_FreeCursor(cursor);
@@ -80,32 +81,32 @@ void *Mt_widget::getParent()
 void Mt_widget::setScheme(Mt_colorScheme scheme)
 {
 	this->scheme = scheme;
-	this->backgroundColor = scheme.background.normalColor;
-	this->borderColor = scheme.frame.normalColor;
+	this->backgroundColor = scheme.background.normal;
+	this->borderColor = scheme.border.normal;
 }
 void Mt_widget::fadeToNormal()
 {
-	backgroundColor.fadeInto(&scheme.background.normalColor);
-	borderColor.fadeInto(&scheme.frame.normalColor);
-	// font->color.fadeInto(&scheme.font.normalColor);
+	backgroundColor.fadeInto(scheme.background.normal);
+	borderColor.fadeInto(scheme.border.normal);
+	font->color.fadeInto(scheme.font.normal);
 }
 void Mt_widget::fadeToHover()
 {
-	backgroundColor.fadeInto(&scheme.background.hoverColor);
-	borderColor.fadeInto(&scheme.frame.hoverColor);
-	// font->color.fadeInto(&scheme.font.hoverColor);
+	backgroundColor.fadeInto(scheme.background.hover);
+	borderColor.fadeInto(scheme.border.hover);
+	font->color.fadeInto(scheme.font.hover);
 }
 void Mt_widget::fadeToClicked()
 {
-	backgroundColor.fadeInto(&scheme.background.clickedColor);
-	borderColor.fadeInto(&scheme.frame.clickedColor);
-	// font->color.fadeInto(&scheme.font.clickedColor);
+	backgroundColor.fadeInto(scheme.background.clicked);
+	borderColor.fadeInto(scheme.border.clicked);
+	font->color.fadeInto(scheme.font.clicked);
 }
 void Mt_widget::fadeToFocused()
 {
-	backgroundColor.fadeInto(&scheme.background.focusedColor);
-	borderColor.fadeInto(&scheme.frame.focusedColor);
-	// font->color.fadeInto(&scheme.font.focusedColor);
+	backgroundColor.fadeInto(scheme.background.focused);
+	borderColor.fadeInto(scheme.border.focused);
+	font->color.fadeInto(scheme.font.focused);
 }
 
 Mt_window &Mt_widget::getApplication() const

@@ -99,17 +99,16 @@ void Mt_renderer::drawFillRectangle(const SDL_Rect &dest, const Mt_RGBA &color)
 	SDL_SetRenderDrawColor(renderer, renderColor.r, renderColor.g, renderColor.b, renderColor.a);
 }
 
-SDL_Texture *Mt_renderer::renderText(const std::string &text, Mt_font *font, Mt_geometry *geometry, DrawFunction TTF_RenderFunction)
+SDL_Texture *Mt_renderer::renderText(const std::string &text, TTF_Font *font, Mt_geometry *geometry, DrawFunction TTF_RenderFunction)
 {
-	TTF_Font *ttf = font->getFont();
-	if (ttf == nullptr)
+	if (font == nullptr)
 	{
 		Warn("Invalid font.");
 		return nullptr;
 	}
 
 	SDL_Texture *texture = nullptr;
-	SDL_Surface *textSurface = TTF_RenderFunction(ttf, text.c_str(), font->color);
+	SDL_Surface *textSurface = TTF_RenderFunction(font, text.c_str(), {255, 255, 255, 255});
 	if (textSurface == nullptr)
 	{
 		SDL_PrintError(Error);
@@ -126,17 +125,16 @@ SDL_Texture *Mt_renderer::renderText(const std::string &text, Mt_font *font, Mt_
 	return texture;
 }
 
-SDL_Texture *Mt_renderer::renderWrapped(const std::string &text, Mt_font *font, Mt_geometry *geometry, Uint32 wrapLenght, DrawFunctionWrapped TTF_RenderFunction)
+SDL_Texture *Mt_renderer::renderWrapped(const std::string &text, TTF_Font *font, Mt_geometry *geometry, Uint32 wrapLenght, DrawFunctionWrapped TTF_RenderFunction)
 {
-	TTF_Font *ttf = font->getFont();
-	if (ttf == nullptr)
+	if (font == nullptr)
 	{
 		Error("Invalid font.");
 		return nullptr;
 	}
 
 	SDL_Texture *texture = nullptr;
-	SDL_Surface *textSurface = TTF_RenderFunction(ttf, text.c_str(), font->color, wrapLenght);
+	SDL_Surface *textSurface = TTF_RenderFunction(font, text.c_str(), {255, 255, 255, 255}, wrapLenght);
 	if (textSurface == nullptr)
 	{
 		SDL_PrintError(Error);

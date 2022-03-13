@@ -58,8 +58,13 @@ void Mt_label::loadIcon(const std::string &path)
 
 		geometry->normalize();
 	}
+	setColorMod();
 }
-
+void Mt_label::setColorMod()
+{
+	SDL_SetTextureColorMod(texture, font->color.r, font->color.g, font->color.b);
+	renderedColor = font->color;
+}
 void Mt_label::handleEvent()
 {
 	HANDLE_WINDOW_EVENTS;
@@ -67,7 +72,7 @@ void Mt_label::handleEvent()
 
 void Mt_label::update()
 {
-	return_if(!visible || text.empty());
+	return_if(!visible);
 
 	if (text != textRendered)
 	{
@@ -77,13 +82,19 @@ void Mt_label::update()
 
 		if (wrap)
 		{
-			texture = window.renderer->renderWrapped(text, font, geometry, geometry->destR.w, TTF_RenderUTF8_Blended_Wrapped);
+			texture = window.renderer->renderWrapped(text, font->getFont(), geometry, geometry->destR.w, TTF_RenderUTF8_Blended_Wrapped);
 		}
 		else
 		{
-			texture = window.renderer->renderText(text, font, geometry, TTF_RenderUTF8_Blended);
+			texture = window.renderer->renderText(text, font->getFont(), geometry, TTF_RenderUTF8_Blended);
 		}
+		setColorMod();
+
 		textRendered = text;
+	}
+	if (font->color != renderedColor)
+	{
+		setColorMod();
 	}
 
 	if (autoupdate)

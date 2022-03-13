@@ -15,10 +15,9 @@ void Mt_button::init()
 	label = &Mt_label::create(*this);
 
 	scheme = UI_BUTTON_COLOR_SCHEME;
-	// scheme.font.hoverColor = {255, 255, 255, 255};
 
-	backgroundColor = scheme.background.normalColor;
-	borderColor = scheme.frame.normalColor;
+	backgroundColor = scheme.background.normal;
+	borderColor = scheme.border.normal;
 }
 Mt_button &Mt_button::create(Mt_widget &widget)
 {
@@ -119,11 +118,12 @@ void Mt_button::update()
 	}
 	else
 	{
+		fadeToNormal();
 		if (window.hovering == this)
 		{
+			onMouseLeave();
 			pressed = false;
 			window.hovering = nullptr;
-			fadeToNormal();
 		}
 	}
 }

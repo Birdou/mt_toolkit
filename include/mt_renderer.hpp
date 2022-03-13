@@ -35,8 +35,8 @@ public:
 	void drawRectangle(const SDL_Rect &dest, const Mt_RGBA &color);
 	void drawFillRectangle(const SDL_Rect &dest, const Mt_RGBA &color);
 
-	SDL_Texture *renderText(const std::string &text, Mt_font *font, Mt_geometry *geometry, DrawFunction TTF_RenderFunction);
-	SDL_Texture *renderWrapped(const std::string &text, Mt_font *font, Mt_geometry *geometry, Uint32 wrapLenght, DrawFunctionWrapped TTF_RenderFunction);
+	SDL_Texture *renderText(const std::string &text, TTF_Font *font, Mt_geometry *geometry, DrawFunction TTF_RenderFunction);
+	SDL_Texture *renderWrapped(const std::string &text, TTF_Font *font, Mt_geometry *geometry, Uint32 wrapLenght, DrawFunctionWrapped TTF_RenderFunction);
 };
 
 #endif /* FB734E9A_4C58_40C9_B7B9_3D14FEEC12E2 */

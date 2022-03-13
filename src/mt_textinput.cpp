@@ -19,8 +19,8 @@ void Mt_textinput::init()
 
 	scheme = UI_TEXTINPUT_COLOR_SCHEME;
 
-	backgroundColor = scheme.background.normalColor;
-	borderColor = scheme.frame.normalColor;
+	backgroundColor = scheme.background.normal;
+	borderColor = scheme.border.normal;
 }
 
 void Mt_textinput::updateCaretPosition()
@@ -209,8 +209,8 @@ void Mt_textinput::handleMouse()
 		{
 			window.hovering = this;
 			SetCursor(SDL_SYSTEM_CURSOR_IBEAM);
-			backgroundColor.fadeInto(&scheme.background.hoverColor);
-			borderColor.fadeInto(&scheme.frame.hoverColor);
+			backgroundColor.fadeInto(scheme.background.hover);
+			borderColor.fadeInto(scheme.border.hover);
 		}
 		if (!focused)
 		{
@@ -223,8 +223,8 @@ void Mt_textinput::handleMouse()
 					if (window.hovering == this)
 					{
 						onFocus();
-						backgroundColor.fadeInto(&scheme.background.focusedColor);
-						borderColor.fadeInto(&scheme.frame.focusedColor);
+						backgroundColor.fadeInto(scheme.background.focused);
+						borderColor.fadeInto(scheme.border.focused);
 						focused = true;
 						released = false;
 					}
@@ -242,8 +242,8 @@ void Mt_textinput::handleMouse()
 		{
 		case SDL_BUTTON_LEFT:
 			onLostFocus();
-			backgroundColor.fadeInto(&scheme.background.normalColor);
-			borderColor.fadeInto(&scheme.frame.normalColor);
+			backgroundColor.fadeInto(scheme.background.normal);
+			borderColor.fadeInto(scheme.border.normal);
 			focused = false;
 			break;
 		}
@@ -254,8 +254,8 @@ void Mt_textinput::handleMouse()
 		onMouseLeave();
 		if (window.hovering == this)
 		{
-			backgroundColor.fadeInto(&scheme.background.normalColor);
-			borderColor.fadeInto(&scheme.frame.normalColor);
+			backgroundColor.fadeInto(scheme.background.normal);
+			borderColor.fadeInto(scheme.border.normal);
 			window.hovering = nullptr;
 		}
 	}

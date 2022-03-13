@@ -19,6 +19,8 @@ int main(/*int argc, char *argv[]*/)
 
 	auto &btn1 = Mt_button::create(app.window, 10, 40, 50, 20);
 	btn1.label->text = "Botão";
+	btn1.scheme.font.hover.hex(Yellow);
+	btn1.scheme.background.hover.hex(Black);
 
 	auto &tbox = Mt_textbox::create(app.window, 10, 70, 100, 20);
 	auto &tarea = Mt_textarea::create(app.window, 10, 100, 100, 100);
@@ -33,7 +35,7 @@ int main(/*int argc, char *argv[]*/)
 	bitmap.geometry->setAnchor(middle_center);
 
 	auto &mainscrollArea = Mt_scrollarea::create(app.window, 10, 10, 500, 550, 0, 400);
-	mainscrollArea.backgroundColor.hex(Moccasin);
+	mainscrollArea.backgroundColor.hex(Moccasin).a = 122;
 
 	auto &scrollArea = Mt_scrollarea::create(app.window, 10, 50, 200, 500, 0, 250);
 	scrollArea.backgroundColor.hex(AliceBlue);
