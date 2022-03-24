@@ -36,7 +36,7 @@ enum windowFlags
 
 struct window_not_found : public std::exception
 {
-	const char *what(const char *e) const noexcept
+	const char* what(const char* e) const noexcept
 	{
 		return e;
 	}
@@ -56,8 +56,8 @@ class Mt_widget;
 class Mt_window
 {
 private:
-	Mt_application &application;
-	SDL_Window *window = nullptr;
+	Mt_application& application;
+	SDL_Window* window = nullptr;
 	Uint32 windowID;
 	std::string title;
 	SDL_Rect rect;
@@ -67,20 +67,19 @@ private:
 	bool initialized = false;
 	bool draggable = false;
 
-	std::map<std::string, Mt_window *> windows;
-	std::vector<std::thread *> coroutines;
+	std::map<std::string, Mt_window*> windows;
 
-	Mt_window(const Mt_window &) = delete;
+	Mt_window(const Mt_window&) = delete;
 
 	class Mt_messageBox
 	{
 	private:
-		Mt_window &window;
+		Mt_window& window;
 
 		std::vector<SDL_MessageBoxButtonData> buttons;
 
 	public:
-		Mt_messageBox(Mt_window &window) : window(window)
+		Mt_messageBox(Mt_window& window) : window(window)
 		{
 		}
 
@@ -89,7 +88,7 @@ private:
 		Uint32 flags = INFORMATION;
 
 		int buttonid;
-		void addButton(const char *text, bool defaultEnter, bool defaultEscape = false)
+		void addButton(const char* text, bool defaultEnter, bool defaultEscape = false)
 		{
 			Uint32 flags = 0;
 			if (defaultEnter)
@@ -112,59 +111,60 @@ private:
 				message.c_str(),
 				(signed)buttons.size(),
 				buttons.data(),
-				NULL};
+				NULL };
 			SDL_ShowMessageBox(&messageboxdata, &buttonid);
 		}
 	};
 
 public:
-	Mt_window(Mt_application &application, const std::string &title, int w, int h, int flags = 0);
-	Mt_window(Mt_window &parentWindow, const std::string &title, int w, int h, int flags = 0);
+	Mt_window(Mt_application& application, const std::string& title, int w, int h, int flags = 0);
+	Mt_window(Mt_window& parentWindow, const std::string& title, int w, int h, int flags = 0);
 	~Mt_window();
 
-	std::vector<Mt_widget *> widgets;
+	std::vector<Mt_widget*> widgets;
 
-	Mt_renderer *renderer = nullptr;
+	Mt_renderer* renderer = nullptr;
 	SDL_Event event;
 
 	Mt_colormanager colorManager;
-	Mt_color backgroundColor = {255, 255, 255, 255};
-	Mt_color borderColor = {0, 0, 0, 255};
+	Mt_color backgroundColor = { 255, 255, 255, 255 };
+	Mt_color borderColor = { 0, 0, 0, 255 };
 
 	bool destroyOnClose = false;
+	bool persistent = false;
 	bool border = false;
 
 	void setDraggable(bool draggable = true);
 	bool isDraggable();
 
-	void *hovering = nullptr;
+	void* hovering = nullptr;
 
-	bool hover(void *obj);
+	bool hover(void* obj);
 
 	bool isActive() const;
 
-	Mt_window &createChild(const std::string &title, const std::string &id, int width, int height, int flags = 0);
-	Mt_window &getChildById(const std::string &id);
+	Mt_window& createChild(const std::string& title, const std::string& id, int width, int height, int flags = 0);
+	Mt_window& getChildById(const std::string& id);
 
-	void showSimpleMessageBox(const char *title, const char *message, int flags = INFORMATION);
+	void showSimpleMessageBox(const char* title, const char* message, int flags = INFORMATION);
 
 	Mt_messageBox createMessageBox();
 
-	void getPostition(int &x, int &y);
+	void getPostition(int& x, int& y);
 
 	void hide();
 	void show();
 	void destroy();
 
 	void setSize(int w, int h);
-	void setIcon(const char *file);
+	void setIcon(const char* file);
 
 	int height() const;
 	int width() const;
 
-	static SDL_HitTestResult SDLCALL hitTest(SDL_Window *, const SDL_Point *pt, void *data);
+	static SDL_HitTestResult SDLCALL hitTest(SDL_Window*, const SDL_Point* pt, void* data);
 
-	Mt_application &getApplication() const;
+	Mt_application& getApplication() const;
 
 	void handleEvents();
 	void update();

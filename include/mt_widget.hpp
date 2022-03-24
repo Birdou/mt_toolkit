@@ -2,6 +2,7 @@
 #define C7773821_9806_4DA9_86DA_A944C8E7E591
 
 #include <functional>
+#include <memory>
 
 #include "mt_application.hpp"
 #include "mt_window.hpp"
@@ -137,26 +138,26 @@ using Event = std::function<T>;
 class Mt_widget
 {
 protected:
-	Mt_window &window;
-
 	bool focused = false;
 	bool released = true;
 	bool hoverScroll = false;
 
 	SDL_SystemCursor cursorId;
-	SDL_Cursor *cursor = nullptr;
+	SDL_Cursor* cursor = nullptr;
 	void SetCursor(SDL_SystemCursor id);
 
-	void *parent = nullptr;
+	void* parent = nullptr;
 
 	bool active = true;
 
 	virtual void init();
 
 public:
+	Mt_window& window;
 	bool visible = true;
-	Mt_geometry *geometry = nullptr;
-	Mt_font *font = nullptr;
+
+	std::unique_ptr<Mt_geometry> geometry;
+	std::shared_ptr<Mt_font> font;
 
 	Mt_color backgroundColor;
 	Mt_color borderColor;
@@ -179,9 +180,9 @@ public:
 	static std::string defaultFont;
 	static int defaultFontSize;
 
-	Mt_widget(Mt_widget &widget);
-	Mt_widget(Mt_window &window, int x, int y);
-	Mt_widget(Mt_window &window, int x, int y, int w, int h);
+	Mt_widget(Mt_widget& widget);
+	Mt_widget(Mt_window& window, int x, int y);
+	Mt_widget(Mt_window& window, int x, int y, int w, int h);
 	virtual ~Mt_widget();
 
 	void destroy();
@@ -189,7 +190,7 @@ public:
 	bool isActive() const;
 	bool isHoverScrollable() const;
 
-	void *getParent();
+	void* getParent();
 
 	void setScheme(Mt_colorScheme scheme);
 	void fadeToNormal();
@@ -197,7 +198,7 @@ public:
 	void fadeToClicked();
 	void fadeToFocused();
 
-	Mt_window &getApplication() const;
+	Mt_window& getApplication() const;
 
 	const Event<void()> none = []() {};
 

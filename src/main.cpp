@@ -1,4 +1,7 @@
 #include <iostream>
+#include <chrono>
+#include <iomanip>
+#include <ctime>
 
 #include "mt_button.hpp"
 #include "mt_label.hpp"
@@ -8,46 +11,34 @@
 #include "mt_checkbox.hpp"
 #include "mt_scrollarea.hpp"
 
-int main(/*int argc, char *argv[]*/)
+using namespace std::chrono;
+int main(int argc, char* argv[])
 {
 	Mt_application app("Application", 600, 600);
 
-	auto &label = Mt_label::create(app.window, 10, 10);
-	label.text = "Olá mundo";
-	label.font->color.hex(White);
-	label.backgroundColor.hex(Black).opaque();
+	auto& tbox = Mt_textbox::create(*app.window, app.window->width() / 2, 70, 200, 25);
+	// auto& tarea = Mt_textbox::create(*app.window, app.window->width() / 2, app.window->height(), 200, 200);
+	// tarea.geometry->setAnchor(bottom_center);
 
-	auto &btn1 = Mt_button::create(app.window, 10, 40, 50, 20);
-	btn1.label->text = "Botão";
-	btn1.scheme.font.hover.hex(Yellow);
-	btn1.scheme.background.hover.hex(Black);
+	auto& createWindow = Mt_button::create(*app.window, 10, 10, 100, 40);
+	createWindow.label->text = "Botão";
+	createWindow.font->setFont("assets/fonts/cour.ttf", 19);
 
-	auto &tbox = Mt_textbox::create(app.window, 10, 70, 100, 20);
-	auto &tarea = Mt_textarea::create(app.window, 10, 100, 100, 100);
-	auto &chkbox = Mt_checkbox::create(app.window, 80, 30, 20);
-	auto &cbox = Mt_comboBox::create(app.window, 10, 220, 150, 20);
-	cbox.addOption("Opção 1");
+	createWindow.function = [&]() {
+		auto& wind = app.window->createChild(tbox.str(), tbox.str(), 250, 200);
+		auto& label = Mt_label::create(wind, 10, 10, 200, 80);
+		label.text = "Olá";
+	};
 
-	auto &bitmap = Mt_bitmap::create(app.window, 100, 300, 50, 50);
-	for (size_t j = 0; j < bitmap.height(); ++j)
-		for (size_t i = 0; i < bitmap.width(); ++i)
-			bitmap.at(i, j).bw((i + j) * 2);
-	bitmap.geometry->setAnchor(middle_center);
+	auto& createWindow2 = Mt_button::create(*app.window, 10, 80, 100, 40);
+	createWindow2.label->text = "Botão 2";
+	createWindow2.function = [&]() {
+		//app.window->getChildById(tbox.str()).destroy();
+		for (auto c : tbox.str())
+			std::cout << (int)c << " ";
+		std::cout << std::endl;
+	};
 
-	auto &mainscrollArea = Mt_scrollarea::create(app.window, 10, 10, 500, 550, 0, 400);
-	mainscrollArea.backgroundColor.hex(Moccasin).a = 122;
-
-	auto &scrollArea = Mt_scrollarea::create(app.window, 10, 50, 200, 500, 0, 250);
-	scrollArea.backgroundColor.hex(AliceBlue);
-	scrollArea.addWidget(label);
-	scrollArea.addWidget(btn1);
-	scrollArea.addWidget(tbox);
-	scrollArea.addWidget(tarea);
-	scrollArea.addWidget(chkbox);
-	scrollArea.addWidget(cbox);
-	scrollArea.addWidget(bitmap);
-
-	mainscrollArea.addWidget(scrollArea);
 
 	return app();
 }

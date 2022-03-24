@@ -1,16 +1,16 @@
 
 #include "mt_label.hpp"
 
-Mt_label::Mt_label(Mt_window &window, int x, int y, int w, int h) : Mt_widget(window, x, y, w, h)
+Mt_label::Mt_label(Mt_window& window, int x, int y, int w, int h) : Mt_widget(window, x, y, w, h)
 {
 	wrap = true;
 	init();
 }
-Mt_label::Mt_label(Mt_window &window, int x, int y) : Mt_widget(window, x, y)
+Mt_label::Mt_label(Mt_window& window, int x, int y) : Mt_widget(window, x, y)
 {
 	init();
 }
-Mt_label::Mt_label(Mt_widget &widget) : Mt_widget(widget)
+Mt_label::Mt_label(Mt_widget& widget) : Mt_widget(widget)
 {
 	init();
 }
@@ -20,17 +20,23 @@ void Mt_label::init()
 	backgroundColor = Mt_RGBA(0, 0, 0, 0);
 	borderColor = Mt_RGBA(0, 0, 0, 0);
 }
-Mt_label &Mt_label::create(Mt_window &window, int x, int y, int w, int h)
+Mt_label& Mt_label::create(Mt_window& window, int x, int y, int w, int h)
 {
-	return *new Mt_label(window, x, y, w, h);
+	Mt_label* label = new Mt_label(window, x, y, w, h);
+	window.widgets.emplace_back(label);
+	return *label;
 }
-Mt_label &Mt_label::create(Mt_window &window, int x, int y)
+Mt_label& Mt_label::create(Mt_window& window, int x, int y)
 {
-	return *new Mt_label(window, x, y);
+	Mt_label* label = new Mt_label(window, x, y);
+	window.widgets.emplace_back(label);
+	return *label;
 }
-Mt_label &Mt_label::create(Mt_widget &widget)
+Mt_label& Mt_label::create(Mt_widget& widget)
 {
-	return *new Mt_label(widget);
+	Mt_label* label = new Mt_label(widget);
+	// widget.window.widgets.emplace_back(label);
+	return *label;
 }
 Mt_label::~Mt_label()
 {
@@ -41,9 +47,9 @@ Mt_label::~Mt_label()
 	SDL_PrintIfError(Warn);
 }
 
-void Mt_label::loadIcon(const std::string &path)
+void Mt_label::loadIcon(const std::string& path)
 {
-	SDL_Surface *surf = IMG_Load(path.c_str());
+	SDL_Surface* surf = IMG_Load(path.c_str());
 	if (surf == nullptr)
 	{
 		SDL_PrintError(Error);
@@ -74,28 +80,30 @@ void Mt_label::update()
 {
 	return_if(!visible);
 
-	if (text != textRendered)
+	if (text != renderedText || font->getFont() != renderedFont)
 	{
 		if (texture != nullptr)
 			SDL_DestroyTexture(texture);
 		SDL_PrintIfError(Warn);
 
-		if (wrap)
+		if (text.size() > 0)
 		{
-			texture = window.renderer->renderWrapped(text, font->getFont(), geometry, geometry->destR.w, TTF_RenderUTF8_Blended_Wrapped);
+			if (wrap)
+				texture = window.renderer->renderWrapped(text, font->getFont(), geometry.get(), geometry->destR.w, TTF_RenderUTF8_Blended_Wrapped);
+			else
+				texture = window.renderer->renderText(text, font->getFont(), geometry.get(), TTF_RenderUTF8_Blended);
+
+			setColorMod();
 		}
 		else
 		{
-			texture = window.renderer->renderText(text, font->getFont(), geometry, TTF_RenderUTF8_Blended);
+			texture = nullptr;
 		}
-		setColorMod();
-
-		textRendered = text;
+		renderedText = text;
+		renderedFont = font->getFont();
 	}
 	if (font->color != renderedColor)
-	{
 		setColorMod();
-	}
 
 	if (autoupdate)
 		geometry->normalize();

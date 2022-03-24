@@ -11,33 +11,36 @@
 class Mt_label : public Mt_widget
 {
 private:
-	SDL_Texture *texture = nullptr;
+	SDL_Texture* texture = nullptr;
 
 	bool wrap = false;
 
-	Mt_label(Mt_window &window, int x, int y, int w, int h);
-	Mt_label(Mt_window &window, int x, int y);
-	Mt_label(Mt_widget &widget);
-	Mt_label(const Mt_label &) = delete;
+	Mt_label(Mt_window& window, int x, int y, int w, int h);
+	Mt_label(Mt_window& window, int x, int y);
+	Mt_label(Mt_widget& widget);
+	Mt_label(const Mt_label&) = delete;
 
 	void init();
 
-	std::string textRendered;
+	std::string renderedText;
 	Mt_color renderedColor;
+	TTF_Font* renderedFont = nullptr;
 
 	void setColorMod();
 
 public:
-	static Mt_label &create(Mt_window &window, int x, int y, int w, int h);
-	static Mt_label &create(Mt_window &window, int x, int y);
-	static Mt_label &create(Mt_widget &widget);
+	static Mt_label& create(Mt_window& window, int x, int y, int w, int h);
+	static Mt_label& create(Mt_window& window, int x, int y);
+	static Mt_label& create(Mt_widget& widget);
 
 	~Mt_label();
 
 	std::string text;
 	bool autoupdate = true;
 
-	void loadIcon(const std::string &path);
+	float scale = 1;
+
+	void loadIcon(const std::string& path);
 
 	void handleEvent() override;
 	void update() override;

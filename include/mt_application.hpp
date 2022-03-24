@@ -7,6 +7,7 @@
 #include <thread>
 #include <cstdlib>
 #include <sstream>
+#include <mutex>
 
 #include "mt_renderer.hpp"
 
@@ -21,7 +22,8 @@ class Mt_application
 private:
 	bool running = false;
 
-	std::map<std::pair<std::string, int>, TTF_Font *> fonts;
+	std::map<std::pair<std::string, int>, TTF_Font*> fonts;
+	std::vector<std::thread*> coroutines;
 
 	Uint32 fStart = 0;
 	Uint32 frameTime = 0;
@@ -31,14 +33,24 @@ private:
 	const unsigned short targetFPS = 60;
 
 public:
-	Mt_application(const std::string &title, int width, int height, int flags = 0);
+	Mt_application(const std::string& title, int width, int height, int flags = 0);
 	~Mt_application();
+
+	std::mutex mutex;
 
 	SDL_Event event;
 
-	Mt_window &window;
+	std::unique_ptr<Mt_window> window;
 
-	TTF_Font *getFont(const std::string &path, int fontSize);
+	template <typename T, typename... Args>
+	void newCoroutine(T function, Args... args)
+	{
+		coroutines.emplace_back(new std::thread(function, args...));
+	}
+
+	TTF_Font* getFont(const std::string& path, int fontSize);
+
+	bool isRunning() const noexcept { return running; }
 
 	int operator()();
 	int run();

@@ -1,25 +1,29 @@
 
 #include "mt_window.hpp"
 
+#include <algorithm>
+
 #include "mt_widget.hpp"
 #include "mt_lib.hpp"
 #include "mt_point.hpp"
 
-Mt_window::Mt_window(Mt_application &application, const std::string &title, int w, int h, int flags) : application(application), title(title)
+Mt_window::Mt_window(Mt_application& application, const std::string& title, int w, int h, int flags) : application(application), title(title)
 {
-	rect = {0, 0, w, h};
+	rect = { 0, 0, w, h };
 
 	window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, flags);
 	windowID = SDL_GetWindowID(window);
+
+	SDL_GetWindowSize(window, &rect.w, &rect.h);
 
 	renderer = new Mt_renderer(window);
 
 	active = true;
 }
 
-Mt_window::Mt_window(Mt_window &parentWindow, const std::string &title, int w, int h, int flags) : application(parentWindow.application), title(title)
+Mt_window::Mt_window(Mt_window& parentWindow, const std::string& title, int w, int h, int flags) : application(parentWindow.application), title(title)
 {
-	rect = {0, 0, w, h};
+	rect = { 0, 0, w, h };
 
 	int posx, posy;
 	parentWindow.getPostition(posx, posy);
@@ -38,7 +42,7 @@ void Mt_window::setDraggable(bool draggable)
 {
 	this->draggable = draggable;
 	if (draggable)
-		SDL_SetWindowHitTest(window, hitTest, (void *)this);
+		SDL_SetWindowHitTest(window, hitTest, (void*)this);
 	else
 		SDL_SetWindowHitTest(window, NULL, NULL);
 }
@@ -51,12 +55,12 @@ Mt_window::Mt_messageBox Mt_window::createMessageBox()
 {
 	return Mt_messageBox(*this);
 }
-void Mt_window::showSimpleMessageBox(const char *title, const char *message, int flags)
+void Mt_window::showSimpleMessageBox(const char* title, const char* message, int flags)
 {
 	SDL_ShowSimpleMessageBox(flags, title, message, window);
 }
 
-void Mt_window::getPostition(int &x, int &y)
+void Mt_window::getPostition(int& x, int& y)
 {
 	SDL_GetWindowPosition(window, &x, &y);
 }
@@ -71,12 +75,6 @@ Mt_window::~Mt_window()
 	for (auto window : windows)
 		delete window.second;
 
-	for (auto coroutine : coroutines)
-	{
-		coroutine->join();
-		delete coroutine;
-	}
-
 	delete renderer;
 
 	if (window)
@@ -90,13 +88,20 @@ bool Mt_window::isActive() const
 	return active;
 }
 
-Mt_window &Mt_window::createChild(const std::string &title, const std::string &id, int width, int height, int flags)
+Mt_window& Mt_window::createChild(const std::string& title, const std::string& id, int width, int height, int flags)
 {
-	Mt_window *window = new Mt_window(*this, title, width, height, flags);
+	auto find = windows.find(id);
+	if (find != windows.end())
+	{
+		Error("Already exists an active window with this id '" << id << "'");
+		return *find->second;
+	}
+	Mt_window* window = new Mt_window(*this, title, width, height, flags);
 	windows.emplace(id, window);
+	Log(windows.size());
 	return *window;
 }
-Mt_window &Mt_window::getChildById(const std::string &id)
+Mt_window& Mt_window::getChildById(const std::string& id)
 {
 	if (windows.find(id) == windows.end())
 		throw window_not_found();
@@ -137,9 +142,9 @@ void Mt_window::setSize(int w, int h)
 	rect.h = h;
 }
 
-void Mt_window::setIcon(const char *file)
+void Mt_window::setIcon(const char* file)
 {
-	SDL_Surface *surf = IMG_Load(file);
+	SDL_Surface* surf = IMG_Load(file);
 	if (surf == nullptr)
 	{
 		SDL_PrintError(Error);
@@ -158,12 +163,12 @@ int Mt_window::width() const
 }
 
 #define RESIZE_BORDER 5
-SDL_HitTestResult SDLCALL Mt_window::hitTest(SDL_Window *, const SDL_Point *pt, void *data)
+SDL_HitTestResult SDLCALL Mt_window::hitTest(SDL_Window*, const SDL_Point* pt, void* data)
 {
-	Mt_window *window = (Mt_window *)data;
+	Mt_window* window = (Mt_window*)data;
 	Mt_point vec(*pt);
 
-	for (auto &widget : window->widgets)
+	for (auto& widget : window->widgets)
 		if (widget->visible && vec.intercept(widget->geometry->destR))
 			return SDL_HITTEST_NORMAL;
 
@@ -190,13 +195,16 @@ SDL_HitTestResult SDLCALL Mt_window::hitTest(SDL_Window *, const SDL_Point *pt, 
 	return SDL_HITTEST_DRAGGABLE;
 }
 
-Mt_application &Mt_window::getApplication() const
+Mt_application& Mt_window::getApplication() const
 {
 	return application;
 }
 
 void Mt_window::handleEvents()
 {
+	for (auto& window : windows)
+		window.second->handleEvents();
+
 	return_if(!shown);
 
 	this->event = application.event;
@@ -208,9 +216,12 @@ void Mt_window::handleEvents()
 			switch (event.window.event)
 			{
 			case SDL_WINDOWEVENT_CLOSE:
-				hide();
-				if (destroyOnClose)
-					active = false;
+				if (!persistent)
+				{
+					hide();
+					if (destroyOnClose)
+						active = false;
+				}
 				break;
 			case SDL_WINDOWEVENT_RESIZED:
 				rect.w = event.window.data1;
@@ -223,13 +234,27 @@ void Mt_window::handleEvents()
 			if (!widget->getParent())
 				widget->handleEvent();
 	}
-
-	for (auto &window : windows)
-		window.second->handleEvents();
 }
 
 void Mt_window::update()
 {
+	// refresh windows
+	for (auto it = windows.begin(); it != windows.end();)
+	{
+		if (!it->second->isActive())
+		{
+			delete it->second;
+			it = windows.erase(it);
+		}
+		else
+		{
+			it++;
+		}
+	}
+
+	for (auto& window : windows)
+		window.second->update();
+
 	return_if(!shown);
 
 	// refresh widgets
@@ -238,20 +263,7 @@ void Mt_window::update()
 		if (!(*it)->isActive())
 		{
 			delete (*it);
-			widgets.erase(it);
-		}
-		else
-		{
-			it++;
-		}
-	}
-	// refresh windows
-	for (auto it = windows.begin(); it != windows.end();)
-	{
-		if (!it->second->isActive())
-		{
-			delete it->second;
-			windows.erase(it);
+			it = widgets.erase(it);
 		}
 		else
 		{
@@ -263,13 +275,13 @@ void Mt_window::update()
 	for (auto widget : widgets)
 		if (!widget->getParent())
 			widget->update();
-
-	for (auto &window : windows)
-		window.second->update();
 }
 
 void Mt_window::draw()
 {
+	for (auto& window : windows)
+		window.second->draw();
+
 	return_if(!shown);
 
 	renderer->clear();
@@ -283,7 +295,4 @@ void Mt_window::draw()
 		renderer->drawRectangle(rect, borderColor);
 
 	renderer->present();
-
-	for (auto &window : windows)
-		window.second->draw();
 }

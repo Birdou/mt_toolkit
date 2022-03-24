@@ -153,11 +153,15 @@ void Mt_bitmap::init()
 
 Mt_bitmap &Mt_bitmap::create(Mt_window &window, int x, int y, size_t w, size_t h, size_t map_w, size_t map_h)
 {
-	return *new Mt_bitmap(window, x, y, w, h, map_w, map_h);
+	Mt_bitmap *bitmap = new Mt_bitmap(window, x, y, w, h, map_w, map_h);
+	window.widgets.emplace_back(bitmap);
+	return *bitmap;
 }
 Mt_bitmap &Mt_bitmap::create(Mt_window &window, int x, int y, size_t w, size_t h)
 {
-	return *new Mt_bitmap(window, x, y, w, h);
+	Mt_bitmap *bitmap = new Mt_bitmap(window, x, y, w, h);
+	window.widgets.emplace_back(bitmap);
+	return *bitmap;
 }
 
 Mt_bitmap::~Mt_bitmap()

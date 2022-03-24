@@ -6,7 +6,7 @@
 #include "mt_lib.hpp"
 #include "mt_window.hpp"
 
-Mt_application::Mt_application(const std::string &title, int width, int height, int flags) : window(*new Mt_window(*this, title, width, height, flags))
+Mt_application::Mt_application(const std::string &title, int width, int height, int flags)
 {
 	SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
 
@@ -28,15 +28,24 @@ Mt_application::Mt_application(const std::string &title, int width, int height, 
 		SDL_PrintError(Error);
 	}
 	// TODO seria mais apropriado que essa função fosse manipulada pelos widgets de textinput
-	SDL_StartTextInput();
 
-	window.destroyOnClose = true;
+	std::unique_ptr<Mt_window> _window(new Mt_window(*this, title, width, height, flags));
+	window = std::move(_window);
+	window->destroyOnClose = true;
+
+	running = true;
 }
 
 Mt_application::~Mt_application()
 {
 	Debug("Destroying application...");
 	SDL_StopTextInput();
+
+	for (auto coroutine : coroutines)
+	{
+		coroutine->join();
+		delete coroutine;
+	}
 
 	delete &window;
 
@@ -84,22 +93,31 @@ int Mt_application::operator()()
 
 int Mt_application::run()
 {
-	running = true;
+	Log("Start application running at " << targetFPS << " FPS...");
+	Log("Current coroutines: " << coroutines.size());
+	Log("Loaded fonts: " << fonts.size());
 
 	while (running)
 	{
 		fStart = SDL_GetTicks();
 
-		if (!window.isActive())
+		mutex.lock();
+
+		if (!window->isActive())
+		{
+			running = false;
 			break;
+		}
 
 		while (SDL_PollEvent(&event))
-			window.handleEvents();
+			window->handleEvents();
 
 		Mt_colormanager::update();
 
-		window.update();
-		window.draw();
+		window->update();
+		window->draw();
+
+		mutex.unlock();
 
 		frameTime = SDL_GetTicks() - fStart;
 		if (frameDelay > frameTime)

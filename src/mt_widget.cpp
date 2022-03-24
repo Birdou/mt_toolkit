@@ -18,41 +18,36 @@ void Mt_widget::SetCursor(SDL_SystemCursor id)
 }
 
 void Mt_widget::init()
-{
-}
+{}
 
-Mt_widget::Mt_widget(Mt_widget &widget) : window(widget.window)
+Mt_widget::Mt_widget(Mt_widget& widget) : window(widget.window)
 {
 	font = widget.font;
-	geometry = new Mt_geometry();
+	geometry = std::unique_ptr<Mt_geometry>(new Mt_geometry());
 	parent = &widget;
 
 	// Mesmo que as classes pai tratem do widget, isso precisa estar aqui
 	// para que o hittest funcione adequadamente
-	window.widgets.emplace_back(this);
+	// window.widgets.emplace_back(this);
 }
-Mt_widget::Mt_widget(Mt_window &window, int x, int y) : window(window)
+Mt_widget::Mt_widget(Mt_window& window, int x, int y) : window(window)
 {
-	font = new Mt_font(window.getApplication(), defaultFont, defaultFontSize);
-	geometry = new Mt_geometry(x, y);
+	font = std::shared_ptr<Mt_font>(new Mt_font(window.getApplication(), defaultFont, defaultFontSize));
+	geometry = std::unique_ptr<Mt_geometry>(new Mt_geometry(x, y));
 
-	window.widgets.emplace_back(this);
+	// window.widgets.emplace_back(this);
 }
-Mt_widget::Mt_widget(Mt_window &window, int x, int y, int w, int h) : window(window)
+Mt_widget::Mt_widget(Mt_window& window, int x, int y, int w, int h) : window(window)
 {
-	font = new Mt_font(window.getApplication(), defaultFont, defaultFontSize);
-	geometry = new Mt_geometry(x, y, w, h);
+	font = std::shared_ptr<Mt_font>(new Mt_font(window.getApplication(), defaultFont, defaultFontSize));
+	geometry = std::unique_ptr<Mt_geometry>(new Mt_geometry(x, y, w, h));
 	geometry->normalize();
 
-	window.widgets.emplace_back(this);
+	// window.widgets.emplace_back(this);
 }
 Mt_widget::~Mt_widget()
 {
 	Debug("Destroying widget...");
-
-	delete geometry;
-	if (parent != nullptr)
-		delete font;
 
 	if (cursor)
 		SDL_FreeCursor(cursor);
@@ -64,6 +59,7 @@ void Mt_widget::destroy()
 {
 	active = false;
 }
+
 bool Mt_widget::isActive() const
 {
 	return active;
@@ -73,7 +69,7 @@ bool Mt_widget::isHoverScrollable() const
 	return hoverScroll;
 }
 
-void *Mt_widget::getParent()
+void* Mt_widget::getParent()
 {
 	return parent;
 }
@@ -109,17 +105,14 @@ void Mt_widget::fadeToFocused()
 	font->color.fadeInto(scheme.font.focused);
 }
 
-Mt_window &Mt_widget::getApplication() const
+Mt_window& Mt_widget::getApplication() const
 {
 	return window;
 }
 
 void Mt_widget::handleEvent()
-{
-}
+{}
 void Mt_widget::update()
-{
-}
+{}
 void Mt_widget::draw()
-{
-}
+{}

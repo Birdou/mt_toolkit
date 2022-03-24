@@ -28,25 +28,25 @@ void Mt_geometry::setAnchor(center anchor)
 	posCenter();
 }
 
-int Mt_geometry::getX() const { return x; }
+int Mt_geometry::getX() const noexcept { return x; }
 void Mt_geometry::setX(int x)
 {
 	this->x = x;
 	// posCenter();
 }
-int Mt_geometry::getY() const { return y; }
+int Mt_geometry::getY() const noexcept { return y; }
 void Mt_geometry::setY(int y)
 {
 	this->y = y;
 	// posCenter();
 }
-int Mt_geometry::getW() const { return w; }
+int Mt_geometry::getW() const noexcept { return w; }
 void Mt_geometry::setW(int w)
 {
 	this->w = w;
 	posCenter();
 }
-int Mt_geometry::getH() const { return h; }
+int Mt_geometry::getH() const noexcept { return h; }
 void Mt_geometry::setH(int h)
 {
 	this->h = h;
@@ -63,13 +63,13 @@ void Mt_geometry::setGeometry(int x, int y, int w, int h)
 	posCenter();
 }
 
-void Mt_geometry::confine(const SDL_Rect &box)
+void Mt_geometry::confine(const SDL_Rect& box)
 {
 	confineX(box);
 	confineY(box);
 }
 
-void Mt_geometry::confineX(const SDL_Rect &box)
+void Mt_geometry::confineX(const SDL_Rect& box)
 {
 	srcR.x = 0;
 	destR.w = srcR.w = w;
@@ -93,7 +93,7 @@ void Mt_geometry::confineX(const SDL_Rect &box)
 	}
 }
 
-void Mt_geometry::confineY(const SDL_Rect &box)
+void Mt_geometry::confineY(const SDL_Rect& box)
 {
 	srcR.y = 0;
 	destR.h = srcR.h = h;
@@ -116,7 +116,13 @@ void Mt_geometry::confineY(const SDL_Rect &box)
 		}
 	}
 }
-
+bool Mt_geometry::intercept(const Mt_geometry& geometry) const
+{
+	return (geometry.destR.x + geometry.getW() <= this->destR.x ||
+		geometry.destR.y + geometry.getH() <= this->destR.y ||
+		geometry.destR.x >= this->destR.x + this->destR.w ||
+		geometry.destR.y >= this->destR.y + this->destR.h);
+}
 void Mt_geometry::normalize()
 {
 	posCenter();

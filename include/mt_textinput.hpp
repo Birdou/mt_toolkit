@@ -25,6 +25,7 @@ protected:
 
 	Mt_textinput(Mt_widget &widget);
 	Mt_textinput(Mt_window &window, int x, int y, int w, int h);
+	Mt_textinput(const Mt_textinput &) = delete;
 
 	void init();
 
@@ -49,6 +50,7 @@ protected:
 
 public:
 	bool editable = true;
+	bool password = false;
 
 	virtual ~Mt_textinput();
 

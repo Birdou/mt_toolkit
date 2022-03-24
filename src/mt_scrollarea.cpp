@@ -3,19 +3,18 @@
 
 #include <algorithm>
 
-Mt_scrollarea::Mt_scrollarea(Mt_window &window, int x, int y, int w, int h, int scroll_w, int scroll_h) : Mt_widget(window, x, y, w, h)
+Mt_scrollarea::Mt_scrollarea(Mt_window& window, int x, int y, int w, int h, int scroll_w, int scroll_h) : Mt_widget(window, x, y, w, h)
 {
 	init();
 	up = &Mt_button::create(*this);
-	up->font = up->label->font = new Mt_font(window.getApplication(), defaultFont, defaultFontSize);
+	up->font = up->label->font = std::shared_ptr<Mt_font>(new Mt_font(window.getApplication(), defaultFont, defaultFontSize));
 	up->geometry->setW(scrollButtonWidth);
 	up->geometry->setH(scrollButtonHeight);
 	up->geometry->normalize();
 	up->repeatInterval = 120;
 	up->setScheme(BUTTON_COLOR_SCHEME);
 	up->label->loadIcon("assets/icons/uparrow.png");
-	up->onClicked = [&]()
-	{
+	up->onClicked = [&]() {
 		scroll.y -= 27;
 		progress = scroll.y / (float)scroll.h;
 		progress = std::fmax(0.f, progress);
@@ -24,15 +23,14 @@ Mt_scrollarea::Mt_scrollarea(Mt_window &window, int x, int y, int w, int h, int 
 	};
 
 	down = &Mt_button::create(*this);
-	down->font = down->label->font = new Mt_font(window.getApplication(), defaultFont, defaultFontSize);
+	down->font = down->label->font = std::shared_ptr<Mt_font>(new Mt_font(window.getApplication(), defaultFont, defaultFontSize));
 	down->geometry->setW(scrollButtonWidth);
 	down->geometry->setH(scrollButtonHeight);
 	down->geometry->normalize();
 	down->repeatInterval = 120;
 	down->setScheme(BUTTON_COLOR_SCHEME);
 	down->label->loadIcon("assets/icons/downarrow.png");
-	down->onClicked = [&]()
-	{
+	down->onClicked = [&]() {
 		scroll.y += 27;
 		progress = scroll.y / (float)scroll.h;
 		progress = std::fmax(0.f, progress);
@@ -49,8 +47,7 @@ Mt_scrollarea::Mt_scrollarea(Mt_window &window, int x, int y, int w, int h, int 
 	scrollbar->geometry->normalize();
 	scrollbar->repeatInterval = 0;
 	scrollbar->setScheme(BAR_COLOR_SCHEME);
-	scrollbar->onClicked = [&]()
-	{
+	scrollbar->onClicked = [&]() {
 		const int difY = geometry->destR.y - geometry->srcR.y;
 		const int minpos = difY + scrollButtonHeight + padding;
 		// TODO: Procurar por uma equação que melhor represente maxpos
@@ -73,7 +70,7 @@ void Mt_scrollarea::init()
 	borderColor = Mt_RGBA(130, 145, 144);
 }
 
-Mt_scrollarea &Mt_scrollarea::create(Mt_window &window, int x, int y, int w, int h, int scroll_w, int scroll_h)
+Mt_scrollarea& Mt_scrollarea::create(Mt_window& window, int x, int y, int w, int h, int scroll_w, int scroll_h)
 {
 	return *new Mt_scrollarea(window, x, y, w, h, scroll_w, scroll_h);
 }
@@ -93,27 +90,27 @@ Mt_scrollarea::~Mt_scrollarea()
 	Debug("Done.");
 }
 
-void Mt_scrollarea::addWidget(Mt_widget &widget)
+void Mt_scrollarea::addWidget(Mt_widget& widget)
 {
 	window.widgets.erase(std::remove_if(window.widgets.begin(), window.widgets.end(),
-										[&](const Mt_widget *ptr)
-										{
-											if (&widget == ptr)
-											{
-												std::cout << "successfully removed from main vector" << std::endl;
-												widgets.emplace_back(&widget);
-												return true;
-											}
-											return false;
-										}));
+		[&](const Mt_widget* ptr) {
+			if (&widget == ptr)
+			{
+				widgets.emplace_back(&widget);
+				return true;
+			}
+			return false;
+		}));
 }
 
-void Mt_scrollarea::confineObject(Mt_widget *widget)
+void Mt_scrollarea::confineObject(Mt_widget* widget)
 {
-	if (widget->geometry->destR.x + widget->geometry->getW() <= geometry->destR.x ||
-		widget->geometry->destR.y + widget->geometry->getH() <= geometry->destR.y ||
-		widget->geometry->destR.x >= geometry->destR.x + geometry->destR.w ||
-		widget->geometry->destR.y >= geometry->destR.y + geometry->destR.h)
+
+	//if (widget->geometry->destR.x + widget->geometry->getW() <= geometry->destR.x ||
+	//	widget->geometry->destR.y + widget->geometry->getH() <= geometry->destR.y ||
+	//	widget->geometry->destR.x >= geometry->destR.x + geometry->destR.w ||
+	//	widget->geometry->destR.y >= geometry->destR.y + geometry->destR.h)
+	if (geometry->intercept(*widget->geometry))
 	{
 		widget->visible = false;
 	}
@@ -219,11 +216,11 @@ void Mt_scrollarea::draw()
 	window.renderer->drawFillRectangle(geometry->destR, backgroundColor);
 	window.renderer->drawRectangle(geometry->destR, borderColor);
 
-	SDL_Rect r = {geometry->destR.x + geometry->getW() - up->geometry->getW() - padding - 1,
+	SDL_Rect r = { geometry->destR.x + geometry->getW() - up->geometry->getW() - padding - 1,
 				  geometry->destR.y + padding,
 				  scrollbar->geometry->getW() + 1,
-				  geometry->destR.h - (padding * 2)};
-	window.renderer->drawFillRectangle(r, {240, 240, 240, 255});
+				  geometry->destR.h - (padding * 2) };
+	window.renderer->drawFillRectangle(r, { 240, 240, 240, 255 });
 
 	up->draw();
 	down->draw();

@@ -17,7 +17,12 @@ private:
 	Mt_caret(Mt_widget &widget);
 	Mt_caret(const Mt_caret &) = delete;
 
+	TTF_Font *renderedFont = nullptr;
+	Mt_color renderedColor;
+
 	void init() override;
+
+	void setColorMod();
 
 public:
 	static Mt_caret &create(Mt_widget &widget);

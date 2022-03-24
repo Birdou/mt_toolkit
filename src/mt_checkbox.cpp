@@ -24,7 +24,9 @@ void Mt_checkbox::init()
 
 Mt_checkbox &Mt_checkbox::create(Mt_window &window, int x, int y, int size)
 {
-	return *(new Mt_checkbox(window, x, y, size));
+	Mt_checkbox *checkbox = new Mt_checkbox(window, x, y, size);
+	window.widgets.emplace_back(checkbox);
+	return *checkbox;
 }
 
 Mt_checkbox::~Mt_checkbox()

@@ -35,20 +35,22 @@ public:
 
 	void setAnchor(center anchor);
 
-	int getX() const;
+	int getX() const noexcept;
 	void setX(int x);
-	int getY() const;
+	int getY() const noexcept;
 	void setY(int y);
-	int getW() const;
+	int getW() const noexcept;
 	void setW(int w);
-	int getH() const;
+	int getH() const noexcept;
 	void setH(int h);
 
 	void setGeometry(int x, int y, int w, int h);
 
-	void confine(const SDL_Rect &box);
-	void confineX(const SDL_Rect &box);
-	void confineY(const SDL_Rect &box);
+	void confine(const SDL_Rect& box);
+	void confineX(const SDL_Rect& box);
+	void confineY(const SDL_Rect& box);
+
+	bool intercept(const Mt_geometry& geometry)const;
 
 	void normalize();
 

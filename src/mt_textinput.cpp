@@ -1,11 +1,13 @@
 
 #include "mt_textinput.hpp"
 
-Mt_textinput::Mt_textinput(Mt_widget &widget) : Mt_widget(widget)
+#include <iomanip>
+
+Mt_textinput::Mt_textinput(Mt_widget& widget) : Mt_widget(widget)
 {
 	init();
 }
-Mt_textinput::Mt_textinput(Mt_window &window, int x, int y, int w, int h) : Mt_widget(window, x, y, w, h)
+Mt_textinput::Mt_textinput(Mt_window& window, int x, int y, int w, int h) : Mt_widget(window, x, y, w, h)
 {
 	init();
 }
@@ -37,6 +39,7 @@ void Mt_textinput::updateCaretPosition()
 
 	int vspace = input->font->getH();
 	caret->geometry->destR.y = (geometry->destR.y - geometry->srcR.y) + (vspace * caretPos_y) + text_y;
+	//caret->geometry->destR.y = input->geometry->destR.y - input->geometry->srcR.y;
 	if (caret->geometry->destR.y + vspace <= geometry->destR.y || caret->geometry->destR.y >= geometry->destR.y + geometry->destR.h ||
 		caret->geometry->destR.x + caret->geometry->getW() <= geometry->destR.x || caret->geometry->destR.x >= geometry->destR.x + geometry->destR.w)
 	{
@@ -80,7 +83,7 @@ void Mt_textinput::paste()
 {
 	if (SDL_GetModState() & KMOD_CTRL)
 	{
-		const char *text = SDL_GetClipboardText();
+		const char* text = SDL_GetClipboardText();
 		std::string ftext(text);
 		Mt_lib::replaceAll(ftext, "\t", "    ");
 		str(ftext);
@@ -91,11 +94,9 @@ void Mt_textinput::paste()
 	}
 }
 void Mt_textinput::wheel()
-{
-}
+{}
 void Mt_textinput::enter()
-{
-}
+{}
 void Mt_textinput::backspace()
 {
 	if (input->text.size() > 0 && caretPos_x > 0)
@@ -106,6 +107,14 @@ void Mt_textinput::backspace()
 			input->geometry->srcR.x = 0;
 		input->text.erase(input->text.begin() + caretPos_x);
 
+		// Handling accents
+		if (caretPos_x > 0)
+			if (input->text[caretPos_x - 1] == -61)
+			{
+				caretPos_x--;
+				input->text.erase(input->text.begin() + caretPos_x);
+			}
+
 		onTextModified();
 		pointCursor();
 	}
@@ -114,15 +123,24 @@ void Mt_textinput::del()
 {
 	if (input->text.size() > 0 && caretPos_x < input->text.length())
 	{
-		input->text.erase(input->text.begin() + caretPos_x);
+
+		if (input->text[caretPos_x] == -61)
+		{
+			input->text.erase(input->text.begin() + caretPos_x);
+			input->text.erase(input->text.begin() + caretPos_x);
+		}
+		else
+		{
+			input->text.erase(input->text.begin() + caretPos_x);
+		}
+
 
 		onTextModified();
 		pointCursor();
 	}
 }
 void Mt_textinput::up()
-{
-}
+{}
 void Mt_textinput::left()
 {
 	if (caretPos_x > 0)
@@ -140,8 +158,7 @@ void Mt_textinput::right()
 	pointCursor();
 }
 void Mt_textinput::down()
-{
-}
+{}
 void Mt_textinput::end()
 {
 	caretPos_x = input->text.length();
@@ -156,8 +173,7 @@ void Mt_textinput::home()
 	pointCursor();
 }
 void Mt_textinput::tab()
-{
-}
+{}
 void Mt_textinput::textInput()
 {
 	std::string text(window.event.text.text);
@@ -186,7 +202,7 @@ std::string Mt_textinput::str() const
 {
 	return input->text;
 }
-void Mt_textinput::str(const std::string &text)
+void Mt_textinput::str(const std::string& text)
 {
 	input->text = text;
 
@@ -223,6 +239,7 @@ void Mt_textinput::handleMouse()
 					if (window.hovering == this)
 					{
 						onFocus();
+						SDL_StartTextInput();
 						backgroundColor.fadeInto(scheme.background.focused);
 						borderColor.fadeInto(scheme.border.focused);
 						focused = true;
@@ -242,6 +259,7 @@ void Mt_textinput::handleMouse()
 		{
 		case SDL_BUTTON_LEFT:
 			onLostFocus();
+			SDL_StopTextInput();
 			backgroundColor.fadeInto(scheme.background.normal);
 			borderColor.fadeInto(scheme.border.normal);
 			focused = false;
@@ -356,7 +374,21 @@ void Mt_textinput::update()
 	return_if(!visible);
 
 	handleMouse();
-	input->update();
+	if (password)
+	{
+		std::string text = input->text;
+		std::stringstream stream;
+		for (size_t i = 0; i < text.length(); i++)
+			stream << "\u25CF";
+
+		str(stream.str());
+		input->update();
+		str(text);
+	}
+	else
+	{
+		input->update();
+	}
 
 	if (focused && editable)
 		caret->update();
@@ -364,7 +396,7 @@ void Mt_textinput::update()
 	input->geometry->srcR.x = -text_x;
 
 	input->geometry->destR.x = geometry->destR.x;
-	input->geometry->destR.y = text_y + (geometry->destR.y - geometry->srcR.y);
+	input->geometry->destR.y = (geometry->destR.y - geometry->srcR.y) + ((geometry->getH() - input->geometry->getH()) / 2);
 
 	input->geometry->srcR.w = input->geometry->destR.w = std::min(text_x + input->geometry->getW(), geometry->destR.w);
 	if (input->geometry->destR.w > 0)
@@ -390,20 +422,22 @@ void Mt_textinput::draw()
 }
 
 // ANCHOR TEXT BOX CLASS
-Mt_textbox::Mt_textbox(Mt_widget &widget) : Mt_textinput(widget)
-{
-}
-Mt_textbox::Mt_textbox(Mt_window &window, int x, int y, int w, int h) : Mt_textinput(window, x, y, w, h)
-{
-}
+Mt_textbox::Mt_textbox(Mt_widget& widget) : Mt_textinput(widget)
+{}
+Mt_textbox::Mt_textbox(Mt_window& window, int x, int y, int w, int h) : Mt_textinput(window, x, y, w, h)
+{}
 
-Mt_textbox &Mt_textbox::create(Mt_widget &widget)
+Mt_textbox& Mt_textbox::create(Mt_widget& widget)
 {
-	return *(new Mt_textbox(widget));
+	Mt_textbox* tbox = new Mt_textbox(widget);
+	// widget.window.widgets.emplace_back(tbox);
+	return *tbox;
 }
-Mt_textbox &Mt_textbox::create(Mt_window &window, int x, int y, int w, int h)
+Mt_textbox& Mt_textbox::create(Mt_window& window, int x, int y, int w, int h)
 {
-	return *(new Mt_textbox(window, x, y, w, h));
+	Mt_textbox* tbox = new Mt_textbox(window, x, y, w, h);
+	window.widgets.emplace_back(tbox);
+	return *tbox;
 }
 
 Mt_textbox::~Mt_textbox()
@@ -412,7 +446,7 @@ Mt_textbox::~Mt_textbox()
 }
 
 // ANCHOR TEXT AREA CLASS
-Mt_textarea::Mt_textarea(Mt_window &window, int x, int y, int w, int h) : Mt_textinput(window, x, y, w, h)
+Mt_textarea::Mt_textarea(Mt_window& window, int x, int y, int w, int h) : Mt_textinput(window, x, y, w, h)
 {
 	lines.emplace_back(input);
 	pointCursor();
@@ -593,7 +627,12 @@ void Mt_textarea::tab()
 	onTextModified();
 	pointCursor();
 }
-Mt_textarea &Mt_textarea::create(Mt_window &window, int x, int y, int w, int h) { return *(new Mt_textarea(window, x, y, w, h)); }
+Mt_textarea& Mt_textarea::create(Mt_window& window, int x, int y, int w, int h)
+{
+	Mt_textarea* tarea = new Mt_textarea(window, x, y, w, h);
+	window.widgets.emplace_back(tarea);
+	return *tarea;
+}
 
 Mt_textarea::~Mt_textarea()
 {
@@ -616,7 +655,7 @@ std::string Mt_textarea::str() const
 	}
 	return stream.str();
 }
-void Mt_textarea::str(const std::string &str)
+void Mt_textarea::str(const std::string& str)
 {
 	lines.clear();
 	input = nullptr;
@@ -635,9 +674,9 @@ void Mt_textarea::str(const std::string &str)
 	input->update();
 }
 
-Mt_label *Mt_textarea::newLine(const std::string &content)
+Mt_label* Mt_textarea::newLine(const std::string& content)
 {
-	Mt_label *line = *lines.insert(lines.begin() + (caretPos_y + 1), &Mt_label::create(*this));
+	Mt_label* line = *lines.insert(lines.begin() + (caretPos_y + 1), &Mt_label::create(*this));
 
 	line->text = content;
 	line->autoupdate = false;

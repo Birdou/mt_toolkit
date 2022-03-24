@@ -1,11 +1,11 @@
 
 #include "mt_button.hpp"
 
-Mt_button::Mt_button(Mt_widget &widget) : Mt_widget(widget)
+Mt_button::Mt_button(Mt_widget& widget) : Mt_widget(widget)
 {
 	init();
 }
-Mt_button::Mt_button(Mt_window &window, int x, int y, int w, int h) : Mt_widget(window, x, y, w, h)
+Mt_button::Mt_button(Mt_window& window, int x, int y, int w, int h) : Mt_widget(window, x, y, w, h)
 {
 	init();
 }
@@ -19,13 +19,17 @@ void Mt_button::init()
 	backgroundColor = scheme.background.normal;
 	borderColor = scheme.border.normal;
 }
-Mt_button &Mt_button::create(Mt_widget &widget)
+Mt_button& Mt_button::create(Mt_widget& widget)
 {
-	return *new Mt_button(widget);
+	Mt_button* button = new Mt_button(widget);
+	// widget.window.widgets.emplace_back(button);
+	return *button;
 }
-Mt_button &Mt_button::create(Mt_window &window, int x, int y, int w, int h)
+Mt_button& Mt_button::create(Mt_window& window, int x, int y, int w, int h)
 {
-	return *new Mt_button(window, x, y, w, h);
+	Mt_button* button = new Mt_button(window, x, y, w, h);
+	window.widgets.emplace_back(button);
+	return *button;
 }
 
 Mt_button::~Mt_button()

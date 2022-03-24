@@ -1,6 +1,6 @@
 
 ################################
-# Executable name (without extension)
+# Executable name
 FILE=prog
 # Set some value if using SDL2
 USING_SDL2=True
@@ -11,16 +11,16 @@ MAINFILE=main
 # Source files extension (.c, .cpp)
 SOURCE_EXT=.cpp
 # Header files extension (.h, .hpp)
-HEADER_EXT=.h .hpp
+HEADER_EXT=.hpp
 
 # Folder that contains the source files (.c, .cpp)
 SRCFOLDER=src
 # Folder that contains the header files (.h, .hpp)
 INCFOLDER=include
-# Folder where the binary files (.o) will be compiled
+# Folder that will contain the binary files (.o)
 OBJFOLDER=objects
 
-# Environment defines
+# Environment defines (separated by spaces)
 DEFINES=DEBUG
 
 # Compiler that will be used to build binaries and link the executable (gcc, g++, c++...)
@@ -43,9 +43,15 @@ SDL_LINK_FLAGS=-lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf
 endif
 endif
 
+ifeq ($(OS),Windows_NT)
+TARGET_OBJFOLDER=$(OBJFOLDER)/windows
+else
+TARGET_OBJFOLDER=$(OBJFOLDER)/linux
+endif
+
 SRCFILES=$(wildcard ./$(SRCFOLDER)/*$(SOURCE_EXT))
 HEADERS:=$(foreach EXT,$(HEADER_EXT),$(wildcard ./$(INCFOLDER)/*$(EXT)))
-OBJECTS=$(subst $(SOURCE_EXT),.o,$(subst ./$(SRCFOLDER)/,./$(OBJFOLDER)/,$(SRCFILES)))
+OBJECTS=$(subst $(SOURCE_EXT),.o,$(subst ./$(SRCFOLDER)/,./$(TARGET_OBJFOLDER)/,$(SRCFILES)))
 
 PERCENT=0
 CURCOUNT=0
@@ -70,7 +76,7 @@ else
 	@ $(CC) $^ $(COMPILATION_FLAGS) $(LINKER_FLAGS) $(SDL_LINK_FLAGS) -o $(FILE) $(foreach I,$(INCFOLDER)/,$(shell echo -I$(I)))
 endif
 
-./$(OBJFOLDER)/%.o: ./$(SRCFOLDER)/%$(SOURCE_EXT) ./$(INCFOLDER)/%$(HEADER_EXT)
+./$(TARGET_OBJFOLDER)/%.o: ./$(SRCFOLDER)/%$(SOURCE_EXT) ./$(INCFOLDER)/%$(HEADER_EXT)
 ifeq ($(OS),Windows_NT)
 	@ $(eval PERCENT=$(shell echo|set /a $(CURCOUNT)*100/$(OBJCOUNT)))
 	@ if $(PERCENT) LSS 10 (echo [  $(PERCENT)%%] [32mBuilding $(CC) object $@[0m) else (echo [ $(PERCENT)%%] [32mBuilding $(CC) object $@[0m)
@@ -82,7 +88,7 @@ else
 	@ $(eval CURCOUNT=$(shell echo $$(($(CURCOUNT)+1))))
 endif
 
-./$(OBJFOLDER)/$(MAINFILE).o: ./$(SRCFOLDER)/$(MAINFILE)$(SOURCE_EXT) $(HEADERS)
+./$(TARGET_OBJFOLDER)/$(MAINFILE).o: ./$(SRCFOLDER)/$(MAINFILE)$(SOURCE_EXT) $(HEADERS)
 ifeq ($(OS),Windows_NT)
 	@ $(eval PERCENT=$(shell echo|set /a $(CURCOUNT)*100/$(OBJCOUNT)))
 	@ if $(PERCENT) LSS 10 (echo [  $(PERCENT)%%] [32mBuilding $(CC) object $@[0m) else (echo [ $(PERCENT)%%] [32mBuilding $(CC) object $@[0m)
@@ -96,16 +102,16 @@ endif
 
 objdir:
 ifeq ($(OS),Windows_NT)
-	-@ if NOT EXIST "$(OBJFOLDER)" (mkdir "$(OBJFOLDER)" >nul)
+	-@ if NOT EXIST "$(TARGET_OBJFOLDER)" (mkdir "$(TARGET_OBJFOLDER)" >nul)
 else
-	@ mkdir -p "$(OBJFOLDER)"
+	@ mkdir -p "$(TARGET_OBJFOLDER)"
 endif
 
 clean:
 ifeq ($(OS),Windows_NT)
-	-@ del /f /s /q "$(OBJFOLDER)\*.o" "$(FILE).exe" *~ >nul 2>nul
+	-@ del /f /s /q "$(TARGET_OBJFOLDER)\*.o" "$(FILE).exe" *~ >nul 2>nul
 else
-	@ rm -rf "$(OBJFOLDER)/*.o" "$(FILE)" *~
+	@ rm -rf "$(TARGET_OBJFOLDER)/*.o" "$(FILE)" *~
 endif
 
 .PHONY: all clean objdir
