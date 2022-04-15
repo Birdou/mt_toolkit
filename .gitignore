@@ -1,6 +1,8 @@
 .vscode
 objects
 gallery
+Doxygen
+examples
 *.jpg
 *.png
 *.exe
