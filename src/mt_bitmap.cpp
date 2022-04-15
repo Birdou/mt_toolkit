@@ -4,7 +4,7 @@
 // ANCHOR PIXELGRID CLASS
 void Mt_pixelgrid::updateSurface()
 {
-	unsigned char *pixels = (unsigned char *)surface->pixels;
+	unsigned char* pixels = (unsigned char*)surface->pixels;
 	for (size_t y = 0; y < h; ++y)
 	{
 		for (size_t x = 0; x < w; ++x)
@@ -18,12 +18,10 @@ void Mt_pixelgrid::updateSurface()
 }
 
 Mt_pixelgrid::Mt_pixelgrid()
-{
-}
+{}
 
 void Mt_pixelgrid::init()
-{
-}
+{}
 Mt_pixelgrid::Mt_pixelgrid(size_t w, size_t h)
 {
 	alloc(w, h);
@@ -32,11 +30,11 @@ Mt_pixelgrid::~Mt_pixelgrid()
 {
 	erase();
 }
-Mt_RGBA &Mt_pixelgrid::at(size_t x, size_t y)
+Mt_RGBA& Mt_pixelgrid::at(size_t x, size_t y)
 {
 	return data[y][x];
 }
-const Mt_RGBA &Mt_pixelgrid::get(size_t x, size_t y) const
+const Mt_RGBA& Mt_pixelgrid::get(size_t x, size_t y) const
 {
 	return data[y][x];
 }
@@ -47,7 +45,7 @@ void Mt_pixelgrid::alloc(size_t width, size_t height)
 	w = width;
 	h = height;
 
-	data = new Mt_RGBA *[height];
+	data = new Mt_RGBA * [height];
 	for (size_t i = 0; i < height; ++i)
 		data[i] = new Mt_RGBA[width];
 	surface = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
@@ -82,7 +80,7 @@ size_t Mt_pixelgrid::height() const noexcept
 	return h;
 }
 
-void Mt_pixelgrid::savePPMA(const std::string &file)
+void Mt_pixelgrid::savePPMA(const std::string& file)
 {
 	std::ofstream save;
 	save.open(file);
@@ -97,7 +95,7 @@ void Mt_pixelgrid::savePPMA(const std::string &file)
 
 	save.close();
 }
-void Mt_pixelgrid::savePPMB(const std::string &file)
+void Mt_pixelgrid::savePPMB(const std::string& file)
 {
 	std::ofstream save;
 	save.open(file, std::ios_base::binary);
@@ -112,7 +110,7 @@ void Mt_pixelgrid::savePPMB(const std::string &file)
 
 	save.close();
 }
-void Mt_pixelgrid::saveJPG(const std::string &file)
+void Mt_pixelgrid::saveJPG(const std::string& file)
 {
 	updateSurface();
 	if (IMG_SaveJPG(surface, file.c_str(), 100) < 0)
@@ -120,7 +118,7 @@ void Mt_pixelgrid::saveJPG(const std::string &file)
 		SDL_PrintError(Error);
 	}
 }
-void Mt_pixelgrid::savePNG(const std::string &file)
+void Mt_pixelgrid::savePNG(const std::string& file)
 {
 	updateSurface();
 	if (IMG_SavePNG(surface, file.c_str()) < 0)
@@ -128,7 +126,7 @@ void Mt_pixelgrid::savePNG(const std::string &file)
 		SDL_PrintError(Error);
 	}
 }
-void Mt_pixelgrid::saveBMP(const std::string &file)
+void Mt_pixelgrid::saveBMP(const std::string& file)
 {
 	updateSurface();
 	if (SDL_SaveBMP(surface, file.c_str()) < 0)
@@ -138,29 +136,33 @@ void Mt_pixelgrid::saveBMP(const std::string &file)
 }
 
 // ANCHOR BITMAP CLASS
-Mt_bitmap::Mt_bitmap(Mt_window &window, int x, int y, size_t w, size_t h, size_t map_w, size_t map_h) : Mt_widget(window, x, y, w, h)
+Mt_bitmap::Mt_bitmap(Mt_window& window, int x, int y, size_t w, size_t h, size_t map_w, size_t map_h) : Mt_widget(window, x, y, w, h)
 {
 	alloc(map_w, map_h);
 }
-Mt_bitmap::Mt_bitmap(Mt_window &window, int x, int y, size_t w, size_t h) : Mt_widget(window, x, y, w, h)
+Mt_bitmap::Mt_bitmap(Mt_window& window, int x, int y, size_t w, size_t h) : Mt_widget(window, x, y, w, h)
 {
 	alloc(w, h);
 }
 
 void Mt_bitmap::init()
 {
+	currentBackgroundColor = scheme.background.normal;
+	currentBorderColor = scheme.border.normal;
 }
 
-Mt_bitmap &Mt_bitmap::create(Mt_window &window, int x, int y, size_t w, size_t h, size_t map_w, size_t map_h)
+Mt_bitmap& Mt_bitmap::create(Mt_window& window, int x, int y, size_t w, size_t h, size_t map_w, size_t map_h)
 {
-	Mt_bitmap *bitmap = new Mt_bitmap(window, x, y, w, h, map_w, map_h);
-	window.widgets.emplace_back(bitmap);
+	Mt_bitmap* bitmap = new Mt_bitmap(window, x, y, w, h, map_w, map_h);
+	//window.widgets.emplace_back(bitmap);
+	window.add(*bitmap);
 	return *bitmap;
 }
-Mt_bitmap &Mt_bitmap::create(Mt_window &window, int x, int y, size_t w, size_t h)
+Mt_bitmap& Mt_bitmap::create(Mt_window& window, int x, int y, size_t w, size_t h)
 {
-	Mt_bitmap *bitmap = new Mt_bitmap(window, x, y, w, h);
-	window.widgets.emplace_back(bitmap);
+	Mt_bitmap* bitmap = new Mt_bitmap(window, x, y, w, h);
+	//window.widgets.emplace_back(bitmap);
+	window.add(*bitmap);
 	return *bitmap;
 }
 
@@ -170,7 +172,7 @@ Mt_bitmap::~Mt_bitmap()
 	erase();
 }
 
-Mt_RGBA &Mt_bitmap::at(size_t x, size_t y)
+Mt_RGBA& Mt_bitmap::at(size_t x, size_t y)
 {
 	render = true;
 	return data[y][x];
@@ -182,7 +184,7 @@ void Mt_bitmap::alloc(size_t width, size_t height)
 	geometry->srcR.w = w = width;
 	geometry->srcR.h = h = height;
 
-	data = new Mt_RGBA *[height];
+	data = new Mt_RGBA * [height];
 	for (size_t i = 0; i < height; ++i)
 		data[i] = new Mt_RGBA[width];
 	surface = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
@@ -277,8 +279,7 @@ void Mt_bitmap::draw()
 {
 	return_if(!visible);
 
-	window.renderer->drawFillRectangle(geometry->destR, backgroundColor);
-	window.renderer->drawRectangle(geometry->destR, borderColor);
-
+	window.renderer->drawFillRectangle(geometry->destR, currentBackgroundColor);
 	window.renderer->drawTexture(tex, &geometry->srcR, &geometry->destR);
+	window.renderer->drawRectangle(geometry->destR, currentBorderColor);
 }

@@ -17,7 +17,7 @@ enum center
 	bottom_center,
 	bottom_right
 };
-
+class Mt_widget;
 class Mt_geometry
 {
 public:
@@ -26,6 +26,7 @@ private:
 	center anchor = top_left;
 
 public:
+	float scale = 1.f;
 	SDL_Rect destR, srcR;
 
 	Mt_geometry();
@@ -45,7 +46,7 @@ public:
 	void setH(int h);
 
 	void setGeometry(int x, int y, int w, int h);
-
+	void confineObject(Mt_widget* widget);
 	void confine(const SDL_Rect& box);
 	void confineX(const SDL_Rect& box);
 	void confineY(const SDL_Rect& box);

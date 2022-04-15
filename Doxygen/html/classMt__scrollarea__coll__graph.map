@@ -1,0 +1,15 @@
+<map id="Mt_scrollarea" name="Mt_scrollarea">
+<area shape="rect" id="node1" title=" " alt="" coords="5,711,116,737"/>
+<area shape="rect" id="node2" href="$classMt__box.html" title=" " alt="" coords="25,635,96,661"/>
+<area shape="rect" id="node3" href="$classMt__container.html" title=" " alt="" coords="7,559,114,585"/>
+<area shape="rect" id="node4" href="$classMt__widget.html" title=" " alt="" coords="106,468,197,495"/>
+<area shape="rect" id="node9" href="$classMt__window.html" title=" " alt="" coords="233,559,329,585"/>
+<area shape="rect" id="node5" href="$classMt__color.html" title=" " alt="" coords="287,363,365,389"/>
+<area shape="rect" id="node6" href="$classMt__RGBA.html" title=" " alt="" coords="223,81,306,108"/>
+<area shape="rect" id="node13" href="$structMt__colorScheme_1_1Mt__schemeColors.html" title=" " alt="" coords="130,229,285,271"/>
+<area shape="rect" id="node7" title=" " alt="" coords="221,5,309,32"/>
+<area shape="rect" id="node8" href="$classMt__parent.html" title=" " alt="" coords="19,363,107,389"/>
+<area shape="rect" id="node10" href="$classMt__renderer.html" title=" " alt="" coords="221,468,322,495"/>
+<area shape="rect" id="node11" href="$classMt__colormanager.html" title=" " alt="" coords="346,468,482,495"/>
+<area shape="rect" id="node12" href="$structMt__colorScheme.html" title=" " alt="" coords="131,363,262,389"/>
+</map>

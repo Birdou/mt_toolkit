@@ -13,7 +13,7 @@ Mt_RGBA::Mt_RGBA(Uint8 r, Uint8 g, Uint8 b, Uint8 a)
 {
 	this->rgba(r, g, b, a);
 }
-Mt_RGBA::Mt_RGBA(const Mt_RGBA &rgba)
+Mt_RGBA::Mt_RGBA(const Mt_RGBA& rgba)
 {
 	this->rgba(rgba.r, rgba.g, rgba.b, rgba.a);
 }
@@ -21,7 +21,7 @@ Mt_RGBA::Mt_RGBA(int hex)
 {
 	this->hex(hex);
 }
-bool Mt_RGBA::operator==(const SDL_Color &color)
+bool Mt_RGBA::operator==(const SDL_Color& color)
 {
 	return (
 		this->r == color.r &&
@@ -29,7 +29,7 @@ bool Mt_RGBA::operator==(const SDL_Color &color)
 		this->b == color.b &&
 		this->a == color.a);
 }
-bool Mt_RGBA::operator==(const Mt_RGBA &color)
+bool Mt_RGBA::operator==(const Mt_RGBA& color)
 {
 	return (
 		this->r == color.r &&
@@ -37,7 +37,7 @@ bool Mt_RGBA::operator==(const Mt_RGBA &color)
 		this->b == color.b &&
 		this->a == color.a);
 }
-bool Mt_RGBA::operator!=(const SDL_Color &color)
+bool Mt_RGBA::operator!=(const SDL_Color& color)
 {
 	return (
 		this->r != color.r ||
@@ -45,7 +45,7 @@ bool Mt_RGBA::operator!=(const SDL_Color &color)
 		this->b != color.b ||
 		this->a != color.a);
 }
-Mt_RGBA &Mt_RGBA::operator=(const Mt_RGBA &color)
+Mt_RGBA& Mt_RGBA::operator=(const Mt_RGBA& color)
 {
 	this->r = color.r;
 	this->g = color.g;
@@ -54,13 +54,13 @@ Mt_RGBA &Mt_RGBA::operator=(const Mt_RGBA &color)
 
 	return *this;
 }
-std::ostream &operator<<(std::ostream &o, const Mt_RGBA &color)
+std::ostream& operator<<(std::ostream& o, const Mt_RGBA& color)
 {
 	o << "(" << (int)color.r << ", " << (int)color.g << ", " << (int)color.b << ", " << (int)color.a << ")";
 	return o;
 }
 
-Mt_RGBA &Mt_RGBA::hsl(float h, float s, float l)
+Mt_RGBA& Mt_RGBA::hsl(float h, float s, float l)
 {
 	float C = (1 - fabs((2 * l) - 1)) * s;
 	float X = C * (1 - fabs(fmod(h / 60., 2) - 1));
@@ -110,7 +110,7 @@ Mt_RGBA &Mt_RGBA::hsl(float h, float s, float l)
 
 	return *this;
 }
-Mt_RGBA &Mt_RGBA::hsv(float h, float s, float v)
+Mt_RGBA& Mt_RGBA::hsv(float h, float s, float v)
 {
 	float C = v * s;
 	float X = C * (1 - fabs(fmod(h / 60., 2) - 1));
@@ -160,7 +160,7 @@ Mt_RGBA &Mt_RGBA::hsv(float h, float s, float v)
 
 	return *this;
 }
-Mt_RGBA &Mt_RGBA::rgb(int r, int g, int b)
+Mt_RGBA& Mt_RGBA::rgb(int r, int g, int b)
 {
 	this->r = r;
 	this->g = g;
@@ -169,7 +169,7 @@ Mt_RGBA &Mt_RGBA::rgb(int r, int g, int b)
 	return *this;
 }
 
-Mt_RGBA &Mt_RGBA::rgba(int r, int g, int b, int a)
+Mt_RGBA& Mt_RGBA::rgba(int r, int g, int b, int a)
 {
 	this->r = r;
 	this->g = g;
@@ -179,7 +179,7 @@ Mt_RGBA &Mt_RGBA::rgba(int r, int g, int b, int a)
 	return *this;
 }
 
-Mt_RGBA &Mt_RGBA::hex(int value)
+Mt_RGBA& Mt_RGBA::hex(int value)
 {
 	r = (value >> 16) & 0xFF;
 	g = (value >> 8) & 0xFF;
@@ -189,7 +189,7 @@ Mt_RGBA &Mt_RGBA::hex(int value)
 	return *this;
 }
 
-Mt_RGBA &Mt_RGBA::bw(int value)
+Mt_RGBA& Mt_RGBA::bw(int value)
 {
 	this->r = value;
 	this->g = value;
@@ -197,7 +197,7 @@ Mt_RGBA &Mt_RGBA::bw(int value)
 
 	return *this;
 }
-Mt_RGBA &Mt_RGBA::negative()
+Mt_RGBA& Mt_RGBA::negative()
 {
 	r = 255 - r;
 	g = 255 - g;
@@ -205,7 +205,7 @@ Mt_RGBA &Mt_RGBA::negative()
 
 	return *this;
 }
-Mt_RGBA &Mt_RGBA::opaque()
+Mt_RGBA& Mt_RGBA::opaque()
 {
 	this->a = 255;
 
@@ -213,11 +213,11 @@ Mt_RGBA &Mt_RGBA::opaque()
 }
 
 // ANCHOR COLOR MANAGER CLASS
-std::vector<Mt_color *> Mt_colormanager::colors;
+std::vector<Mt_color*> Mt_colormanager::colors;
 
 void Mt_colormanager::update()
 {
-	for (auto &c : colors)
+	for (auto& c : colors)
 		c->update();
 }
 
@@ -231,7 +231,7 @@ Mt_color::Mt_color(Uint8 r, Uint8 g, Uint8 b, Uint8 a) : Mt_RGBA(r, g, b, a)
 	Mt_colormanager::colors.emplace_back(this);
 }
 
-Mt_color &Mt_color::operator=(const SDL_Color &color)
+Mt_color& Mt_color::operator=(const SDL_Color& color)
 {
 	this->r = color.r;
 	this->g = color.g;
@@ -240,7 +240,7 @@ Mt_color &Mt_color::operator=(const SDL_Color &color)
 
 	return *this;
 }
-Mt_color &Mt_color::operator=(const Mt_color &color)
+Mt_color& Mt_color::operator=(const Mt_color& color)
 {
 	this->r = color.r;
 	this->g = color.g;

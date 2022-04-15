@@ -1,7 +1,7 @@
 
 #include "mt_checkbox.hpp"
 
-Mt_checkbox::Mt_checkbox(Mt_window &window, int x, int y, int size) : Mt_widget(window, x, y, size, size)
+Mt_checkbox::Mt_checkbox(Mt_window& window, int x, int y, int size) : Mt_widget(window, x, y, size, size)
 {
 	geometry->destR.w = geometry->destR.h = size;
 	geometry->destR.x = x;
@@ -9,8 +9,8 @@ Mt_checkbox::Mt_checkbox(Mt_window &window, int x, int y, int size) : Mt_widget(
 
 	scheme = UI_CHECKBOX_COLOR_SCHEME;
 
-	backgroundColor = scheme.background.normal;
-	borderColor = scheme.border.normal;
+	currentBackgroundColor = scheme.background.normal;
+	currentBorderColor = scheme.border.normal;
 
 	check = &Mt_label::create(*this);
 	check->geometry->setW(size * checked_size);
@@ -19,13 +19,13 @@ Mt_checkbox::Mt_checkbox(Mt_window &window, int x, int y, int size) : Mt_widget(
 }
 
 void Mt_checkbox::init()
-{
-}
+{}
 
-Mt_checkbox &Mt_checkbox::create(Mt_window &window, int x, int y, int size)
+Mt_checkbox& Mt_checkbox::create(Mt_window& window, int x, int y, int size)
 {
-	Mt_checkbox *checkbox = new Mt_checkbox(window, x, y, size);
-	window.widgets.emplace_back(checkbox);
+	Mt_checkbox* checkbox = new Mt_checkbox(window, x, y, size);
+	//window.widgets.emplace_back(checkbox);
+	window.add(*checkbox);
 	return *checkbox;
 }
 
@@ -58,8 +58,7 @@ void Mt_checkbox::update()
 		if (window.hovering == nullptr)
 		{
 			window.hovering = this;
-			backgroundColor.fadeInto(scheme.background.hover);
-			borderColor.fadeInto(scheme.border.hover);
+			fadeToHover();
 		}
 		if (window.hovering == this)
 		{
@@ -72,8 +71,7 @@ void Mt_checkbox::update()
 					onMouseDown();
 
 					pressed = true;
-					backgroundColor.fadeInto(scheme.background.clicked);
-					borderColor.fadeInto(scheme.border.clicked);
+					fadeToClicked();
 					break;
 				default:
 					break;
@@ -103,8 +101,8 @@ void Mt_checkbox::update()
 
 			pressed = false;
 			window.hovering = nullptr;
-			backgroundColor.fadeInto(scheme.background.normal);
-			borderColor.fadeInto(scheme.border.normal);
+			fadeToNormal();
+
 		}
 	}
 }
@@ -113,15 +111,15 @@ void Mt_checkbox::draw()
 {
 	return_if(!visible);
 
-	window.renderer->drawFillRectangle(geometry->destR, backgroundColor);
-	window.renderer->drawRectangle(geometry->destR, borderColor);
+	window.renderer->drawFillRectangle(geometry->destR, currentBackgroundColor);
 
 	if (isChecked)
 	{
 		check->geometry->destR.x = (geometry->destR.x - geometry->srcR.x) + ((geometry->getW() - check->geometry->getW()) / 2);
 		check->geometry->destR.y = (geometry->destR.y - geometry->srcR.y) + ((geometry->getH() - check->geometry->getH()) / 2);
 		check->geometry->confine(geometry->destR);
-		check->backgroundColor = borderColor;
+		check->currentBackgroundColor = currentBorderColor;
 		check->draw();
 	}
+	window.renderer->drawRectangle(geometry->destR, currentBorderColor);
 }

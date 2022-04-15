@@ -16,8 +16,8 @@ void Mt_button::init()
 
 	scheme = UI_BUTTON_COLOR_SCHEME;
 
-	backgroundColor = scheme.background.normal;
-	borderColor = scheme.border.normal;
+	currentBackgroundColor = scheme.background.normal;
+	currentBorderColor = scheme.border.normal;
 }
 Mt_button& Mt_button::create(Mt_widget& widget)
 {
@@ -28,7 +28,8 @@ Mt_button& Mt_button::create(Mt_widget& widget)
 Mt_button& Mt_button::create(Mt_window& window, int x, int y, int w, int h)
 {
 	Mt_button* button = new Mt_button(window, x, y, w, h);
-	window.widgets.emplace_back(button);
+	//window.widgets.emplace_back(button);
+	window.add(*button);
 	return *button;
 }
 
@@ -40,6 +41,7 @@ Mt_button::~Mt_button()
 
 	Debug("Done.");
 }
+
 void Mt_button::updateTextPosition()
 {
 	label->geometry->destR.x = (geometry->destR.x - geometry->srcR.x) + ((geometry->getW() - label->geometry->getW()) / 2);
@@ -72,9 +74,10 @@ void Mt_button::update()
 		clicked = false;
 	}
 
-	label->update();
 	updateTextPosition();
+	label->update();
 
+	return_if(!enabled);
 	if (Mt_point::mousePos().intercept(geometry->destR))
 	{
 		if (window.hovering == nullptr)
@@ -136,8 +139,7 @@ void Mt_button::draw()
 {
 	return_if(!visible);
 
-	window.renderer->drawFillRectangle(geometry->destR, backgroundColor);
-	window.renderer->drawRectangle(geometry->destR, borderColor);
-
+	window.renderer->drawFillRectangle(geometry->destR, currentBackgroundColor);
 	label->draw();
+	window.renderer->drawRectangle(geometry->destR, currentBorderColor);
 }

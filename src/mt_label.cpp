@@ -17,33 +17,33 @@ Mt_label::Mt_label(Mt_widget& widget) : Mt_widget(widget)
 
 void Mt_label::init()
 {
-	backgroundColor = Mt_RGBA(0, 0, 0, 0);
-	borderColor = Mt_RGBA(0, 0, 0, 0);
+	setScheme(UI_LABEL_COLOR_SCHEME);
 }
 Mt_label& Mt_label::create(Mt_window& window, int x, int y, int w, int h)
 {
 	Mt_label* label = new Mt_label(window, x, y, w, h);
-	window.widgets.emplace_back(label);
+	window.add(*label);
 	return *label;
 }
 Mt_label& Mt_label::create(Mt_window& window, int x, int y)
 {
 	Mt_label* label = new Mt_label(window, x, y);
-	window.widgets.emplace_back(label);
+	window.add(*label);
 	return *label;
 }
 Mt_label& Mt_label::create(Mt_widget& widget)
 {
-	Mt_label* label = new Mt_label(widget);
-	// widget.window.widgets.emplace_back(label);
-	return *label;
+	return *new Mt_label(widget);
 }
 Mt_label::~Mt_label()
 {
 	Debug("Destroying label");
 
-	if (texture != nullptr)
-		SDL_DestroyTexture(texture);
+	if (textTexture != nullptr)
+		SDL_DestroyTexture(textTexture);
+	SDL_PrintIfError(Warn);
+	if (iconTexture != nullptr)
+		SDL_DestroyTexture(iconTexture);
 	SDL_PrintIfError(Warn);
 }
 
@@ -56,7 +56,7 @@ void Mt_label::loadIcon(const std::string& path)
 	}
 	else
 	{
-		texture = window.renderer->createTextureFromSurface(surf);
+		iconTexture = window.renderer->createTextureFromSurface(surf);
 		geometry->setW(surf->w);
 		geometry->setH(surf->h);
 
@@ -68,7 +68,10 @@ void Mt_label::loadIcon(const std::string& path)
 }
 void Mt_label::setColorMod()
 {
-	SDL_SetTextureColorMod(texture, font->color.r, font->color.g, font->color.b);
+	if (textTexture != nullptr)
+		SDL_SetTextureColorMod(textTexture, font->color.r, font->color.g, font->color.b);
+	if (iconTexture != nullptr)
+		SDL_SetTextureColorMod(iconTexture, font->color.r, font->color.g, font->color.b);
 	renderedColor = font->color;
 }
 void Mt_label::handleEvent()
@@ -82,40 +85,43 @@ void Mt_label::update()
 
 	if (text != renderedText || font->getFont() != renderedFont)
 	{
-		if (texture != nullptr)
-			SDL_DestroyTexture(texture);
+		if (textTexture != nullptr)
+			SDL_DestroyTexture(textTexture);
 		SDL_PrintIfError(Warn);
 
 		if (text.size() > 0)
 		{
 			if (wrap)
-				texture = window.renderer->renderWrapped(text, font->getFont(), geometry.get(), geometry->destR.w, TTF_RenderUTF8_Blended_Wrapped);
+			{
+				textTexture = window.renderer->renderWrapped(text, font->getFont(), geometry.get(), geometry->destR.w, TTF_RenderUTF8_Blended_Wrapped);
+			}
 			else
-				texture = window.renderer->renderText(text, font->getFont(), geometry.get(), TTF_RenderUTF8_Blended);
-
+			{
+				textTexture = window.renderer->renderText(text, font->getFont(), geometry.get(), TTF_RenderUTF8_Blended);
+				if (autoupdate)
+					geometry->normalize();
+			}
 			setColorMod();
 		}
 		else
 		{
-			texture = nullptr;
+			textTexture = nullptr;
 		}
 		renderedText = text;
 		renderedFont = font->getFont();
 	}
 	if (font->color != renderedColor)
 		setColorMod();
-
-	if (autoupdate)
-		geometry->normalize();
 }
 
 void Mt_label::draw()
 {
 	return_if(!visible);
 
-	window.renderer->drawFillRectangle(geometry->destR, backgroundColor);
-	window.renderer->drawRectangle(geometry->destR, borderColor);
-
-	if (texture != nullptr)
-		window.renderer->drawTexture(texture, &geometry->srcR, &geometry->destR);
+	window.renderer->drawFillRectangle(geometry->destR, currentBackgroundColor);
+	if (iconTexture != nullptr)
+		window.renderer->drawTexture(iconTexture, &geometry->srcR, &geometry->destR);
+	if (textTexture != nullptr)
+		window.renderer->drawTexture(textTexture, &geometry->srcR, &geometry->destR);
+	window.renderer->drawRectangle(geometry->destR, currentBorderColor);
 }

@@ -22,19 +22,20 @@ private:
 
 	Uint32 lastPressed;
 
-	Mt_button(Mt_widget &widget);
-	Mt_button(Mt_window &window, int x, int y, int w, int h);
-	Mt_button(const Mt_button &) = delete;
+	Mt_button(Mt_widget& widget);
+	Mt_button(Mt_window& window, int x, int y, int w, int h);
+	Mt_button(const Mt_button&) = delete;
 
 	void init();
 
+
 public:
-	static Mt_button &create(Mt_widget &widget);
-	static Mt_button &create(Mt_window &window, int x, int y, int w, int h);
+	static Mt_button& create(Mt_widget& widget);
+	static Mt_button& create(Mt_window& window, int x, int y, int w, int h);
 
 	~Mt_button();
 
-	Mt_label *label = nullptr;
+	Mt_label* label = nullptr;
 
 	std::function<void()> function = none;
 

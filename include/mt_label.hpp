@@ -11,7 +11,8 @@
 class Mt_label : public Mt_widget
 {
 private:
-	SDL_Texture* texture = nullptr;
+	SDL_Texture* iconTexture = nullptr;
+	SDL_Texture* textTexture = nullptr;
 
 	bool wrap = false;
 
@@ -22,8 +23,8 @@ private:
 
 	void init();
 
-	std::string renderedText;
 	Mt_color renderedColor;
+	std::string renderedText;
 	TTF_Font* renderedFont = nullptr;
 
 	void setColorMod();

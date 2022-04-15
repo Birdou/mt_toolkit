@@ -29,7 +29,7 @@ CC=g++
 # Flags that will be used when compiling binaries
 COMPILATION_FLAGS=-Wall -Wextra -pedantic -std=c++11 -g
 # Flags that will be used when linking the executable
-LINKER_FLAGS=
+LINKER_FLAGS=-lcomdlg32
 ################################
 
 # SDL2 flags
@@ -64,7 +64,11 @@ endif
 
 #DEVELOPEMENT
 all: objdir $(FILE)
+ifeq ($(OS),Windows_NT)
 	@ echo [100%%] Built target $(FILE)
+else
+	@ printf "[100%%] Built target %s\n" "$(FILE)"
+endif
 
 $(FILE): $(OBJECTS)
 ifeq ($(OS),Windows_NT)

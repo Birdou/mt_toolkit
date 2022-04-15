@@ -1,19 +1,18 @@
 
 #include "mt_font.hpp"
 
-Mt_font::Mt_font(Mt_application &application) : application(application)
-{
-}
-Mt_font::Mt_font(Mt_application &application, const std::string &path, unsigned short fontSize) : application(application)
+Mt_font::Mt_font(Mt_application& application) : application(application)
+{}
+Mt_font::Mt_font(Mt_application& application, const std::string& path, unsigned short fontSize) : application(application)
 {
 	setFont(path, fontSize);
 }
 Mt_font::~Mt_font()
 {
-	Debug("Destroying font...");
+	//Debug("Destroying font...");
 }
 
-void Mt_font::setFont(const std::string &path, unsigned short size)
+void Mt_font::setFont(const std::string& path, unsigned short size)
 {
 	fontSize = size;
 	font = application.getFont(path, size);
@@ -27,7 +26,7 @@ void Mt_font::setFont(const std::string &path, unsigned short size)
 	}
 }
 
-TTF_Font *Mt_font::getFont()
+TTF_Font* Mt_font::getFont()
 {
 	return font;
 }

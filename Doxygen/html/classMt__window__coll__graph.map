@@ -1,0 +1,12 @@
+<map id="Mt_window" name="Mt_window">
+<area shape="rect" id="node1" title=" " alt="" coords="211,364,307,391"/>
+<area shape="rect" id="node3" href="$classMt__widget.html" title=" " alt="" coords="299,455,389,481"/>
+<area shape="rect" id="node2" href="$classMt__parent.html" title=" " alt="" coords="5,237,93,263"/>
+<area shape="rect" id="node4" href="$classMt__color.html" title=" " alt="" coords="478,237,557,263"/>
+<area shape="rect" id="node5" href="$classMt__RGBA.html" title=" " alt="" coords="599,81,681,108"/>
+<area shape="rect" id="node8" href="$structMt__colorScheme_1_1Mt__schemeColors.html" title=" " alt="" coords="649,229,804,271"/>
+<area shape="rect" id="node6" title=" " alt="" coords="596,5,684,32"/>
+<area shape="rect" id="node7" href="$structMt__colorScheme.html" title=" " alt="" coords="699,364,829,391"/>
+<area shape="rect" id="node9" href="$classMt__renderer.html" title=" " alt="" coords="117,237,219,263"/>
+<area shape="rect" id="node10" href="$classMt__colormanager.html" title=" " alt="" coords="243,237,379,263"/>
+</map>

@@ -1,6 +1,8 @@
 
 #include "mt_geometry.hpp"
 
+#include "mt_widget.hpp"
+
 Mt_geometry::Mt_geometry()
 {
 	anchor = none;
@@ -19,7 +21,7 @@ Mt_geometry::Mt_geometry(int x, int y, int w, int h) : x(x), y(y), w(w), h(h)
 }
 Mt_geometry::~Mt_geometry()
 {
-	Debug("Destroying geometry");
+	//Debug("Destroying geometry");
 }
 
 void Mt_geometry::setAnchor(center anchor)
@@ -28,29 +30,41 @@ void Mt_geometry::setAnchor(center anchor)
 	posCenter();
 }
 
-int Mt_geometry::getX() const noexcept { return x; }
+int Mt_geometry::getX() const noexcept
+{
+	return x;
+}
 void Mt_geometry::setX(int x)
 {
 	this->x = x;
 	// posCenter();
 }
-int Mt_geometry::getY() const noexcept { return y; }
+int Mt_geometry::getY() const noexcept
+{
+	return y;
+}
 void Mt_geometry::setY(int y)
 {
 	this->y = y;
 	// posCenter();
 }
-int Mt_geometry::getW() const noexcept { return w; }
+int Mt_geometry::getW() const noexcept
+{
+	return w;
+}
 void Mt_geometry::setW(int w)
 {
 	this->w = w;
-	posCenter();
+	//posCenter();
 }
-int Mt_geometry::getH() const noexcept { return h; }
+int Mt_geometry::getH() const noexcept
+{
+	return h;
+}
 void Mt_geometry::setH(int h)
 {
 	this->h = h;
-	posCenter();
+	//posCenter();
 }
 
 void Mt_geometry::setGeometry(int x, int y, int w, int h)
@@ -63,6 +77,18 @@ void Mt_geometry::setGeometry(int x, int y, int w, int h)
 	posCenter();
 }
 
+void Mt_geometry::confineObject(Mt_widget* widget)
+{
+	if (intercept(*widget->geometry))
+	{
+		widget->visible = false;
+	}
+	else
+	{
+		widget->visible = true;
+		widget->geometry->confine(destR);
+	}
+}
 void Mt_geometry::confine(const SDL_Rect& box)
 {
 	confineX(box);

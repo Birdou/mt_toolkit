@@ -89,4 +89,28 @@
 	alert(SDL_GetError());    \
 	SDL_ClearError();
 
+#ifdef _WIN32
+#include <windows.h>
+#define REQUIRES_ELEVATION                            \
+	if (system("net session >nul 2>&1") != 0)         \
+	{                                                 \
+		SHELLEXECUTEINFO ShExecInfo;                  \
+		ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO); \
+		ShExecInfo.fMask = 0;                         \
+		ShExecInfo.hwnd = NULL;                       \
+		ShExecInfo.lpVerb = "runas";                  \
+		ShExecInfo.lpFile = argv[0];                  \
+		ShExecInfo.lpParameters = "";                 \
+		ShExecInfo.lpDirectory = NULL;                \
+		ShExecInfo.nShow = SW_SHOW;                   \
+		ShExecInfo.hInstApp = NULL;                   \
+                                                      \
+		ShellExecuteEx(&ShExecInfo);                  \
+													  \
+		return 0;                                     \
+	}
+#else
+#define REQUIRES_ELEVATION
+#endif
+
 #endif /* C861D52D_8451_4817_948F_7B9BF1D961DC */

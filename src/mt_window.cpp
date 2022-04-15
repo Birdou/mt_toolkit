@@ -7,6 +7,40 @@
 #include "mt_lib.hpp"
 #include "mt_point.hpp"
 
+Mt_parent::~Mt_parent()
+{
+	for (auto widget : widgets)
+		delete widget;
+}
+const std::vector<Mt_widget*>& Mt_parent::get() const noexcept
+{
+	return widgets;
+}
+void Mt_parent::add(Mt_widget& widget)
+{
+	if (widget.parent != nullptr)
+	{
+		auto& _widgets = widget.parent->widgets;
+		_widgets.erase(std::remove_if(_widgets.begin(), _widgets.end(),
+			[this, &widget](const Mt_widget* ptr)
+			{
+				if (&widget == ptr)
+				{
+					Debug("Moving object " << widget.getId());
+					widget.parent = this;
+					widgets.emplace_back(&widget);
+					return true;
+				}
+				return false;
+			}));
+	}
+	else
+	{
+		widget.parent = this;
+		widgets.emplace_back(&widget);
+	}
+}
+
 Mt_window::Mt_window(Mt_application& application, const std::string& title, int w, int h, int flags) : application(application), title(title)
 {
 	rect = { 0, 0, w, h };
@@ -68,10 +102,6 @@ Mt_window::~Mt_window()
 {
 	Debug("Destroying window...");
 
-	for (auto widget : widgets)
-		if (!widget->getParent())
-			delete widget;
-
 	for (auto window : windows)
 		delete window.second;
 
@@ -98,7 +128,6 @@ Mt_window& Mt_window::createChild(const std::string& title, const std::string& i
 	}
 	Mt_window* window = new Mt_window(*this, title, width, height, flags);
 	windows.emplace(id, window);
-	Log(windows.size());
 	return *window;
 }
 Mt_window& Mt_window::getChildById(const std::string& id)
@@ -152,7 +181,10 @@ void Mt_window::setIcon(const char* file)
 	SDL_SetWindowIcon(window, surf);
 	SDL_FreeSurface(surf);
 }
-
+void Mt_window::setTitle(const char* title)
+{
+	SDL_SetWindowTitle(window, title);
+}
 int Mt_window::height() const
 {
 	return rect.h;
@@ -231,8 +263,7 @@ void Mt_window::handleEvents()
 		}
 
 		for (auto widget : widgets)
-			if (!widget->getParent())
-				widget->handleEvent();
+			widget->handleEvent();
 	}
 }
 
@@ -273,8 +304,7 @@ void Mt_window::update()
 
 	// update
 	for (auto widget : widgets)
-		if (!widget->getParent())
-			widget->update();
+		widget->update();
 }
 
 void Mt_window::draw()
@@ -288,8 +318,7 @@ void Mt_window::draw()
 	renderer->setDrawColor(backgroundColor);
 
 	for (auto widget : widgets)
-		if (!widget->getParent())
-			widget->draw();
+		widget->draw();
 
 	if (border)
 		renderer->drawRectangle(rect, borderColor);

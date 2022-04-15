@@ -3,16 +3,30 @@
 
 #include <iomanip>
 
-Mt_textinput::Mt_textinput(Mt_widget& widget) : Mt_widget(widget)
+// ANCHOR TEXT BOX CLASS
+Mt_textbox::Mt_textbox(Mt_widget& widget) : Mt_widget(widget)
 {
 	init();
 }
-Mt_textinput::Mt_textinput(Mt_window& window, int x, int y, int w, int h) : Mt_widget(window, x, y, w, h)
+Mt_textbox::Mt_textbox(Mt_window& window, int x, int y, int w, int h) : Mt_widget(window, x, y, w, h)
 {
 	init();
+}
+Mt_textbox& Mt_textbox::create(Mt_widget& widget)
+{
+	Mt_textbox* tbox = new Mt_textbox(widget);
+	// widget.window.widgets.emplace_back(tbox);
+	return *tbox;
+}
+Mt_textbox& Mt_textbox::create(Mt_window& window, int x, int y, int w, int h)
+{
+	Mt_textbox* tbox = new Mt_textbox(window, x, y, w, h);
+	// window.widgets.emplace_back(tbox);:
+	window.add(*tbox);
+	return *tbox;
 }
 
-void Mt_textinput::init()
+void Mt_textbox::init()
 {
 	caret = &Mt_caret::create(*this);
 
@@ -21,25 +35,32 @@ void Mt_textinput::init()
 
 	scheme = UI_TEXTINPUT_COLOR_SCHEME;
 
-	backgroundColor = scheme.background.normal;
-	borderColor = scheme.border.normal;
+	currentBackgroundColor = scheme.background.normal;
+	currentBorderColor = scheme.border.normal;
 }
 
-void Mt_textinput::updateCaretPosition()
+void Mt_textbox::updateCaretPosition()
 {
 	if (caretPos_x > 0)
 	{
-		int tlen = window.renderer->substrWidth(input->font->getFont(), input->text, 0, caretPos_x);
-		caret->geometry->destR.x = geometry->destR.x + tlen + text_x;
+		if (!password)
+		{
+			int tlen = window.renderer->substrWidth(input->font->getFont(), input->text, 0, caretPos_x);
+			caret->geometry->destR.x = geometry->destR.x + tlen + text_x;
+		}
+		else
+		{
+			int tlen = window.renderer->substrWidth(input->font->getFont(), "\u25CF");
+			caret->geometry->destR.x = geometry->destR.x + (tlen * caretPos_x);
+		}
 	}
 	else
 	{
-		caret->geometry->destR.x = geometry->destR.x;
+		caret->geometry->destR.x = geometry->destR.x + 5;
 	}
 
 	int vspace = input->font->getH();
-	caret->geometry->destR.y = (geometry->destR.y - geometry->srcR.y) + (vspace * caretPos_y) + text_y;
-	//caret->geometry->destR.y = input->geometry->destR.y - input->geometry->srcR.y;
+	caret->geometry->destR.y = input->geometry->destR.y - input->geometry->srcR.y;
 	if (caret->geometry->destR.y + vspace <= geometry->destR.y || caret->geometry->destR.y >= geometry->destR.y + geometry->destR.h ||
 		caret->geometry->destR.x + caret->geometry->getW() <= geometry->destR.x || caret->geometry->destR.x >= geometry->destR.x + geometry->destR.w)
 	{
@@ -53,7 +74,7 @@ void Mt_textinput::updateCaretPosition()
 	}
 }
 
-void Mt_textinput::pointCursor()
+void Mt_textbox::pointCursor()
 {
 	updateCaretPosition();
 
@@ -72,123 +93,7 @@ void Mt_textinput::pointCursor()
 	updateCaretPosition();
 }
 
-void Mt_textinput::copy()
-{
-	if (SDL_GetModState() & KMOD_CTRL)
-	{
-		SDL_SetClipboardText(str().c_str());
-	}
-}
-void Mt_textinput::paste()
-{
-	if (SDL_GetModState() & KMOD_CTRL)
-	{
-		const char* text = SDL_GetClipboardText();
-		std::string ftext(text);
-		Mt_lib::replaceAll(ftext, "\t", "    ");
-		str(ftext);
-		delete[] text;
-
-		onTextModified();
-		pointCursor();
-	}
-}
-void Mt_textinput::wheel()
-{}
-void Mt_textinput::enter()
-{}
-void Mt_textinput::backspace()
-{
-	if (input->text.size() > 0 && caretPos_x > 0)
-	{
-		caretPos_x--;
-		input->geometry->srcR.x -= window.renderer->substrWidth(font->getFont(), input->text, caretPos_x, 1);
-		if (input->geometry->srcR.x < 0)
-			input->geometry->srcR.x = 0;
-		input->text.erase(input->text.begin() + caretPos_x);
-
-		// Handling accents
-		if (caretPos_x > 0)
-			if (input->text[caretPos_x - 1] == -61)
-			{
-				caretPos_x--;
-				input->text.erase(input->text.begin() + caretPos_x);
-			}
-
-		onTextModified();
-		pointCursor();
-	}
-}
-void Mt_textinput::del()
-{
-	if (input->text.size() > 0 && caretPos_x < input->text.length())
-	{
-
-		if (input->text[caretPos_x] == -61)
-		{
-			input->text.erase(input->text.begin() + caretPos_x);
-			input->text.erase(input->text.begin() + caretPos_x);
-		}
-		else
-		{
-			input->text.erase(input->text.begin() + caretPos_x);
-		}
-
-
-		onTextModified();
-		pointCursor();
-	}
-}
-void Mt_textinput::up()
-{}
-void Mt_textinput::left()
-{
-	if (caretPos_x > 0)
-	{
-		caretPos_x--;
-	}
-	pointCursor();
-}
-void Mt_textinput::right()
-{
-	if (caretPos_x + 1 <= input->text.length())
-	{
-		caretPos_x++;
-	}
-	pointCursor();
-}
-void Mt_textinput::down()
-{}
-void Mt_textinput::end()
-{
-	caretPos_x = input->text.length();
-	if (input->geometry->destR.w >= geometry->destR.w)
-		text_x = input->geometry->destR.w - geometry->destR.w;
-	pointCursor();
-}
-void Mt_textinput::home()
-{
-	caretPos_x = 0;
-	text_x = 0;
-	pointCursor();
-}
-void Mt_textinput::tab()
-{}
-void Mt_textinput::textInput()
-{
-	std::string text(window.event.text.text);
-	if (!(SDL_GetModState() & KMOD_CTRL && (text[0] == 'c' || text[0] == 'C' || text[0] == 'v' || text[0] == 'V')))
-	{
-		input->text.insert(caretPos_x, text);
-		input->update();
-
-		caretPos_x += text.length();
-
-		onTextModified();
-		pointCursor();
-	}
-}
-Mt_textinput::~Mt_textinput()
+Mt_textbox::~Mt_textbox()
 {
 	Debug("Destroying textinput...");
 	if (caret)
@@ -198,11 +103,11 @@ Mt_textinput::~Mt_textinput()
 	Debug("Done.");
 }
 
-std::string Mt_textinput::str() const
+std::string Mt_textbox::str() const
 {
 	return input->text;
 }
-void Mt_textinput::str(const std::string& text)
+void Mt_textbox::str(const std::string& text)
 {
 	input->text = text;
 
@@ -211,7 +116,7 @@ void Mt_textinput::str(const std::string& text)
 	onTextModified();
 }
 
-void Mt_textinput::handleMouse()
+void Mt_textbox::handleMouse()
 {
 	hoverScroll = false;
 	if (window.hovering == this)
@@ -225,8 +130,7 @@ void Mt_textinput::handleMouse()
 		{
 			window.hovering = this;
 			SetCursor(SDL_SYSTEM_CURSOR_IBEAM);
-			backgroundColor.fadeInto(scheme.background.hover);
-			borderColor.fadeInto(scheme.border.hover);
+			fadeToHover();
 		}
 		if (!focused)
 		{
@@ -239,9 +143,12 @@ void Mt_textinput::handleMouse()
 					if (window.hovering == this)
 					{
 						onFocus();
-						SDL_StartTextInput();
-						backgroundColor.fadeInto(scheme.background.focused);
-						borderColor.fadeInto(scheme.border.focused);
+						if (!SDL_IsTextInputActive())
+						{
+							Debug("Start text input");
+							SDL_StartTextInput();
+						}
+						fadeToFocused();
 						focused = true;
 						released = false;
 					}
@@ -252,16 +159,19 @@ void Mt_textinput::handleMouse()
 			}
 		}
 	}
-	else if (window.event.type == SDL_MOUSEBUTTONDOWN && released)
+	else if (window.event.type == SDL_MOUSEBUTTONDOWN && released && focused)
 	{
 		SetCursor(SDL_SYSTEM_CURSOR_ARROW);
 		switch (window.event.button.button)
 		{
 		case SDL_BUTTON_LEFT:
 			onLostFocus();
-			SDL_StopTextInput();
-			backgroundColor.fadeInto(scheme.background.normal);
-			borderColor.fadeInto(scheme.border.normal);
+			if (!dynamic_cast<Mt_textbox*>(window.hovering))
+			{
+				Debug("Stop text input");
+				SDL_StopTextInput();
+			}
+			fadeToNormal();
 			focused = false;
 			break;
 		}
@@ -272,8 +182,7 @@ void Mt_textinput::handleMouse()
 		onMouseLeave();
 		if (window.hovering == this)
 		{
-			backgroundColor.fadeInto(scheme.background.normal);
-			borderColor.fadeInto(scheme.border.normal);
+			fadeToNormal();
 			window.hovering = nullptr;
 		}
 	}
@@ -296,7 +205,7 @@ void Mt_textinput::handleMouse()
 	}
 }
 
-void Mt_textinput::handleEvent()
+void Mt_textbox::handleEvent()
 {
 	HANDLE_WINDOW_EVENTS;
 
@@ -369,7 +278,7 @@ void Mt_textinput::handleEvent()
 	}
 }
 
-void Mt_textinput::update()
+void Mt_textbox::update()
 {
 	return_if(!visible);
 
@@ -408,50 +317,163 @@ void Mt_textinput::update()
 	updateCaretPosition();
 }
 
-void Mt_textinput::draw()
+void Mt_textbox::draw()
 {
 	return_if(!visible);
 
-	window.renderer->drawFillRectangle(geometry->destR, backgroundColor);
-	window.renderer->drawRectangle(geometry->destR, borderColor);
+	window.renderer->drawFillRectangle(geometry->destR, currentBackgroundColor);
 
 	input->draw();
 
 	if (focused && editable)
 		caret->draw();
-}
-
-// ANCHOR TEXT BOX CLASS
-Mt_textbox::Mt_textbox(Mt_widget& widget) : Mt_textinput(widget)
-{}
-Mt_textbox::Mt_textbox(Mt_window& window, int x, int y, int w, int h) : Mt_textinput(window, x, y, w, h)
-{}
-
-Mt_textbox& Mt_textbox::create(Mt_widget& widget)
-{
-	Mt_textbox* tbox = new Mt_textbox(widget);
-	// widget.window.widgets.emplace_back(tbox);
-	return *tbox;
-}
-Mt_textbox& Mt_textbox::create(Mt_window& window, int x, int y, int w, int h)
-{
-	Mt_textbox* tbox = new Mt_textbox(window, x, y, w, h);
-	window.widgets.emplace_back(tbox);
-	return *tbox;
-}
-
-Mt_textbox::~Mt_textbox()
-{
-	Debug("Destroying textbox...");
+	window.renderer->drawRectangle(geometry->destR, currentBorderColor);
 }
 
 // ANCHOR TEXT AREA CLASS
-Mt_textarea::Mt_textarea(Mt_window& window, int x, int y, int w, int h) : Mt_textinput(window, x, y, w, h)
+Mt_textarea::Mt_textarea(Mt_window& window, int x, int y, int w, int h) : Mt_textbox(window, x, y, w, h)
 {
 	lines.emplace_back(input);
+	wheel = [this]()
+	{
+		const short pixels = 7;
+		if (SDL_GetModState() & KMOD_SHIFT)
+		{
+			if (this->window.event.wheel.y > 0)
+			{
+				text_x = std::min(0, text_x + pixels);
+			}
+			else if (this->window.event.wheel.y < 0)
+			{
+				text_x -= pixels;
+			}
+		}
+		else
+		{
+			if (this->window.event.wheel.y > 0)
+			{
+				text_y = std::min(0, text_y + pixels);
+			}
+			else if (this->window.event.wheel.y < 0)
+			{
+				text_y -= pixels;
+			}
+		}
+	};
+	enter = [this]()
+	{
+		std::string text(input->text.substr(caretPos_x));
+		input->text.erase(caretPos_x);
+		input->update();
+
+		input = newLine(text);
+
+		caretPos_x = 0;
+		caretPos_y++;
+
+		onTextModified();
+		pointCursor();
+	};
+	backspace = [this]()
+	{
+		if (caretPos_x == 0 && caretPos_y > 0)
+		{
+			caretPos_y--;
+			caretPos_x = lines[caretPos_y]->text.length();
+			lines[caretPos_y]->text += input->text;
+			input = lines[caretPos_y];
+			lines.erase(lines.begin() + caretPos_y + 1);
+
+			input->update();
+			onTextModified();
+		}
+		else if (input->text.length() > 0 && caretPos_x > 0)
+		{
+			caretPos_x--;
+			input->text.erase(input->text.begin() + caretPos_x);
+
+			input->update();
+			onTextModified();
+		}
+		pointCursor();
+	};
+	del = [this]()
+	{
+		if (caretPos_x == input->text.length() && caretPos_y < lines.size() - 1)
+		{
+			input->text += lines[caretPos_y + 1]->text;
+			lines.erase(lines.begin() + caretPos_y + 1);
+
+			input->update();
+			onTextModified();
+		}
+		else if (input->text.length() > 0 && caretPos_x < input->text.length())
+		{
+			input->text.erase(input->text.begin() + caretPos_x);
+
+			input->update();
+			onTextModified();
+		}
+		pointCursor();
+	};
+	up = [this]()
+	{
+		if (caretPos_y > 0)
+		{
+			caretPos_y--;
+			input = lines[caretPos_y];
+			caretPos_x = std::min(input->text.length(), caretPos_x);
+			caret->geometry->destR.y = input->geometry->destR.y;
+		}
+		pointCursor();
+	};
+	down = [this]()
+	{
+		if (caretPos_y + 1 < lines.size())
+		{
+			caretPos_y++;
+			input = lines[caretPos_y];
+			caretPos_x = std::min(input->text.length(), caretPos_x);
+			caret->geometry->destR.y = input->geometry->destR.y;
+		}
+		pointCursor();
+	};
+	tab = [this]()
+	{
+		input->text.insert(caretPos_x, "    ");
+		caretPos_x += 4;
+
+		onTextModified();
+		pointCursor();
+	};
 	pointCursor();
 }
+void Mt_textarea::updateCaretPosition()
+{
+	if (caretPos_x > 0)
+	{
+		int tlen = window.renderer->substrWidth(input->font->getFont(), input->text, 0, caretPos_x);
+		caret->geometry->destR.x = geometry->destR.x + tlen + text_x;
+	}
+	else
+	{
+		caret->geometry->destR.x = geometry->destR.x;
+	}
 
+	int vspace = input->font->getH();
+	caret->geometry->destR.y = (geometry->destR.y - geometry->srcR.y) + (vspace * caretPos_y) + text_y;
+	if (caret->geometry->destR.y + vspace <= geometry->destR.y || caret->geometry->destR.y >= geometry->destR.y + geometry->destR.h ||
+		caret->geometry->destR.x + caret->geometry->getW() <= geometry->destR.x || caret->geometry->destR.x >= geometry->destR.x + geometry->destR.w)
+	{
+		caret->visible = false;
+	}
+	else
+	{
+		caret->visible = true;
+		caret->geometry->confineX(geometry->destR);
+		caret->geometry->confineY(geometry->destR);
+	}
+}
 void Mt_textarea::pointCursor()
 {
 	updateCaretPosition();
@@ -515,122 +537,12 @@ void Mt_textarea::updateLines()
 	updateCaretPosition();
 }
 
-void Mt_textarea::wheel()
-{
-	const short pixels = 7;
-	if (SDL_GetModState() & KMOD_SHIFT)
-	{
-		if (window.event.wheel.y > 0)
-		{
-			text_x = std::min(0, text_x + pixels);
-		}
-		else if (window.event.wheel.y < 0)
-		{
-			text_x -= pixels;
-		}
-	}
-	else
-	{
-		if (window.event.wheel.y > 0)
-		{
-			text_y = std::min(0, text_y + pixels);
-		}
-		else if (window.event.wheel.y < 0)
-		{
-			text_y -= pixels;
-		}
-	}
-}
-void Mt_textarea::enter()
-{
-	std::string text(input->text.substr(caretPos_x));
-	input->text.erase(caretPos_x);
-	input->update();
 
-	input = newLine(text);
-
-	caretPos_x = 0;
-	caretPos_y++;
-
-	onTextModified();
-	pointCursor();
-}
-void Mt_textarea::backspace()
-{
-	if (caretPos_x == 0 && caretPos_y > 0)
-	{
-		caretPos_y--;
-		caretPos_x = lines[caretPos_y]->text.length();
-		lines[caretPos_y]->text += input->text;
-		input = lines[caretPos_y];
-		lines.erase(lines.begin() + caretPos_y + 1);
-
-		input->update();
-		onTextModified();
-	}
-	else if (input->text.length() > 0 && caretPos_x > 0)
-	{
-		caretPos_x--;
-		input->text.erase(input->text.begin() + caretPos_x);
-
-		input->update();
-		onTextModified();
-	}
-	pointCursor();
-}
-void Mt_textarea::del()
-{
-	if (caretPos_x == input->text.length() && caretPos_y < lines.size() - 1)
-	{
-		input->text += lines[caretPos_y + 1]->text;
-		lines.erase(lines.begin() + caretPos_y + 1);
-
-		input->update();
-		onTextModified();
-	}
-	else if (input->text.length() > 0 && caretPos_x < input->text.length())
-	{
-		input->text.erase(input->text.begin() + caretPos_x);
-
-		input->update();
-		onTextModified();
-	}
-	pointCursor();
-}
-void Mt_textarea::up()
-{
-	if (caretPos_y > 0)
-	{
-		caretPos_y--;
-		input = lines[caretPos_y];
-		caretPos_x = std::min(input->text.length(), caretPos_x);
-		caret->geometry->destR.y = input->geometry->destR.y;
-	}
-	pointCursor();
-}
-void Mt_textarea::down()
-{
-	if (caretPos_y + 1 < lines.size())
-	{
-		caretPos_y++;
-		input = lines[caretPos_y];
-		caretPos_x = std::min(input->text.length(), caretPos_x);
-		caret->geometry->destR.y = input->geometry->destR.y;
-	}
-	pointCursor();
-}
-void Mt_textarea::tab()
-{
-	input->text.insert(caretPos_x, "    ");
-	caretPos_x += 4;
-
-	onTextModified();
-	pointCursor();
-}
 Mt_textarea& Mt_textarea::create(Mt_window& window, int x, int y, int w, int h)
 {
 	Mt_textarea* tarea = new Mt_textarea(window, x, y, w, h);
-	window.widgets.emplace_back(tarea);
+	// window.widgets.emplace_back(tarea);
+	window.add(*tarea);
 	return *tarea;
 }
 
@@ -702,12 +614,12 @@ void Mt_textarea::draw()
 {
 	return_if(!visible);
 
-	window.renderer->drawFillRectangle(geometry->destR, backgroundColor);
-	window.renderer->drawRectangle(geometry->destR, borderColor);
+	window.renderer->drawFillRectangle(geometry->destR, currentBackgroundColor);
 
 	for (auto label : lines)
 		label->draw();
 
 	if (focused && editable)
 		caret->draw();
+	window.renderer->drawRectangle(geometry->destR, currentBorderColor);
 }

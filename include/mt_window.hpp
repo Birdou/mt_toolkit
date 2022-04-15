@@ -5,30 +5,83 @@
 
 #include <thread>
 #include <exception>
+#include <algorithm>
 
 #include "mt_color.hpp"
 
 enum windowFlags
 {
+	/**
+	 * @brief Define que a janela seja executada em tela cheia sem alterar sua resolução.
+	 *
+	 */
 	FULLSCREEN = SDL_WINDOW_FULLSCREEN,
 	// OPENGL = SDL_WINDOW_OPENGL,
+	/**
+	 * @brief Define que a janela seja exibida no momento em que for criada (esse é o padrão).
+	 * 
+	 */
 	SHOWN = SDL_WINDOW_SHOWN,
+	/**
+	 * @brief Define que a janela não seja exibida no momento em que for criada.
+	 * 
+	 */
 	HIDDEN = SDL_WINDOW_HIDDEN,
+	/**
+	 * @brief Define que a janela seja criada sem bordas, título e sem controles de interface do sistema (botões de minimizar, maximizar|restaurar e fechar).
+	 * 
+	 */
 	BORDERLESS = SDL_WINDOW_BORDERLESS,
+	/**
+	 * @brief Define que a janela permita ser redimensionada.
+	 * 
+	 */
 	RESIZABLE = SDL_WINDOW_RESIZABLE,
+	/**
+	 * @brief Define que a janela seja minimizada no momento em que for criada.
+	 * 
+	 */
 	MINIMIZED = SDL_WINDOW_MINIMIZED,
+	/**
+	 * @brief Define que a janela seja maximizada no momento em que for criada.
+	 * 
+	 */
 	MAXIMIZED = SDL_WINDOW_MAXIMIZED,
 	// INPUT_GRABBED = SDL_WINDOW_INPUT_GRABBED,
 	// INPUT_FOCUS = SDL_WINDOW_INPUT_FOCUS,
 	// MOUSE_FOCUS = SDL_WINDOW_MOUSE_FOCUS,
+	/**
+	 * @brief Define que a janela seja executada em tela cheia usando da resolução nativa do monitor.
+	 * 
+	 */
 	FULLSCREEN_DESKTOP = SDL_WINDOW_FULLSCREEN_DESKTOP,
 	// FOREIGN = SDL_WINDOW_FOREIGN,
 	// ALLOW_HIGHDPI = SDL_WINDOW_ALLOW_HIGHDPI,
 	// MOUSE_CAPTURE = SDL_WINDOW_MOUSE_CAPTURE,
+	/**
+	 * @brief Define que a janela fique sempre à frente de outras janelas.
+	 * 
+	 */
 	ALWAYS_ON_TOP = SDL_WINDOW_ALWAYS_ON_TOP,
+	/**
+	 * @brief Define que a janela não seja exibida na barra de tarefas.
+	 * 
+	 */
 	SKIP_TASKBAR = SDL_WINDOW_SKIP_TASKBAR,
+	/**
+	 * @brief Define que a janela seja tratada como uma janela de utilidade.
+	 * 
+	 */
 	UTILITY = SDL_WINDOW_UTILITY,
+	/**
+	 * @brief Define que a janela seja tratada como um tooltip.
+	 * 
+	 */
 	TOOLTIP = SDL_WINDOW_TOOLTIP,
+	/**
+	 * @brief Define que a janela seja tratada como um menu popup.
+	 * 
+	 */
 	POPUP_MENU = SDL_WINDOW_POPUP_MENU,
 	// VULKAN = SDL_WINDOW_VULKAN,
 	// METAL = SDL_WINDOW_METAL
@@ -44,16 +97,30 @@ struct window_not_found : public std::exception
 
 enum messageBoxFlags
 {
-	ERROR = SDL_MESSAGEBOX_ERROR,
-	WARNING = SDL_MESSAGEBOX_WARNING,
-	INFORMATION = SDL_MESSAGEBOX_INFORMATION,
-	BUTTONS_LTR = SDL_MESSAGEBOX_BUTTONS_LEFT_TO_RIGHT,
-	BUTTONS_RTL = SDL_MESSAGEBOX_BUTTONS_RIGHT_TO_LEFT,
+	mbERROR = SDL_MESSAGEBOX_ERROR,
+	mbWARNING = SDL_MESSAGEBOX_WARNING,
+	mbINFORMATION = SDL_MESSAGEBOX_INFORMATION,
+#if defined(_WIN32)
+	mbBUTTONS_LTR = SDL_MESSAGEBOX_BUTTONS_LEFT_TO_RIGHT,
+	mbBUTTONS_RTL = SDL_MESSAGEBOX_BUTTONS_RIGHT_TO_LEFT,
+#endif
+};
+
+class Mt_widget;
+class Mt_parent
+{
+protected:
+	std::vector<Mt_widget*> widgets;
+
+public:
+	virtual ~Mt_parent();
+
+	const std::vector<Mt_widget*>& get() const noexcept;
+	void add(Mt_widget& widget);
 };
 
 class Mt_application;
-class Mt_widget;
-class Mt_window
+class Mt_window : public Mt_parent
 {
 private:
 	Mt_application& application;
@@ -80,12 +147,11 @@ private:
 
 	public:
 		Mt_messageBox(Mt_window& window) : window(window)
-		{
-		}
+		{}
 
 		std::string title;
 		std::string message;
-		Uint32 flags = INFORMATION;
+		Uint32 flags = mbINFORMATION;
 
 		int buttonid;
 		void addButton(const char* text, bool defaultEnter, bool defaultEscape = false)
@@ -121,7 +187,7 @@ public:
 	Mt_window(Mt_window& parentWindow, const std::string& title, int w, int h, int flags = 0);
 	~Mt_window();
 
-	std::vector<Mt_widget*> widgets;
+	//std::vector<Mt_widget*> widgets;
 
 	Mt_renderer* renderer = nullptr;
 	SDL_Event event;
@@ -137,7 +203,7 @@ public:
 	void setDraggable(bool draggable = true);
 	bool isDraggable();
 
-	void* hovering = nullptr;
+	Mt_widget* hovering = nullptr;
 
 	bool hover(void* obj);
 
@@ -146,7 +212,7 @@ public:
 	Mt_window& createChild(const std::string& title, const std::string& id, int width, int height, int flags = 0);
 	Mt_window& getChildById(const std::string& id);
 
-	void showSimpleMessageBox(const char* title, const char* message, int flags = INFORMATION);
+	void showSimpleMessageBox(const char* title, const char* message, int flags = mbINFORMATION);
 
 	Mt_messageBox createMessageBox();
 
@@ -158,6 +224,7 @@ public:
 
 	void setSize(int w, int h);
 	void setIcon(const char* file);
+	void setTitle(const char* title);
 
 	int height() const;
 	int width() const;
