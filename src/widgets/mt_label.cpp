@@ -1,41 +1,41 @@
 
-#include "mt_label.hpp"
+#include "widgets/mt_label.hpp"
 
-Mt_label::Mt_label(Mt_window& window, int x, int y, int w, int h) : Mt_widget(window, x, y, w, h)
+TOOLKIT_NAMESPACE::Label::Label(Window &window, int x, int y, int w, int h) : Widget(window, x, y, w, h)
 {
 	wrap = true;
 	init();
 }
-Mt_label::Mt_label(Mt_window& window, int x, int y) : Mt_widget(window, x, y)
+TOOLKIT_NAMESPACE::Label::Label(Window &window, int x, int y) : Widget(window, x, y)
 {
 	init();
 }
-Mt_label::Mt_label(Mt_widget& widget) : Mt_widget(widget)
+TOOLKIT_NAMESPACE::Label::Label(Widget &widget) : Widget(widget)
 {
 	init();
 }
 
-void Mt_label::init()
+void TOOLKIT_NAMESPACE::Label::init()
 {
 	setScheme(UI_LABEL_COLOR_SCHEME);
 }
-Mt_label& Mt_label::create(Mt_window& window, int x, int y, int w, int h)
+TOOLKIT_NAMESPACE::Label &TOOLKIT_NAMESPACE::Label::create(Window &window, int x, int y, int w, int h)
 {
-	Mt_label* label = new Mt_label(window, x, y, w, h);
+	TOOLKIT_NAMESPACE::Label *label = new TOOLKIT_NAMESPACE::Label(window, x, y, w, h);
 	window.add(*label);
 	return *label;
 }
-Mt_label& Mt_label::create(Mt_window& window, int x, int y)
+TOOLKIT_NAMESPACE::Label &TOOLKIT_NAMESPACE::Label::create(Window &window, int x, int y)
 {
-	Mt_label* label = new Mt_label(window, x, y);
+	TOOLKIT_NAMESPACE::Label *label = new TOOLKIT_NAMESPACE::Label(window, x, y);
 	window.add(*label);
 	return *label;
 }
-Mt_label& Mt_label::create(Mt_widget& widget)
+TOOLKIT_NAMESPACE::Label &TOOLKIT_NAMESPACE::Label::create(Widget &widget)
 {
-	return *new Mt_label(widget);
+	return *new TOOLKIT_NAMESPACE::Label(widget);
 }
-Mt_label::~Mt_label()
+TOOLKIT_NAMESPACE::Label::~Label()
 {
 	Debug("Destroying label");
 
@@ -47,9 +47,9 @@ Mt_label::~Mt_label()
 	SDL_PrintIfError(Warn);
 }
 
-void Mt_label::loadIcon(const std::string& path)
+void TOOLKIT_NAMESPACE::Label::loadIcon(const std::string &path)
 {
-	SDL_Surface* surf = IMG_Load(path.c_str());
+	SDL_Surface *surf = IMG_Load(path.c_str());
 	if (surf == nullptr)
 	{
 		SDL_PrintError(Error);
@@ -66,7 +66,7 @@ void Mt_label::loadIcon(const std::string& path)
 	}
 	setColorMod();
 }
-void Mt_label::setColorMod()
+void TOOLKIT_NAMESPACE::Label::setColorMod()
 {
 	if (textTexture != nullptr)
 		SDL_SetTextureColorMod(textTexture, font->color.r, font->color.g, font->color.b);
@@ -74,12 +74,12 @@ void Mt_label::setColorMod()
 		SDL_SetTextureColorMod(iconTexture, font->color.r, font->color.g, font->color.b);
 	renderedColor = font->color;
 }
-void Mt_label::handleEvent()
+void TOOLKIT_NAMESPACE::Label::handleEvent()
 {
 	HANDLE_WINDOW_EVENTS;
 }
 
-void Mt_label::update()
+void TOOLKIT_NAMESPACE::Label::update()
 {
 	return_if(!visible);
 
@@ -114,7 +114,7 @@ void Mt_label::update()
 		setColorMod();
 }
 
-void Mt_label::draw()
+void TOOLKIT_NAMESPACE::Label::draw()
 {
 	return_if(!visible);
 

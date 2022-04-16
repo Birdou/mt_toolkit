@@ -1,23 +1,24 @@
 
-#include "mt_caret.hpp"
+#include "widgets/mt_caret.hpp"
 
-#include "mt_lib.hpp"
+#include "mt_util.hpp"
 
-Mt_caret::Mt_caret(Mt_widget& widget) : Mt_widget(widget)
+TOOLKIT_NAMESPACE::Caret::Caret(Widget &widget) : Widget(widget)
 {
 	geometry->destR.w = geometry->srcR.w = geometry->getW();
 	geometry->destR.h = geometry->srcR.h = geometry->getH();
 }
-void Mt_caret::init()
-{}
-Mt_caret& Mt_caret::create(Mt_widget& widget)
+void TOOLKIT_NAMESPACE::Caret::init()
 {
-	Mt_caret* caret = new Mt_caret(widget);
+}
+TOOLKIT_NAMESPACE::Caret &TOOLKIT_NAMESPACE::Caret::create(Widget &widget)
+{
+	TOOLKIT_NAMESPACE::Caret *caret = new TOOLKIT_NAMESPACE::Caret(widget);
 	// widget.window.widgets.emplace_back(caret);
 	return *caret;
 }
 
-Mt_caret::~Mt_caret()
+TOOLKIT_NAMESPACE::Caret::~Caret()
 {
 	Debug("Destroying caret...");
 	if (texture != nullptr)
@@ -25,13 +26,13 @@ Mt_caret::~Mt_caret()
 	SDL_PrintIfError(Warn);
 }
 
-void Mt_caret::setColorMod()
+void TOOLKIT_NAMESPACE::Caret::setColorMod()
 {
 	SDL_SetTextureColorMod(texture, font->color.r, font->color.g, font->color.b);
 	renderedColor = font->color;
 }
 
-void Mt_caret::update()
+void TOOLKIT_NAMESPACE::Caret::update()
 {
 	return_if(!visible);
 
@@ -52,7 +53,7 @@ void Mt_caret::update()
 	}
 }
 
-void Mt_caret::draw()
+void TOOLKIT_NAMESPACE::Caret::draw()
 {
 	return_if(!visible);
 

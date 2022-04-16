@@ -1,14 +1,14 @@
 
-#include "mt_combobox.hpp"
+#include "widgets/mt_combobox.hpp"
 
-Mt_comboBox::Mt_comboBox(Mt_window &window, int x, int y, int w, int h) : Mt_widget(window, x, y, w, h)
+TOOLKIT_NAMESPACE::ComboBox::ComboBox(Window &window, int x, int y, int w, int h) : Widget(window, x, y, w, h)
 {
-	textbox = &Mt_textbox::create(*this);
+	textbox = &Textbox::create(*this);
 	textbox->geometry->setW(w - 17);
 	textbox->geometry->setH(h);
 	textbox->geometry->normalize();
 
-	button = &Mt_button::create(*this);
+	button = &Button::create(*this);
 	button->geometry->setH(h);
 	button->geometry->setW(17);
 	button->geometry->normalize();
@@ -20,21 +20,21 @@ Mt_comboBox::Mt_comboBox(Mt_window &window, int x, int y, int w, int h) : Mt_wid
 
 	updatePosition();
 }
-void Mt_comboBox::init()
+void TOOLKIT_NAMESPACE::ComboBox::init()
 {
 }
-void Mt_comboBox::turnVisible()
+void TOOLKIT_NAMESPACE::ComboBox::turnVisible()
 {
 	show = !show;
 	for (auto btn : options)
 		btn.second->visible = show;
 }
-Mt_comboBox &Mt_comboBox::create(Mt_window &window, int x, int y, int w, int h)
+TOOLKIT_NAMESPACE::ComboBox &TOOLKIT_NAMESPACE::ComboBox::create(Window &window, int x, int y, int w, int h)
 {
-	return *(new Mt_comboBox(window, x, y, w, h));
+	return *(new TOOLKIT_NAMESPACE::ComboBox(window, x, y, w, h));
 }
 
-Mt_comboBox::~Mt_comboBox()
+TOOLKIT_NAMESPACE::ComboBox::~ComboBox()
 {
 	Debug("Destroying comboBox...");
 
@@ -43,9 +43,9 @@ Mt_comboBox::~Mt_comboBox()
 
 	Debug("Done.");
 }
-void Mt_comboBox::addOption(const std::string &string)
+void TOOLKIT_NAMESPACE::ComboBox::addOption(const std::string &string)
 {
-	auto button = &Mt_button::create(*this);
+	auto button = &Button::create(*this);
 
 	button->label->text = string;
 
@@ -55,7 +55,7 @@ void Mt_comboBox::addOption(const std::string &string)
 	options.emplace(string, button);
 }
 
-void Mt_comboBox::updatePosition()
+void TOOLKIT_NAMESPACE::ComboBox::updatePosition()
 {
 	textbox->geometry->destR.x = (geometry->destR.x - geometry->srcR.x);
 	textbox->geometry->destR.y = (geometry->destR.y - geometry->srcR.y);
@@ -66,7 +66,7 @@ void Mt_comboBox::updatePosition()
 	button->geometry->confine(geometry->destR);
 }
 
-void Mt_comboBox::updateOptions()
+void TOOLKIT_NAMESPACE::ComboBox::updateOptions()
 {
 	int prev_y = geometry->destR.y + geometry->getH();
 	for (auto option : options)
@@ -83,12 +83,12 @@ void Mt_comboBox::updateOptions()
 	}
 }
 
-std::string Mt_comboBox::option()
+std::string TOOLKIT_NAMESPACE::ComboBox::option()
 {
 	return textbox->str();
 }
 
-void Mt_comboBox::handleEvent()
+void TOOLKIT_NAMESPACE::ComboBox::handleEvent()
 {
 	HANDLE_WINDOW_EVENTS;
 
@@ -104,7 +104,7 @@ void Mt_comboBox::handleEvent()
 	}
 }
 
-void Mt_comboBox::update()
+void TOOLKIT_NAMESPACE::ComboBox::update()
 {
 	return_if(!visible);
 
@@ -122,7 +122,7 @@ void Mt_comboBox::update()
 
 	if (show && !options.empty())
 	{
-		Mt_point mouse(Mt_point::mousePos());
+		Point mouse(Point::mousePos());
 		auto &last = std::prev(options.end())->second;
 		int x = geometry->destR.x;
 		int y = geometry->destR.y;
@@ -153,7 +153,7 @@ void Mt_comboBox::update()
 	}
 }
 
-void Mt_comboBox::draw()
+void TOOLKIT_NAMESPACE::ComboBox::draw()
 {
 	return_if(!visible);
 

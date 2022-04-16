@@ -49,8 +49,8 @@ else
 TARGET_OBJFOLDER=$(OBJFOLDER)/linux
 endif
 
-SRCFILES=$(wildcard ./$(SRCFOLDER)/*$(SOURCE_EXT))
-HEADERS:=$(foreach EXT,$(HEADER_EXT),$(wildcard ./$(INCFOLDER)/*$(EXT)))
+SRCFILES:=$(wildcard ./$(SRCFOLDER)/*$(SOURCE_EXT)) $(wildcard ./$(SRCFOLDER)/**/*$(SOURCE_EXT))
+HEADERS:=$(foreach EXT,$(HEADER_EXT),$(wildcard ./$(INCFOLDER)/*$(EXT))) $(foreach EXT,$(HEADER_EXT),$(wildcard ./$(INCFOLDER)/**/*$(EXT)))
 OBJECTS=$(subst $(SOURCE_EXT),.o,$(subst ./$(SRCFOLDER)/,./$(TARGET_OBJFOLDER)/,$(SRCFILES)))
 
 PERCENT=0
@@ -106,16 +106,16 @@ endif
 
 objdir:
 ifeq ($(OS),Windows_NT)
-	-@ if NOT EXIST "$(TARGET_OBJFOLDER)" (mkdir "$(TARGET_OBJFOLDER)" >nul)
+	-@ $(foreach folder,$(OBJECTS),$(shell mkdir "$(dir $(folder))" >nul 2>nul))
 else
-	@ mkdir -p "$(TARGET_OBJFOLDER)"
+	-@ $(foreach folder,$(OBJECTS),$(shell mkdir -p "$(dir $(folder))"))
 endif
 
 clean:
 ifeq ($(OS),Windows_NT)
-	-@ del /f /s /q "$(TARGET_OBJFOLDER)\*.o" "$(FILE).exe" *~ >nul 2>nul
+	del /f /s /q $(foreach obj,$(subst /,\,$(OBJECTS)),"$(obj)") "$(FILE).exe" *~
 else
-	@ rm -rf "$(TARGET_OBJFOLDER)/*.o" "$(FILE)" *~
+	@ rm -f $(foreach obj,$(OBJECTS),"$(obj)") "$(FILE)" *~
 endif
 
 .PHONY: all clean objdir

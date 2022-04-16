@@ -1,39 +1,39 @@
 
-#include "mt_button.hpp"
+#include "widgets/mt_button.hpp"
 
-Mt_button::Mt_button(Mt_widget& widget) : Mt_widget(widget)
+TOOLKIT_NAMESPACE::Button::Button(Widget &widget) : Widget(widget)
 {
 	init();
 }
-Mt_button::Mt_button(Mt_window& window, int x, int y, int w, int h) : Mt_widget(window, x, y, w, h)
+TOOLKIT_NAMESPACE::Button::Button(TOOLKIT_NAMESPACE::Window &window, int x, int y, int w, int h) : Widget(window, x, y, w, h)
 {
 	init();
 }
 
-void Mt_button::init()
+void TOOLKIT_NAMESPACE::Button::init()
 {
-	label = &Mt_label::create(*this);
+	label = &Label::create(*this);
 
 	scheme = UI_BUTTON_COLOR_SCHEME;
 
 	currentBackgroundColor = scheme.background.normal;
 	currentBorderColor = scheme.border.normal;
 }
-Mt_button& Mt_button::create(Mt_widget& widget)
+TOOLKIT_NAMESPACE::Button &TOOLKIT_NAMESPACE::Button::create(Widget &widget)
 {
-	Mt_button* button = new Mt_button(widget);
+	TOOLKIT_NAMESPACE::Button *button = new TOOLKIT_NAMESPACE::Button(widget);
 	// widget.window.widgets.emplace_back(button);
 	return *button;
 }
-Mt_button& Mt_button::create(Mt_window& window, int x, int y, int w, int h)
+TOOLKIT_NAMESPACE::Button &TOOLKIT_NAMESPACE::Button::create(TOOLKIT_NAMESPACE::Window &window, int x, int y, int w, int h)
 {
-	Mt_button* button = new Mt_button(window, x, y, w, h);
-	//window.widgets.emplace_back(button);
+	TOOLKIT_NAMESPACE::Button *button = new TOOLKIT_NAMESPACE::Button(window, x, y, w, h);
+	// window.widgets.emplace_back(button);
 	window.add(*button);
 	return *button;
 }
 
-Mt_button::~Mt_button()
+TOOLKIT_NAMESPACE::Button::~Button()
 {
 	Debug("Destroying button...");
 
@@ -42,29 +42,29 @@ Mt_button::~Mt_button()
 	Debug("Done.");
 }
 
-void Mt_button::updateTextPosition()
+void TOOLKIT_NAMESPACE::Button::updateTextPosition()
 {
 	label->geometry->destR.x = (geometry->destR.x - geometry->srcR.x) + ((geometry->getW() - label->geometry->getW()) / 2);
 	label->geometry->destR.y = (geometry->destR.y - geometry->srcR.y) + ((geometry->getH() - label->geometry->getH()) / 2);
 	label->geometry->confine(geometry->destR);
 }
 
-bool Mt_button::actioned() const
+bool TOOLKIT_NAMESPACE::Button::actioned() const
 {
 	return clicked;
 }
 
-void Mt_button::fitH(int padding)
+void TOOLKIT_NAMESPACE::Button::fitH(int padding)
 {
 	geometry->setH(label->font->getH() + (2 * padding));
 }
 
-void Mt_button::handleEvent()
+void TOOLKIT_NAMESPACE::Button::handleEvent()
 {
 	HANDLE_WINDOW_EVENTS;
 }
 
-void Mt_button::update()
+void TOOLKIT_NAMESPACE::Button::update()
 {
 	return_if(!visible);
 
@@ -77,8 +77,7 @@ void Mt_button::update()
 	updateTextPosition();
 	label->update();
 
-	return_if(!enabled);
-	if (Mt_point::mousePos().intercept(geometry->destR))
+	if (Point::mousePos().intercept(geometry->destR) && enabled)
 	{
 		if (window.hovering == nullptr)
 		{
@@ -123,7 +122,7 @@ void Mt_button::update()
 			}
 		}
 	}
-	else
+	else if (enabled)
 	{
 		fadeToNormal();
 		if (window.hovering == this)
@@ -133,9 +132,13 @@ void Mt_button::update()
 			window.hovering = nullptr;
 		}
 	}
+	else
+	{
+		window.hovering = nullptr;
+	}
 }
 
-void Mt_button::draw()
+void TOOLKIT_NAMESPACE::Button::draw()
 {
 	return_if(!visible);
 

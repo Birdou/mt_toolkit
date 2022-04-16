@@ -5,29 +5,31 @@
 
 #include "mt_color.hpp"
 
-class Mt_font
+namespace TOOLKIT_NAMESPACE
 {
-private:
-	Mt_application &application;
+	class Font
+	{
+	private:
+		Application &application;
 
-	TTF_Font *font = nullptr;
-	unsigned short fontSize = 0;
-	int maxHeight = 0;
+		TTF_Font *font = nullptr;
+		unsigned short fontSize = 0;
+		int maxHeight = 0;
 
-public:
-	Mt_color color;
+	public:
+		Color color;
 
-	Mt_font(Mt_application &application);
-	Mt_font(Mt_application &application, const std::string &path, unsigned short fontSize);
-	~Mt_font();
+		Font(Application &application);
+		Font(Application &application, const std::string &path, unsigned short fontSize);
+		~Font();
 
-	void setFont(const std::string &path, unsigned short size);
+		void setFont(const std::string &path, unsigned short size);
 
-	TTF_Font *getFont();
+		TTF_Font *getFont();
 
-	unsigned short getSize() const;
+		unsigned short getSize() const;
 
-	int getH() const;
-};
-
+		int getH() const;
+	};
+}
 #endif /* B72EFF8C_D70C_44BC_BB4A_88698734A49A */

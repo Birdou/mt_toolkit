@@ -1,14 +1,6 @@
 #ifndef C7773821_9806_4DA9_86DA_A944C8E7E591
 #define C7773821_9806_4DA9_86DA_A944C8E7E591
 
-#include <functional>
-#include <memory>
-
-#include "mt_application.hpp"
-#include "mt_window.hpp"
-#include "mt_font.hpp"
-#include "mt_geometry.hpp"
-
 #define HANDLE_WINDOW_EVENTS                                                               \
 	if (window.event.type == SDL_WINDOWEVENT)                                              \
 	{                                                                                      \
@@ -25,104 +17,111 @@
 		}                                                                                  \
 	}
 
+#include "mt_window.hpp"
+#include "mt_font.hpp"
+#include "mt_geometry.hpp"
 #include "mt_scheme.hpp"
 
-template <typename T>
-using Event = std::function<T>;
+#include <functional>
+#include <memory>
 
-class Mt_widget
+namespace TOOLKIT_NAMESPACE
 {
-protected:
-	bool focused = false;
-	bool released = true;
-	bool hoverScroll = false;
-	bool enabled = true;
-	bool active = true;
+	template <typename T>
+	using Event = std::function<T>;
 
-	SDL_SystemCursor cursorId;
-	SDL_Cursor* cursor = nullptr;
-	void SetCursor(SDL_SystemCursor id);
-
-	static long widgetCount;
-	static long destroyedWidgetCount;
-	const long id;
-
-
-	virtual void init();
-
-	friend Mt_parent;
-
-public:
-	Mt_window& window;
-	Mt_parent* parent = nullptr;
-	bool visible = true;
-
-	std::unique_ptr<Mt_geometry> geometry;
-	std::shared_ptr<Mt_font> font;
-
-	long getId() const noexcept
+	class Widget
 	{
-		return id;
-	}
+	protected:
+		bool focused = false;
+		bool released = true;
+		bool hoverScroll = false;
+		bool enabled = true;
+		bool active = true;
 
-	Mt_colorScheme scheme;
-	void setScheme(Mt_colorScheme scheme);
+		SDL_SystemCursor cursorId;
+		SDL_Cursor *cursor = nullptr;
+		void SetCursor(SDL_SystemCursor id);
 
-	Mt_color currentBackgroundColor;
-	Mt_color currentBorderColor;
+		static long widgetCount;
+		static long destroyedWidgetCount;
+		const long id;
 
-	static std::string defaultFont;
-	static int defaultFontSize;
+		virtual void init();
 
-	Mt_widget(Mt_widget& widget);
-	Mt_widget(Mt_window& window, int x, int y);
-	Mt_widget(Mt_window& window, int x, int y, int w, int h);
-	virtual ~Mt_widget();
+		friend Parent;
 
-	bool isEnabled() const;
-	void enable();
-	void disable();
+	public:
+		Window &window;
+		Parent *parent = nullptr;
+		bool visible = true;
 
-	void destroy();
+		std::unique_ptr<Geometry> geometry;
+		std::shared_ptr<Font> font;
 
-	bool isActive() const;
-	bool isHoverScrollable() const;
+		long getId() const noexcept
+		{
+			return id;
+		}
 
-	void fadeToNormal();
-	void fadeToHover();
-	void fadeToClicked();
-	void fadeToFocused();
-	void fadeToDisabled();
+		ColorScheme scheme;
+		void setScheme(ColorScheme scheme);
 
-	void* foreignData = nullptr;
+		Color currentBackgroundColor;
+		Color currentBorderColor;
 
-	Mt_window& getApplication() const;
+		static std::string defaultFont;
+		static int defaultFontSize;
 
-	const Event<void()> none = []()
-	{};
+		Widget(Widget &widget);
+		Widget(Window &window, int x, int y);
+		Widget(Window &window, int x, int y, int w, int h);
+		virtual ~Widget();
 
-	Event<void()> onHovering = none;
-	Event<void()> onClicked = none;
-	Event<void()> onHover = none;
-	Event<void()> onMouseDown = none;
-	Event<void()> onMouseUp = none;
-	Event<void()> onMouseLeave = none;
-	Event<void()> onFocus = none;
-	Event<void()> onLostFocus = none;
+		bool isEnabled() const;
+		void enable();
+		void disable();
 
-	Event<void()> onCaretMoved = none;
-	Event<void()> onTextModified = none;
+		void destroy();
 
-	Event<void()> onKeydown = none;
-	Event<void()> onKeyup = none;
-	Event<void()> onMouseWheelMoved = none;
+		bool isActive() const;
+		bool isHoverScrollable() const;
 
-	Event<void(int width, int height)> onWindowSizeChanged;
-	Event<void(int width, int height)> onWindowResized;
+		void fadeToNormal();
+		void fadeToHover();
+		void fadeToClicked();
+		void fadeToFocused();
+		void fadeToDisabled();
 
-	virtual void handleEvent();
-	virtual void update();
-	virtual void draw();
-};
+		void *foreignData = nullptr;
+
+		Window &getApplication() const;
+
+		const Event<void()> none = []() {};
+
+		Event<void()> onHovering = none;
+		Event<void()> onClicked = none;
+		Event<void()> onHover = none;
+		Event<void()> onMouseDown = none;
+		Event<void()> onMouseUp = none;
+		Event<void()> onMouseLeave = none;
+		Event<void()> onFocus = none;
+		Event<void()> onLostFocus = none;
+
+		Event<void()> onCaretMoved = none;
+		Event<void()> onTextModified = none;
+
+		Event<void()> onKeydown = none;
+		Event<void()> onKeyup = none;
+		Event<void()> onMouseWheelMoved = none;
+
+		Event<void(int width, int height)> onWindowSizeChanged;
+		Event<void(int width, int height)> onWindowResized;
+
+		virtual void handleEvent();
+		virtual void update();
+		virtual void draw();
+	};
+}
 
 #endif /* C7773821_9806_4DA9_86DA_A944C8E7E591 */

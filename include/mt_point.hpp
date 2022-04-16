@@ -6,36 +6,29 @@
 
 #include "mt_application.hpp"
 
-class Mt_point : public SDL_Point
+namespace TOOLKIT_NAMESPACE
 {
-public:
-	Mt_point();
-
-	Mt_point(int x, int y);
-
-	Mt_point(const SDL_Point& point);
-
-	~Mt_point();
-
-
-	Mt_point& operator=(const SDL_Point& vec);
-
-
-	bool intercept(const SDL_Rect& rect) const;
-
-
-	void Rotate(float angle);
-
-
-	friend std::ostream& operator<<(std::ostream& o, const Mt_point& vec)
+	class Point : public SDL_Point
 	{
-		o << "(" << vec.x << "," << vec.y << ")";
-		return o;
-	}
+	public:
+		Point();
+		Point(int x, int y);
+		Point(const SDL_Point &point);
+		~Point();
 
+		Point &operator=(const SDL_Point &vec);
 
-	static Mt_point mousePos();
+		bool intercept(const SDL_Rect &rect) const;
 
-};
+		void rotate(float angle);
 
+		friend std::ostream &operator<<(std::ostream &o, const Point &vec)
+		{
+			o << "(" << vec.x << "," << vec.y << ")";
+			return o;
+		}
+
+		static Point mousePos();
+	};
+}
 #endif /* B2172A1A_DED7_46DB_B052_6DA43C9154EB */

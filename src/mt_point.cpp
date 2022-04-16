@@ -1,22 +1,24 @@
 
 #include "mt_point.hpp"
 
-Mt_point::Mt_point()
-{}
-Mt_point::Mt_point(int x, int y)
+TOOLKIT_NAMESPACE::Point::Point()
+{
+}
+TOOLKIT_NAMESPACE::Point::Point(int x, int y)
 {
     this->x = x;
     this->y = y;
 }
-Mt_point::Mt_point(const SDL_Point& point)
+TOOLKIT_NAMESPACE::Point::Point(const SDL_Point &point)
 {
     this->x = point.x;
     this->y = point.y;
 }
-Mt_point::~Mt_point()
-{}
+TOOLKIT_NAMESPACE::Point::~Point()
+{
+}
 
-Mt_point& Mt_point::operator=(const SDL_Point& vec)
+TOOLKIT_NAMESPACE::Point &TOOLKIT_NAMESPACE::Point::operator=(const SDL_Point &vec)
 {
     this->x = vec.x;
     this->y = vec.y;
@@ -24,22 +26,22 @@ Mt_point& Mt_point::operator=(const SDL_Point& vec)
     return *this;
 }
 
-bool Mt_point::intercept(const SDL_Rect& rect) const
+bool TOOLKIT_NAMESPACE::Point::intercept(const SDL_Rect &rect) const
 {
     return (this->x < rect.x + rect.w && this->x >= rect.x &&
-        this->y < rect.y + rect.h && this->y >= rect.y);
+            this->y < rect.y + rect.h && this->y >= rect.y);
 }
 
-void Mt_point::Rotate(float angle)
+void TOOLKIT_NAMESPACE::Point::rotate(float angle)
 {
-    Mt_point v(this->x, this->y);
+    Point v(this->x, this->y);
     x = (std::cos(angle) * v.x) - (std::sin(angle) * v.y);
     y = (std::sin(angle) * v.x) + (std::cos(angle) * v.y);
 }
 
-Mt_point Mt_point::mousePos()
+TOOLKIT_NAMESPACE::Point TOOLKIT_NAMESPACE::Point::mousePos()
 {
-    Mt_point mousePos;
+    Point mousePos;
 
     SDL_GetMouseState(&mousePos.x, &mousePos.y);
 

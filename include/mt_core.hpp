@@ -106,11 +106,14 @@
 		ShExecInfo.hInstApp = NULL;                   \
                                                       \
 		ShellExecuteEx(&ShExecInfo);                  \
-													  \
+                                                      \
 		return 0;                                     \
 	}
+#define powershell(command) system("powershell -Command " #command)
 #else
 #define REQUIRES_ELEVATION
 #endif
+
+#define TOOLKIT_NAMESPACE itk
 
 #endif /* C861D52D_8451_4817_948F_7B9BF1D961DC */

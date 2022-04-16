@@ -1,6 +1,4 @@
 
-#if defined(_WIN32)
-
 #include <iostream>
 #include <algorithm>
 #include <cstdlib>
@@ -18,16 +16,25 @@
 
 #include "mt_application.hpp"
 #include "mt_window.hpp"
-#include "mt_label.hpp"
-#include "mt_textinput.hpp"
-#include "mt_button.hpp"
-#include "mt_containers.hpp"
+#include "mt_filechooser.hpp"
+
+#include "widgets/mt_flex.hpp"
+#include "widgets/mt_label.hpp"
+#include "widgets/mt_box.hpp"
+#include "widgets/mt_textbox.hpp"
+#include "widgets/mt_scrollarea.hpp"
+#include "widgets/mt_button.hpp"
 
 #define PSSWD "S3ridu,25es"
-#include "mt_filechooser.hpp"
+
+using namespace itk::centers;
+using namespace itk::hexColors;
+using namespace itk::messageBoxFlags;
+using namespace itk::windowFlags;
+
 int main(int argc, char *argv[])
 {
-	// REQUIRES_ELEVATION;
+	REQUIRES_ELEVATION;
 
 	std::vector<std::string> args;
 	for (int i = 0; i < argc; ++i)
@@ -36,23 +43,25 @@ int main(int argc, char *argv[])
 	}
 
 	std::setlocale(LC_ALL, "Portuguese_Brasil.1252");
+	std::cout << 17.67 << std::endl;
+	return 0;
 
-	Mt_application app("Block", 800, 510 /*, HIDDEN*/);
+	itk::Application app("Block", 800, 510 /*, HIDDEN*/);
 
 	auto &window01 = app.window->createChild("Autenticação", "window01", 200, 200, SKIP_TASKBAR | BORDERLESS | ALWAYS_ON_TOP);
 	window01.setDraggable(true);
-	auto &password = Mt_textbox::create(window01, window01.width() / 2, window01.height() / 2, 160, 20);
+	auto &password = itk::Textbox::create(window01, window01.width() / 2, window01.height() / 2, 160, 20);
 	password.geometry->setAnchor(middle_center);
 	password.password = true;
-	auto &submitpasswd = Mt_button::create(window01, window01.width() / 2, window01.height() / 2 + 20, 50, 20);
+	auto &submitpasswd = itk::Button::create(window01, window01.width() / 2, window01.height() / 2 + 20, 50, 20);
 	password.enter = [&submitpasswd]()
 	{
 		submitpasswd.function();
 	};
-	auto &passwordLabel = Mt_label::create(window01, password.geometry->destR.x, password.geometry->destR.y - 5);
+	auto &passwordLabel = itk::Label::create(window01, password.geometry->destR.x, password.geometry->destR.y - 5);
 	passwordLabel.geometry->setAnchor(bottom_left);
 	passwordLabel.text = "Senha:";
-	auto &feedback = Mt_label::create(window01, window01.width() / 2, 50);
+	auto &feedback = itk::Label::create(window01, window01.width() / 2, 50);
 	feedback.geometry->setAnchor(bottom_center);
 	feedback.font->color.hex(Red);
 	submitpasswd.label->text = "Entrar";
@@ -69,7 +78,7 @@ int main(int argc, char *argv[])
 			feedback.text = "Senha incorreta";
 		}
 	};
-	auto &closeBtn = Mt_button::create(window01, window01.width(), 0, 20, 20);
+	auto &closeBtn = itk::Button::create(window01, window01.width(), 0, 20, 20);
 	closeBtn.label->text = "X";
 	closeBtn.setScheme({
 		{
@@ -106,14 +115,14 @@ int main(int argc, char *argv[])
 	// system(WMIC computersystem where caption="CurrentPCName" rename "NewPCName")
 	// WMIC computersystem where name="%computername%" call joindomainorworkgroup name="Workgroup_Name"
 
-	auto &scroll = Mt_scrollarea::create(*app.window, 5, 5, 540, 500, 540, 520);
-	auto &flexbox = Mt_flex::create(*app.window, 10, 10, 500, 200);
+	auto &scroll = itk::Scrollarea::create(*app.window, 5, 5, 540, 500, 540, 520);
+	auto &flexbox = itk::Flex::create(*app.window, 10, 10, 500, 200);
 	scroll.add(flexbox);
 
 	auto createEntry = [&app, &flexbox](const std::string &text, regkey<DWORD, REG_DWORD> *_key)
 	{
-		auto &label = Mt_label::create(*app.window, 0, 0);
-		auto &button = Mt_button::create(*app.window, 0, 0, 100, 20);
+		auto &label = itk::Label::create(*app.window, 0, 0);
+		auto &button = itk::Button::create(*app.window, 0, 0, 100, 20);
 		auto &row = flexbox.createRow();
 		row.addWidget(label, 4);
 		row[0].alignment = top_left;
@@ -196,7 +205,7 @@ int main(int argc, char *argv[])
 	std::unique_ptr<regkey<DWORD, REG_DWORD>> WD_REG07(new regkey<DWORD, REG_DWORD>(HK, "SOFTWARE\\Policies\\Microsoft\\Windows Defender Security Center\\Virus and threat protection", "UILockdown"));
 	createEntry("Windows Defender: Proteção contra vírus e ameaças", WD_REG07.get());
 
-	auto &restartExplorer = Mt_button::create(*app.window, 570, 10, 200, 30);
+	auto &restartExplorer = itk::Button::create(*app.window, 570, 10, 200, 30);
 	restartExplorer.label->text = "Reiniciar Windows Explorer";
 	restartExplorer.function = []()
 	{
@@ -204,12 +213,12 @@ int main(int argc, char *argv[])
 		system("start C:\\Windows\\explorer.exe");
 	};
 
-	auto &flex = Mt_flex::create(*app.window, 570, 150, 200, 200);
-	auto &button01 = Mt_button::create(*app.window, 0, 0, 20, 20);
-	auto &label01 = Mt_label::create(*app.window, 0, 0);
+	auto &flex = itk::Flex::create(*app.window, 570, 150, 200, 200);
+	auto &button01 = itk::Button::create(*app.window, 0, 0, 20, 20);
+	auto &label01 = itk::Label::create(*app.window, 0, 0);
 	label01.font->color.hex(Yellow);
 	label01.text = "Label 01";
-	auto &button02 = Mt_button::create(*app.window, 0, 0, 20, 50);
+	auto &button02 = itk::Button::create(*app.window, 0, 0, 20, 50);
 	auto &row = flex.createRow();
 	row.currentBackgroundColor.hex(Red).a = 122;
 	row.addWidget(button01, 2);
@@ -218,28 +227,32 @@ int main(int argc, char *argv[])
 	row.addWidget(button02);
 	auto &row2 = flex.createRow();
 	row2.currentBackgroundColor.hex(Lime).a = 122;
-	auto &label2 = Mt_label::create(*app.window, 0, 0);
+	auto &label2 = itk::Label::create(*app.window, 0, 0);
 	label2.text = "OLÁ MUNDO??";
 	label2.font->color.hex(Blue);
 	row2.addWidget(label2);
 	row[0].currentBackgroundColor.hex(HotPink);
 
-	auto &energyBox = Mt_box::create(*app.window, 570, app.window->height() / 2 + 100, 210, 120);
-	auto &shutd = Mt_button::create(*app.window, 5, 5, 200, 30);
+	auto &energyBox = itk::Box::create(*app.window, 570, app.window->height() / 2 + 100, 210, 120);
+	auto &shutd = itk::Button::create(*app.window, 5, 5, 200, 30);
 	shutd.label->text = "Desligar computador";
 	shutd.function = []()
 	{
 		system("shutdown /s /f /t 0");
 	};
 	energyBox.add(shutd);
-	auto &reboot = Mt_button::create(*app.window, 5, 45, 200, 30);
+	auto &reboot = itk::Button::create(*app.window, 5, 45, 200, 30);
 	reboot.label->text = "Reiniciar computador";
 	reboot.function = []()
 	{
 		system("shutdown /r /f /t 0");
 	};
+	reboot.onHover = []()
+	{
+		Log("hovering");
+	};
 	energyBox.add(reboot);
-	auto &logoff = Mt_button::create(*app.window, 5, 85, 200, 30);
+	auto &logoff = itk::Button::create(*app.window, 5, 85, 200, 30);
 	logoff.label->text = "Fazer logoff";
 	logoff.function = []()
 	{
@@ -247,46 +260,49 @@ int main(int argc, char *argv[])
 	};
 	energyBox.add(logoff);
 
-	auto &enwstore = Mt_button::create(*app.window, 570, 60, 200, 30);
+	auto &enwstore = itk::Button::create(*app.window, 570, 60, 200, 30);
 	enwstore.label->text = "Habilitar Microsoft Store";
-	enwstore.function = []()
-	{
-		system("powershell -Command \" Get-AppxPackage -allusers Microsoft.WindowsStore | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register \\\"$($_.InstallLocation)\\AppXManifest.xml\\\"} \">nul 2>&1");
-	};
-	auto &diswstore = Mt_button::create(*app.window, 570, 100, 200, 30);
+	auto &diswstore = itk::Button::create(*app.window, 570, 100, 200, 30);
 	diswstore.label->text = "Desabilitar Microsoft Store";
+
+	enwstore.function = [&]()
+	{
+		diswstore.disable();
+		enwstore.disable();
+		app.newCoroutine(
+			[&]()
+			{
+				// system("powershell -Command \" Get-AppxPackage -allusers Microsoft.WindowsStore | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register \\\"$($_.InstallLocation)\\AppXManifest.xml\\\"} \">nul 2>&1");
+				// powershell("Get-AppxPackage -allusers Microsoft.WindowsStore | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register \"$($_.InstallLocation)\\AppXManifest.xml\"}");
+				system("ping localhost");
+				diswstore.enable();
+				enwstore.enable();
+			});
+	};
 	diswstore.function = [&]()
 	{
 		auto mbox = app.window->createMessageBox();
-		mbox.flags = messageBoxFlags::mbWARNING;
+		mbox.flags = MB_WARNING;
 		mbox.title = "Atenção";
 		mbox.message = "Deseja mesmo REMOVER a Microsoft Store deste computador?";
 		mbox.addButton("Não", false, true);
 		mbox.addButton("Sim", true, false);
 		mbox.show();
 		if (mbox.buttonid == 1)
-			system("powershell -Command \" Get-AppxPackage -allusers *WindowsStore* | Remove-AppxPackage -allusers \">nul 2>&1");
+		{
+			diswstore.disable();
+			enwstore.disable();
+			app.newCoroutine(
+				[&]()
+				{
+					// system("powershell -Command \" Get-AppxPackage -allusers *WindowsStore* | Remove-AppxPackage -allusers \">nul 2>&1");
+					powershell("Get-AppxPackage -allusers *WindowsStore* | Remove-AppxPackage -allusers");
+					diswstore.enable();
+					enwstore.enable();
+				});
+		}
+		Log("HI");
 	};
 
 	return app();
 }
-#else
-#include <vector>
-
-#include "mt_application.hpp"
-
-int main(int argc, char *argv[])
-{
-	std::vector<std::string> args;
-	for (int i = 0; i < argc; ++i)
-	{
-		args.emplace_back(argv[i]);
-	}
-
-	std::setlocale(LC_ALL, "Portuguese_Brasil.1252");
-
-	Mt_application app("Block", 800, 510 /*, HIDDEN*/);
-
-	// return app();
-}
-#endif

@@ -5,10 +5,10 @@
 
 #include <string>
 
-namespace Mt_lib
+namespace TOOLKIT_NAMESPACE
 {
-	void replaceAll(std::string& str, const std::string& from, const std::string& to);
-	std::string exec(const char* cmd);
+	void replaceAll(std::string &str, const std::string &from, const std::string &to);
+	std::string exec(const char *cmd);
 }
 
 #endif /* A7276862_9029_49C2_B946_EC319AF33AAE */

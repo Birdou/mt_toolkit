@@ -1,12 +1,12 @@
 
 #include "mt_widget.hpp"
 
-std::string Mt_widget::defaultFont = "assets/fonts/segoeui.ttf";
-int Mt_widget::defaultFontSize = 14;
-long Mt_widget::widgetCount = 0;
-long Mt_widget::destroyedWidgetCount = 0;
+std::string TOOLKIT_NAMESPACE::Widget::defaultFont = "assets/fonts/segoeui.ttf";
+int TOOLKIT_NAMESPACE::Widget::defaultFontSize = 14;
+long TOOLKIT_NAMESPACE::Widget::widgetCount = 0;
+long TOOLKIT_NAMESPACE::Widget::destroyedWidgetCount = 0;
 
-void Mt_widget::SetCursor(SDL_SystemCursor id)
+void TOOLKIT_NAMESPACE::Widget::SetCursor(SDL_SystemCursor id)
 {
 	if (id == cursorId)
 		return;
@@ -19,109 +19,113 @@ void Mt_widget::SetCursor(SDL_SystemCursor id)
 	SDL_SetCursor(cursor);
 }
 
-void Mt_widget::init()
-{}
+void TOOLKIT_NAMESPACE::Widget::init()
+{
+}
 
-Mt_widget::Mt_widget(Mt_widget& widget) : id(widgetCount++), window(widget.window)
+TOOLKIT_NAMESPACE::Widget::Widget(Widget &widget) : id(widgetCount++), window(widget.window)
 {
 	font = widget.font;
-	geometry = std::unique_ptr<Mt_geometry>(new Mt_geometry());
+	geometry = std::unique_ptr<Geometry>(new Geometry());
 }
-Mt_widget::Mt_widget(Mt_window& window, int x, int y) : id(widgetCount++), window(window)
+TOOLKIT_NAMESPACE::Widget::Widget(Window &window, int x, int y) : id(widgetCount++), window(window)
 {
-	font = std::shared_ptr<Mt_font>(new Mt_font(window.getApplication(), defaultFont, defaultFontSize));
-	geometry = std::unique_ptr<Mt_geometry>(new Mt_geometry(x, y));
+	font = std::shared_ptr<Font>(new Font(window.getApplication(), defaultFont, defaultFontSize));
+	geometry = std::unique_ptr<Geometry>(new Geometry(x, y));
 
 	// window.widgets.emplace_back(this);
 }
-Mt_widget::Mt_widget(Mt_window& window, int x, int y, int w, int h) : id(widgetCount++), window(window)
+TOOLKIT_NAMESPACE::Widget::Widget(Window &window, int x, int y, int w, int h) : id(widgetCount++), window(window)
 {
-	font = std::shared_ptr<Mt_font>(new Mt_font(window.getApplication(), defaultFont, defaultFontSize));
-	geometry = std::unique_ptr<Mt_geometry>(new Mt_geometry(x, y, w, h));
+	font = std::shared_ptr<Font>(new Font(window.getApplication(), defaultFont, defaultFontSize));
+	geometry = std::unique_ptr<Geometry>(new Geometry(x, y, w, h));
 	geometry->normalize();
 
 	// window.widgets.emplace_back(this);
 }
-Mt_widget::~Mt_widget()
+TOOLKIT_NAMESPACE::Widget::~Widget()
 {
 	if (cursor != nullptr)
 		SDL_FreeCursor(cursor);
 
 	Debug("Destroyed widget (" << ++destroyedWidgetCount << "/" << widgetCount << ")");
 }
-bool Mt_widget::isEnabled() const
+bool TOOLKIT_NAMESPACE::Widget::isEnabled() const
 {
 	return enabled;
 }
-void Mt_widget::enable()
+void TOOLKIT_NAMESPACE::Widget::enable()
 {
 	fadeToNormal();
 	enabled = true;
 }
-void Mt_widget::disable()
+void TOOLKIT_NAMESPACE::Widget::disable()
 {
 	fadeToDisabled();
 	enabled = false;
 }
-void Mt_widget::destroy()
+void TOOLKIT_NAMESPACE::Widget::destroy()
 {
 	active = false;
 }
 
-bool Mt_widget::isActive() const
+bool TOOLKIT_NAMESPACE::Widget::isActive() const
 {
 	return active;
 }
-bool Mt_widget::isHoverScrollable() const
+bool TOOLKIT_NAMESPACE::Widget::isHoverScrollable() const
 {
 	return hoverScroll;
 }
 
-void Mt_widget::setScheme(Mt_colorScheme scheme)
+void TOOLKIT_NAMESPACE::Widget::setScheme(ColorScheme scheme)
 {
 	this->scheme = scheme;
 	this->currentBackgroundColor = scheme.background.normal;
 	this->currentBorderColor = scheme.border.normal;
 }
-void Mt_widget::fadeToNormal()
+void TOOLKIT_NAMESPACE::Widget::fadeToNormal()
 {
 	currentBackgroundColor.fadeInto(scheme.background.normal);
 	currentBorderColor.fadeInto(scheme.border.normal);
 	font->color.fadeInto(scheme.font.normal);
 }
-void Mt_widget::fadeToHover()
+void TOOLKIT_NAMESPACE::Widget::fadeToHover()
 {
 	currentBackgroundColor.fadeInto(scheme.background.hover);
 	currentBorderColor.fadeInto(scheme.border.hover);
 	font->color.fadeInto(scheme.font.hover);
 }
-void Mt_widget::fadeToClicked()
+void TOOLKIT_NAMESPACE::Widget::fadeToClicked()
 {
 	currentBackgroundColor.fadeInto(scheme.background.clicked);
 	currentBorderColor.fadeInto(scheme.border.clicked);
 	font->color.fadeInto(scheme.font.clicked);
 }
-void Mt_widget::fadeToFocused()
+void TOOLKIT_NAMESPACE::Widget::fadeToFocused()
 {
 	currentBackgroundColor.fadeInto(scheme.background.focused);
 	currentBorderColor.fadeInto(scheme.border.focused);
 	font->color.fadeInto(scheme.font.focused);
 }
-void Mt_widget::fadeToDisabled()
+void TOOLKIT_NAMESPACE::Widget::fadeToDisabled()
 {
 	currentBackgroundColor.fadeInto(scheme.background.disabled);
 	currentBorderColor.fadeInto(scheme.border.disabled);
 	font->color.fadeInto(scheme.font.disabled);
 }
 
-Mt_window& Mt_widget::getApplication() const
+TOOLKIT_NAMESPACE::Window &TOOLKIT_NAMESPACE::Widget::getApplication() const
 {
 	return window;
 }
 
-void Mt_widget::handleEvent()
-{}
-void Mt_widget::update()
-{}
-void Mt_widget::draw()
-{}
+void TOOLKIT_NAMESPACE::Widget::handleEvent()
+{
+}
+void TOOLKIT_NAMESPACE::Widget::update()
+{
+}
+void TOOLKIT_NAMESPACE::Widget::draw()
+{
+}

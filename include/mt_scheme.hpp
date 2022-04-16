@@ -3,20 +3,23 @@
 
 #include "mt_color.hpp"
 
-struct Mt_colorScheme
+namespace TOOLKIT_NAMESPACE
 {
-	struct Mt_schemeColors
+	struct ColorScheme
 	{
-		Mt_RGBA normal;
-		Mt_RGBA hover;
-		Mt_RGBA clicked;
-		Mt_RGBA focused;
-		Mt_RGBA disabled;
+		struct SchemeColors
+		{
+			RGBA normal;
+			RGBA hover;
+			RGBA clicked;
+			RGBA focused;
+			RGBA disabled;
+		};
+		SchemeColors background;
+		SchemeColors border;
+		SchemeColors font;
 	};
-	Mt_schemeColors background;
-	Mt_schemeColors border;
-	Mt_schemeColors font;
-};
+}
 
 // ANCHOR UI_LABEL_COLOR_SCHEME
 #define UI_LABEL_COLOR_SCHEME         \

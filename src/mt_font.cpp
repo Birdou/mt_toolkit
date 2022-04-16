@@ -1,18 +1,19 @@
 
 #include "mt_font.hpp"
 
-Mt_font::Mt_font(Mt_application& application) : application(application)
-{}
-Mt_font::Mt_font(Mt_application& application, const std::string& path, unsigned short fontSize) : application(application)
+TOOLKIT_NAMESPACE::Font::Font(Application &application) : application(application)
+{
+}
+TOOLKIT_NAMESPACE::Font::Font(Application &application, const std::string &path, unsigned short fontSize) : application(application)
 {
 	setFont(path, fontSize);
 }
-Mt_font::~Mt_font()
+TOOLKIT_NAMESPACE::Font::~Font()
 {
-	//Debug("Destroying font...");
+	// Debug("Destroying font...");
 }
 
-void Mt_font::setFont(const std::string& path, unsigned short size)
+void TOOLKIT_NAMESPACE::Font::setFont(const std::string &path, unsigned short size)
 {
 	fontSize = size;
 	font = application.getFont(path, size);
@@ -26,17 +27,17 @@ void Mt_font::setFont(const std::string& path, unsigned short size)
 	}
 }
 
-TTF_Font* Mt_font::getFont()
+TTF_Font *TOOLKIT_NAMESPACE::Font::getFont()
 {
 	return font;
 }
 
-unsigned short Mt_font::getSize() const
+unsigned short TOOLKIT_NAMESPACE::Font::getSize() const
 {
 	return fontSize;
 }
 
-int Mt_font::getH() const
+int TOOLKIT_NAMESPACE::Font::getH() const
 {
 	return maxHeight;
 }

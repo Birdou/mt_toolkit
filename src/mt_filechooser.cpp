@@ -5,7 +5,7 @@
 #include <sstream>
 #include <vector>
 
-void Mt_fileChooser::catchReturn()
+void TOOLKIT_NAMESPACE::FileChooser::catchReturn()
 {
     switch (CommDlgExtendedError())
     {
@@ -58,7 +58,7 @@ void Mt_fileChooser::catchReturn()
         Debug("User cancelled.");
     }
 }
-Mt_fileChooser::Mt_fileChooser()
+TOOLKIT_NAMESPACE::FileChooser::FileChooser()
 {
     ZeroMemory(&chooser, sizeof(OPENFILENAME));
     ZeroMemory(&filename, sizeof(filename));
@@ -70,15 +70,15 @@ Mt_fileChooser::Mt_fileChooser()
     chooser.lpstrTitle = "Selecione um arquivo";
     chooser.Flags = DONT_ADD_TO_RECENT | PATH_MUST_EXIST;
 }
-void Mt_fileChooser::setTitle(const char *title)
+void TOOLKIT_NAMESPACE::FileChooser::setTitle(const char *title)
 {
     chooser.lpstrTitle = title;
 }
-void Mt_fileChooser::setFlags(fileChooserFlags flags)
+void TOOLKIT_NAMESPACE::FileChooser::setFlags(fileChooserFlags flags)
 {
     chooser.Flags = flags;
 }
-void Mt_fileChooser::setFilter(std::initializer_list<std::pair<const char *, std::initializer_list<const char *>>> filters)
+void TOOLKIT_NAMESPACE::FileChooser::setFilter(std::initializer_list<std::pair<const char *, std::initializer_list<const char *>>> filters)
 {
     std::stringstream stream;
     for (auto &filter : filters)
@@ -96,7 +96,7 @@ void Mt_fileChooser::setFilter(std::initializer_list<std::pair<const char *, std
     chooser.lpstrFilter = stream.str().c_str();
 }
 
-int Mt_fileChooser::showOpenDialog()
+int TOOLKIT_NAMESPACE::FileChooser::showOpenDialog()
 {
     errorlevel = GetOpenFileNameA(&chooser);
     if (errorlevel)
@@ -109,7 +109,7 @@ int Mt_fileChooser::showOpenDialog()
     }
     return errorlevel;
 }
-int Mt_fileChooser::showSaveDialog()
+int TOOLKIT_NAMESPACE::FileChooser::showSaveDialog()
 {
     errorlevel = GetSaveFileNameA(&chooser);
     if (errorlevel)

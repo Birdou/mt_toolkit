@@ -4,35 +4,35 @@
 #include <algorithm>
 
 #include "mt_widget.hpp"
-#include "mt_lib.hpp"
+#include "mt_util.hpp"
 #include "mt_point.hpp"
 
-Mt_parent::~Mt_parent()
+TOOLKIT_NAMESPACE::Parent::~Parent()
 {
 	for (auto widget : widgets)
 		delete widget;
 }
-const std::vector<Mt_widget*>& Mt_parent::get() const noexcept
+const std::vector<TOOLKIT_NAMESPACE::Widget *> &TOOLKIT_NAMESPACE::Parent::get() const noexcept
 {
 	return widgets;
 }
-void Mt_parent::add(Mt_widget& widget)
+void TOOLKIT_NAMESPACE::Parent::add(TOOLKIT_NAMESPACE::Widget &widget)
 {
 	if (widget.parent != nullptr)
 	{
-		auto& _widgets = widget.parent->widgets;
+		auto &_widgets = widget.parent->widgets;
 		_widgets.erase(std::remove_if(_widgets.begin(), _widgets.end(),
-			[this, &widget](const Mt_widget* ptr)
-			{
-				if (&widget == ptr)
-				{
-					Debug("Moving object " << widget.getId());
-					widget.parent = this;
-					widgets.emplace_back(&widget);
-					return true;
-				}
-				return false;
-			}));
+									  [this, &widget](const TOOLKIT_NAMESPACE::Widget *ptr)
+									  {
+										  if (&widget == ptr)
+										  {
+											  Debug("Moving object " << widget.getId());
+											  widget.parent = this;
+											  widgets.emplace_back(&widget);
+											  return true;
+										  }
+										  return false;
+									  }));
 	}
 	else
 	{
@@ -41,23 +41,23 @@ void Mt_parent::add(Mt_widget& widget)
 	}
 }
 
-Mt_window::Mt_window(Mt_application& application, const std::string& title, int w, int h, int flags) : application(application), title(title)
+TOOLKIT_NAMESPACE::Window::Window(TOOLKIT_NAMESPACE::Application &application, const std::string &title, int w, int h, int flags) : application(application), title(title)
 {
-	rect = { 0, 0, w, h };
+	rect = {0, 0, w, h};
 
 	window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, w, h, flags);
 	windowID = SDL_GetWindowID(window);
 
 	SDL_GetWindowSize(window, &rect.w, &rect.h);
 
-	renderer = new Mt_renderer(window);
+	renderer = new Renderer(window);
 
 	active = true;
 }
 
-Mt_window::Mt_window(Mt_window& parentWindow, const std::string& title, int w, int h, int flags) : application(parentWindow.application), title(title)
+TOOLKIT_NAMESPACE::Window::Window(TOOLKIT_NAMESPACE::Window &parentWindow, const std::string &title, int w, int h, int flags) : application(parentWindow.application), title(title)
 {
-	rect = { 0, 0, w, h };
+	rect = {0, 0, w, h};
 
 	int posx, posy;
 	parentWindow.getPostition(posx, posy);
@@ -67,38 +67,38 @@ Mt_window::Mt_window(Mt_window& parentWindow, const std::string& title, int w, i
 	window = SDL_CreateWindow(title.c_str(), x, y, w, h, flags);
 	windowID = SDL_GetWindowID(window);
 
-	renderer = new Mt_renderer(window);
+	renderer = new Renderer(window);
 
 	active = true;
 }
 
-void Mt_window::setDraggable(bool draggable)
+void TOOLKIT_NAMESPACE::Window::setDraggable(bool draggable)
 {
 	this->draggable = draggable;
 	if (draggable)
-		SDL_SetWindowHitTest(window, hitTest, (void*)this);
+		SDL_SetWindowHitTest(window, hitTest, (void *)this);
 	else
 		SDL_SetWindowHitTest(window, NULL, NULL);
 }
-bool Mt_window::isDraggable()
+bool TOOLKIT_NAMESPACE::Window::isDraggable()
 {
 	return draggable;
 }
 
-Mt_window::Mt_messageBox Mt_window::createMessageBox()
+TOOLKIT_NAMESPACE::Window::messageBox TOOLKIT_NAMESPACE::Window::createMessageBox()
 {
-	return Mt_messageBox(*this);
+	return messageBox(*this);
 }
-void Mt_window::showSimpleMessageBox(const char* title, const char* message, int flags)
+void TOOLKIT_NAMESPACE::Window::showSimpleMessageBox(const char *title, const char *message, int flags)
 {
 	SDL_ShowSimpleMessageBox(flags, title, message, window);
 }
 
-void Mt_window::getPostition(int& x, int& y)
+void TOOLKIT_NAMESPACE::Window::getPostition(int &x, int &y)
 {
 	SDL_GetWindowPosition(window, &x, &y);
 }
-Mt_window::~Mt_window()
+TOOLKIT_NAMESPACE::Window::~Window()
 {
 	Debug("Destroying window...");
 
@@ -113,12 +113,12 @@ Mt_window::~Mt_window()
 	Debug("Done.");
 }
 
-bool Mt_window::isActive() const
+bool TOOLKIT_NAMESPACE::Window::isActive() const
 {
 	return active;
 }
 
-Mt_window& Mt_window::createChild(const std::string& title, const std::string& id, int width, int height, int flags)
+TOOLKIT_NAMESPACE::Window &TOOLKIT_NAMESPACE::Window::createChild(const std::string &title, const std::string &id, int width, int height, int flags)
 {
 	auto find = windows.find(id);
 	if (find != windows.end())
@@ -126,37 +126,37 @@ Mt_window& Mt_window::createChild(const std::string& title, const std::string& i
 		Error("Already exists an active window with this id '" << id << "'");
 		return *find->second;
 	}
-	Mt_window* window = new Mt_window(*this, title, width, height, flags);
+	TOOLKIT_NAMESPACE::Window *window = new TOOLKIT_NAMESPACE::Window(*this, title, width, height, flags);
 	windows.emplace(id, window);
 	return *window;
 }
-Mt_window& Mt_window::getChildById(const std::string& id)
+TOOLKIT_NAMESPACE::Window &TOOLKIT_NAMESPACE::Window::getChildById(const std::string &id)
 {
 	if (windows.find(id) == windows.end())
 		throw window_not_found();
 	return *windows[id];
 }
 
-void Mt_window::hide()
+void TOOLKIT_NAMESPACE::Window::hide()
 {
 	if (window)
 		SDL_HideWindow(window);
 	shown = false;
 }
 
-void Mt_window::show()
+void TOOLKIT_NAMESPACE::Window::show()
 {
 	if (window)
 		SDL_ShowWindow(window);
 	shown = true;
 }
 
-void Mt_window::destroy()
+void TOOLKIT_NAMESPACE::Window::destroy()
 {
 	active = false;
 }
 
-void Mt_window::setSize(int w, int h)
+void TOOLKIT_NAMESPACE::Window::setSize(int w, int h)
 {
 	if (w <= 0 || h <= 0)
 		return;
@@ -171,9 +171,9 @@ void Mt_window::setSize(int w, int h)
 	rect.h = h;
 }
 
-void Mt_window::setIcon(const char* file)
+void TOOLKIT_NAMESPACE::Window::setIcon(const char *file)
 {
-	SDL_Surface* surf = IMG_Load(file);
+	SDL_Surface *surf = IMG_Load(file);
 	if (surf == nullptr)
 	{
 		SDL_PrintError(Error);
@@ -181,26 +181,26 @@ void Mt_window::setIcon(const char* file)
 	SDL_SetWindowIcon(window, surf);
 	SDL_FreeSurface(surf);
 }
-void Mt_window::setTitle(const char* title)
+void TOOLKIT_NAMESPACE::Window::setTitle(const char *title)
 {
 	SDL_SetWindowTitle(window, title);
 }
-int Mt_window::height() const
+int TOOLKIT_NAMESPACE::Window::height() const
 {
 	return rect.h;
 }
-int Mt_window::width() const
+int TOOLKIT_NAMESPACE::Window::width() const
 {
 	return rect.w;
 }
 
 #define RESIZE_BORDER 5
-SDL_HitTestResult SDLCALL Mt_window::hitTest(SDL_Window*, const SDL_Point* pt, void* data)
+SDL_HitTestResult SDLCALL TOOLKIT_NAMESPACE::Window::hitTest(SDL_Window *, const SDL_Point *pt, void *data)
 {
-	Mt_window* window = (Mt_window*)data;
-	Mt_point vec(*pt);
+	Window *window = (Window *)data;
+	Point vec(*pt);
 
-	for (auto& widget : window->widgets)
+	for (auto &widget : window->widgets)
 		if (widget->visible && vec.intercept(widget->geometry->destR))
 			return SDL_HITTEST_NORMAL;
 
@@ -227,14 +227,14 @@ SDL_HitTestResult SDLCALL Mt_window::hitTest(SDL_Window*, const SDL_Point* pt, v
 	return SDL_HITTEST_DRAGGABLE;
 }
 
-Mt_application& Mt_window::getApplication() const
+TOOLKIT_NAMESPACE::Application &TOOLKIT_NAMESPACE::Window::getApplication() const
 {
 	return application;
 }
 
-void Mt_window::handleEvents()
+void TOOLKIT_NAMESPACE::Window::handleEvents()
 {
-	for (auto& window : windows)
+	for (auto &window : windows)
 		window.second->handleEvents();
 
 	return_if(!shown);
@@ -267,7 +267,7 @@ void Mt_window::handleEvents()
 	}
 }
 
-void Mt_window::update()
+void TOOLKIT_NAMESPACE::Window::update()
 {
 	// refresh windows
 	for (auto it = windows.begin(); it != windows.end();)
@@ -283,7 +283,7 @@ void Mt_window::update()
 		}
 	}
 
-	for (auto& window : windows)
+	for (auto &window : windows)
 		window.second->update();
 
 	return_if(!shown);
@@ -307,9 +307,9 @@ void Mt_window::update()
 		widget->update();
 }
 
-void Mt_window::draw()
+void TOOLKIT_NAMESPACE::Window::draw()
 {
-	for (auto& window : windows)
+	for (auto &window : windows)
 		window.second->draw();
 
 	return_if(!shown);

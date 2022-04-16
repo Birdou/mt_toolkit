@@ -1,7 +1,7 @@
 
-#include "mt_checkbox.hpp"
+#include "widgets/mt_checkbox.hpp"
 
-Mt_checkbox::Mt_checkbox(Mt_window& window, int x, int y, int size) : Mt_widget(window, x, y, size, size)
+TOOLKIT_NAMESPACE::Checkbox::Checkbox(TOOLKIT_NAMESPACE::Window &window, int x, int y, int size) : Widget(window, x, y, size, size)
 {
 	geometry->destR.w = geometry->destR.h = size;
 	geometry->destR.x = x;
@@ -12,24 +12,25 @@ Mt_checkbox::Mt_checkbox(Mt_window& window, int x, int y, int size) : Mt_widget(
 	currentBackgroundColor = scheme.background.normal;
 	currentBorderColor = scheme.border.normal;
 
-	check = &Mt_label::create(*this);
+	check = &Label::create(*this);
 	check->geometry->setW(size * checked_size);
 	check->geometry->setH(size * checked_size);
 	check->geometry->normalize();
 }
 
-void Mt_checkbox::init()
-{}
-
-Mt_checkbox& Mt_checkbox::create(Mt_window& window, int x, int y, int size)
+void TOOLKIT_NAMESPACE::Checkbox::init()
 {
-	Mt_checkbox* checkbox = new Mt_checkbox(window, x, y, size);
-	//window.widgets.emplace_back(checkbox);
+}
+
+TOOLKIT_NAMESPACE::Checkbox &TOOLKIT_NAMESPACE::Checkbox::create(TOOLKIT_NAMESPACE::Window &window, int x, int y, int size)
+{
+	TOOLKIT_NAMESPACE::Checkbox *checkbox = new TOOLKIT_NAMESPACE::Checkbox(window, x, y, size);
+	// window.widgets.emplace_back(checkbox);
 	window.add(*checkbox);
 	return *checkbox;
 }
 
-Mt_checkbox::~Mt_checkbox()
+TOOLKIT_NAMESPACE::Checkbox::~Checkbox()
 {
 	Debug("Destroying checkbox...");
 
@@ -37,23 +38,23 @@ Mt_checkbox::~Mt_checkbox()
 
 	Debug("Done.");
 }
-bool Mt_checkbox::checked()
+bool TOOLKIT_NAMESPACE::Checkbox::checked()
 {
 	return isChecked;
 }
 
-void Mt_checkbox::handleEvent()
+void TOOLKIT_NAMESPACE::Checkbox::handleEvent()
 {
 	HANDLE_WINDOW_EVENTS;
 
 	return_if(!visible);
 }
 
-void Mt_checkbox::update()
+void TOOLKIT_NAMESPACE::Checkbox::update()
 {
 	return_if(!visible);
 
-	if (Mt_point::mousePos().intercept(geometry->destR))
+	if (Point::mousePos().intercept(geometry->destR))
 	{
 		if (window.hovering == nullptr)
 		{
@@ -102,12 +103,11 @@ void Mt_checkbox::update()
 			pressed = false;
 			window.hovering = nullptr;
 			fadeToNormal();
-
 		}
 	}
 }
 
-void Mt_checkbox::draw()
+void TOOLKIT_NAMESPACE::Checkbox::draw()
 {
 	return_if(!visible);
 

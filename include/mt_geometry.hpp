@@ -4,59 +4,66 @@
 
 #include "mt_application.hpp"
 
-enum center
+namespace TOOLKIT_NAMESPACE
 {
-	none,
-	top_left,
-	top_center,
-	top_right,
-	middle_left,
-	middle_center,
-	middle_right,
-	bottom_left,
-	bottom_center,
-	bottom_right
-};
-class Mt_widget;
-class Mt_geometry
-{
-public:
-private:
-	int x = 0, y = 0, w = 0, h = 0;
-	center anchor = top_left;
+	namespace centers
+	{
+		enum center
+		{
+			none,
+			top_left,
+			top_center,
+			top_right,
+			middle_left,
+			middle_center,
+			middle_right,
+			bottom_left,
+			bottom_center,
+			bottom_right
+		};
+	}
 
-public:
-	float scale = 1.f;
-	SDL_Rect destR, srcR;
+	class Widget;
+	class Geometry
+	{
+	public:
+	private:
+		int x = 0, y = 0, w = 0, h = 0;
+		centers::center anchor = centers::top_left;
 
-	Mt_geometry();
-	Mt_geometry(int x, int y);
-	Mt_geometry(int x, int y, int w, int h);
-	~Mt_geometry();
+	public:
+		float scale = 1.f;
+		SDL_Rect destR, srcR;
 
-	void setAnchor(center anchor);
+		Geometry();
+		Geometry(int x, int y);
+		Geometry(int x, int y, int w, int h);
+		~Geometry();
 
-	int getX() const noexcept;
-	void setX(int x);
-	int getY() const noexcept;
-	void setY(int y);
-	int getW() const noexcept;
-	void setW(int w);
-	int getH() const noexcept;
-	void setH(int h);
+		void setAnchor(centers::center anchor);
 
-	void setGeometry(int x, int y, int w, int h);
-	void confineObject(Mt_widget* widget);
-	void confine(const SDL_Rect& box);
-	void confineX(const SDL_Rect& box);
-	void confineY(const SDL_Rect& box);
+		int getX() const noexcept;
+		void setX(int x);
+		int getY() const noexcept;
+		void setY(int y);
+		int getW() const noexcept;
+		void setW(int w);
+		int getH() const noexcept;
+		void setH(int h);
 
-	bool intercept(const Mt_geometry& geometry)const;
+		void setGeometry(int x, int y, int w, int h);
+		void confineObject(Widget *widget);
+		void confine(const SDL_Rect &box);
+		void confineX(const SDL_Rect &box);
+		void confineY(const SDL_Rect &box);
 
-	void normalize();
+		bool intercept(const Geometry &geometry) const;
 
-	void posCenter();
-	void adjustCenter();
-};
+		void normalize();
+
+		void posCenter();
+		void adjustCenter();
+	};
+}
 
 #endif /* F7EA772C_EBFE_449F_B91A_03E0F017F457 */
