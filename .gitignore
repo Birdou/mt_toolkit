@@ -1,8 +1,15 @@
 .vscode
+
 objects
-gallery
-Doxygen
 examples
+[Dd]oxygen
+
 *.jpg
 *.png
+*.zip
+*.rar
 *.exe
+*.dll
+
+!assets/**
+!bin/**
