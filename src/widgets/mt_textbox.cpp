@@ -1,11 +1,13 @@
 
 #include "widgets/mt_textbox.hpp"
 
-TOOLKIT_NAMESPACE::Textbox::Textbox(Widget &widget) : Widget(widget)
+TOOLKIT_NAMESPACE::Widget::widgetCounter TOOLKIT_NAMESPACE::Textbox::counter;
+
+TOOLKIT_NAMESPACE::Textbox::Textbox(Widget &widget) : Widget(widget, getClassId())
 {
     init();
 }
-TOOLKIT_NAMESPACE::Textbox::Textbox(Window &window, int x, int y, int w, int h) : Widget(window, x, y, w, h)
+TOOLKIT_NAMESPACE::Textbox::Textbox(Window &window, int x, int y, int w, int h) : Widget(window, getClassId(), x, y, w, h)
 {
     init();
 }
@@ -92,12 +94,12 @@ void TOOLKIT_NAMESPACE::Textbox::pointCursor()
 
 TOOLKIT_NAMESPACE::Textbox::~Textbox()
 {
-    Debug("Destroying textinput...");
+    Debug("Destroying " << this->id << " (" << ++counter.destroyedWidgetCount << "/" << counter.widgetCount << ")");
+
     if (caret)
         delete caret;
     if (input)
         delete input;
-    Debug("Done.");
 }
 
 std::string TOOLKIT_NAMESPACE::Textbox::str() const
@@ -116,19 +118,19 @@ void TOOLKIT_NAMESPACE::Textbox::str(const std::string &text)
 void TOOLKIT_NAMESPACE::Textbox::handleMouse()
 {
     hoverScroll = false;
-    if (window.hovering == this)
-        window.hovering = nullptr;
+    // if (window.hovering == this)
+    // window.hovering = nullptr;
 
     if (Point::mousePos().intercept(geometry->destR))
     {
         onHover();
         hoverScroll = true;
-        if (window.hovering == nullptr)
-        {
-            window.hovering = this;
-            SetCursor(SDL_SYSTEM_CURSOR_IBEAM);
-            fadeToHover();
-        }
+        // if (window.hovering == nullptr)
+        // {
+        // window.hovering = this;
+        SetCursor(SDL_SYSTEM_CURSOR_IBEAM);
+        fadeToHover();
+        // }
         if (!focused)
         {
             if (window.event.type == SDL_MOUSEBUTTONDOWN)
@@ -137,18 +139,18 @@ void TOOLKIT_NAMESPACE::Textbox::handleMouse()
                 {
                 case SDL_BUTTON_LEFT:
                     onMouseDown();
-                    if (window.hovering == this)
+                    // if (window.hovering == this)
+                    // {
+                    onFocus();
+                    if (!SDL_IsTextInputActive())
                     {
-                        onFocus();
-                        if (!SDL_IsTextInputActive())
-                        {
-                            Debug("Start text input");
-                            SDL_StartTextInput();
-                        }
-                        fadeToFocused();
-                        focused = true;
-                        released = false;
+                        Debug("Start text input");
+                        SDL_StartTextInput();
                     }
+                    fadeToFocused();
+                    focused = true;
+                    released = false;
+                    // }
                     break;
                 default:
                     break;
@@ -163,11 +165,11 @@ void TOOLKIT_NAMESPACE::Textbox::handleMouse()
         {
         case SDL_BUTTON_LEFT:
             onLostFocus();
-            if (!dynamic_cast<TOOLKIT_NAMESPACE::Textbox *>(window.hovering))
-            {
-                Debug("Stop text input");
-                SDL_StopTextInput();
-            }
+            // if (!dynamic_cast<TOOLKIT_NAMESPACE::Textbox *>(window.hovering))
+            // {
+            Debug("Stop text input");
+            SDL_StopTextInput();
+            // }
             fadeToNormal();
             focused = false;
             break;
@@ -177,11 +179,11 @@ void TOOLKIT_NAMESPACE::Textbox::handleMouse()
     {
         SetCursor(SDL_SYSTEM_CURSOR_ARROW);
         onMouseLeave();
-        if (window.hovering == this)
-        {
-            fadeToNormal();
-            window.hovering = nullptr;
-        }
+        // if (window.hovering == this)
+        // {
+        fadeToNormal();
+        // window.hovering = nullptr;
+        // }
     }
     else if (released)
     {
@@ -208,7 +210,7 @@ void TOOLKIT_NAMESPACE::Textbox::handleEvent()
 
     return_if(!visible);
 
-    if (window.hovering == this && window.event.type == SDL_MOUSEWHEEL)
+    if (/*window.hovering == this &&*/ window.event.type == SDL_MOUSEWHEEL)
         wheel();
 
     if (focused)

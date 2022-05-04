@@ -3,8 +3,11 @@
 
 #include "mt_point.hpp"
 
+TOOLKIT_NAMESPACE::Widget::widgetCounter TOOLKIT_NAMESPACE::Box::counter;
+
 TOOLKIT_NAMESPACE::Box::Box(Window &window, int x, int y, int w, int h) : Container(window, x, y, w, h)
 {
+
     init();
 }
 TOOLKIT_NAMESPACE::Box &TOOLKIT_NAMESPACE::Box::create(Window &window, int x, int y, int w, int h)
@@ -15,7 +18,7 @@ TOOLKIT_NAMESPACE::Box &TOOLKIT_NAMESPACE::Box::create(Window &window, int x, in
 }
 TOOLKIT_NAMESPACE::Box::~Box()
 {
-    Debug("Destroying box.");
+    Debug("Destroying " << this->id) << " (" << ++counter.destroyedWidgetCount << "/" << counter.widgetCount << ")";
 }
 
 void TOOLKIT_NAMESPACE::Box::handleEvent()

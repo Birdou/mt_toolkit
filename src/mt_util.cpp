@@ -24,5 +24,5 @@ std::string TOOLKIT_NAMESPACE::exec(const char *cmd)
 	{
 		result += buffer.data();
 	}
-	return result;
+	return result.substr(0, result.size() - 1);
 }

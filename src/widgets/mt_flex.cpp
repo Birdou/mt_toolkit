@@ -3,7 +3,11 @@
 
 #include "mt_point.hpp"
 
-TOOLKIT_NAMESPACE::Flex::Flex(Window &window, int x, int y, int w, int h) : Container(window, x, y, w, h)
+TOOLKIT_NAMESPACE::Widget::widgetCounter TOOLKIT_NAMESPACE::Flex::counter;
+TOOLKIT_NAMESPACE::Widget::widgetCounter TOOLKIT_NAMESPACE::Flex::Row::counter;
+TOOLKIT_NAMESPACE::Widget::widgetCounter TOOLKIT_NAMESPACE::Flex::Row::Cel::counter;
+
+TOOLKIT_NAMESPACE::Flex::Flex(Window &window, int x, int y, int w, int h) : Container(window, getClassId(), x, y, w, h)
 {
 }
 
@@ -16,12 +20,10 @@ TOOLKIT_NAMESPACE::Flex &TOOLKIT_NAMESPACE::Flex::create(TOOLKIT_NAMESPACE::Wind
 }
 TOOLKIT_NAMESPACE::Flex::~Flex()
 {
-    Debug("Destroying flexbox...");
+    Debug("Destroying " << this->id << " (" << ++counter.destroyedWidgetCount << "/" << counter.widgetCount << ")");
 
     for (auto row : rows)
         delete row;
-
-    Debug("Done.");
 }
 TOOLKIT_NAMESPACE::Flex::Row &TOOLKIT_NAMESPACE::Flex::createRow()
 {
@@ -30,6 +32,27 @@ TOOLKIT_NAMESPACE::Flex::Row &TOOLKIT_NAMESPACE::Flex::createRow()
     rows.emplace_back(row);
     return *row;
 }
+
+void TOOLKIT_NAMESPACE::Flex::createRows(size_t count)
+{
+    for (size_t i = 0; i < count; i++)
+    {
+        Row *row = new Row(*this);
+        rows.emplace_back(row);
+    }
+}
+void TOOLKIT_NAMESPACE::Flex::grid(std::initializer_list<std::initializer_list<std::pair<Widget &, size_t>>> scheme)
+{
+    for (auto &_row : scheme)
+    {
+        Row &row = createRow();
+        for (auto &_col : _row)
+        {
+            row.add(_col.first, _col.second);
+        }
+    }
+}
+
 TOOLKIT_NAMESPACE::Flex::Row &TOOLKIT_NAMESPACE::Flex::at(size_t index)
 {
     if (index >= rows.size())
@@ -168,6 +191,19 @@ void TOOLKIT_NAMESPACE::Flex::update()
 {
     return_if(!visible);
 
+    for (auto it = rows.begin(); it != rows.end();)
+    {
+        if (!(*it)->isActive())
+        {
+            delete (*it);
+            it = rows.erase(it);
+        }
+        else
+        {
+            it++;
+        }
+    }
+
     updateGrid();
     // const int griddifX = geometry->destR.x - geometry->srcR.x;
     // const int griddifY = geometry->destR.y - geometry->srcR.y;
@@ -211,16 +247,18 @@ void TOOLKIT_NAMESPACE::Flex::Row::init()
     currentBackgroundColor.hex(hexColors::White).a = 0;
     currentBorderColor.hex(hexColors::White).a = 0;
 }
-TOOLKIT_NAMESPACE::Flex::Row::Row(TOOLKIT_NAMESPACE::Flex &grid) : Widget(grid), grid(grid)
+TOOLKIT_NAMESPACE::Flex::Row::Row(TOOLKIT_NAMESPACE::Flex &grid) : Widget(grid, getClassId()), grid(grid)
 {
     init();
 }
 TOOLKIT_NAMESPACE::Flex::Row::~Row()
 {
+    Debug("Destroying " << this->id << " (" << ++counter.destroyedWidgetCount << "/" << counter.widgetCount << ")");
+
     for (auto col : cols)
         delete col;
 }
-void TOOLKIT_NAMESPACE::Flex::Row::addWidget(Widget &widget, size_t colspan)
+void TOOLKIT_NAMESPACE::Flex::Row::add(Widget &widget, size_t colspan)
 {
     grid.add(widget);
     Cel *col = new Cel(*this, &widget, colspan);
@@ -278,12 +316,13 @@ void TOOLKIT_NAMESPACE::Flex::Row::Cel::init()
     currentBackgroundColor.hex(hexColors::White).a = 0;
     currentBorderColor.hex(hexColors::White).a = 0;
 }
-TOOLKIT_NAMESPACE::Flex::Row::Cel::Cel(Row &row, Widget *widget, size_t colspan) : Widget(row), row(row), widget(widget), colspan(colspan)
+TOOLKIT_NAMESPACE::Flex::Row::Cel::Cel(Row &row, Widget *widget, size_t colspan) : Widget(row, getClassId()), row(row), widget(widget), colspan(colspan)
 {
     init();
 }
 TOOLKIT_NAMESPACE::Flex::Row::Cel::~Cel()
 {
+    Debug("Destroying " << this->id << " (" << ++counter.destroyedWidgetCount << "/" << counter.widgetCount << ")");
 }
 void TOOLKIT_NAMESPACE::Flex::Row::Cel::handleEvent()
 {

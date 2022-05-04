@@ -3,6 +3,8 @@
 
 #include <iomanip>
 
+TOOLKIT_NAMESPACE::Widget::widgetCounter TOOLKIT_NAMESPACE::Textarea::counter;
+
 TOOLKIT_NAMESPACE::Textarea::Textarea(Window &window, int x, int y, int w, int h) : Textbox(window, x, y, w, h)
 {
 	lines.emplace_back(input);
@@ -219,19 +221,17 @@ TOOLKIT_NAMESPACE::Textarea &TOOLKIT_NAMESPACE::Textarea::create(Window &window,
 
 TOOLKIT_NAMESPACE::Textarea::~Textarea()
 {
-	Debug("Destroying textarea...");
+	Debug("Destroying " << this->id << " (" << ++counter.destroyedWidgetCount << "/" << counter.widgetCount << ")");
 
 	for (auto line : lines)
 		delete line;
 
 	input = nullptr;
-
-	Debug("Done.");
 }
 
 std::string TOOLKIT_NAMESPACE::Textarea::str() const
 {
-	std::stringstream stream;
+	std::stringstream stream("");
 	for (auto line : lines)
 	{
 		stream << line->text << std::endl;
@@ -255,6 +255,12 @@ void TOOLKIT_NAMESPACE::Textarea::str(const std::string &str)
 	caretPos_x = input->text.length();
 	caretPos_y = lines.size() - 1;
 	input->update();
+}
+void TOOLKIT_NAMESPACE::Textarea::append(const std::string &str)
+{
+	std::string curr(this->str());
+	curr += str;
+	this->str(curr);
 }
 
 TOOLKIT_NAMESPACE::Label *TOOLKIT_NAMESPACE::Textarea::newLine(const std::string &content)

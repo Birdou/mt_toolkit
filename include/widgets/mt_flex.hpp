@@ -8,12 +8,18 @@ namespace TOOLKIT_NAMESPACE
     class Flex : public Container
     {
     private:
+        WIDGET_CLASS("FLEX");
+
         class Row : public Widget
         {
         private:
+            WIDGET_CLASS("ROW");
+
             class Cel : public Widget
             {
             private:
+                WIDGET_CLASS("CEL");
+
                 Row &row;
 
                 void init();
@@ -21,7 +27,7 @@ namespace TOOLKIT_NAMESPACE
             public:
                 Widget *widget = nullptr;
                 size_t colspan;
-                centers::center alignment = centers::middle_left;
+                centers::centers alignment = centers::middle_left;
                 int padding = 4;
                 Cel(Row &row, Widget *widget, size_t colspan);
 
@@ -46,7 +52,7 @@ namespace TOOLKIT_NAMESPACE
             ~Row();
             int padding = 0;
 
-            void addWidget(Widget &widget, size_t colspan = 1);
+            void add(Widget &widget, size_t colspan = 1);
             Cel &at(size_t id);
             Cel &operator[](size_t id);
 
@@ -58,8 +64,6 @@ namespace TOOLKIT_NAMESPACE
         Flex(Window &window, int x, int y, int w, int h);
         Flex(const Flex &) = delete;
 
-        std::vector<Row *> rows;
-
         bool gupdate = false;
         int lastVirtualX = 0;
         int lastVirtualY = 0;
@@ -67,9 +71,15 @@ namespace TOOLKIT_NAMESPACE
     public:
         static Flex &create(Window &window, int x, int y, int w, int h);
         ~Flex();
+
+        std::vector<Row *> rows;
+
         int padding = 2;
 
         Row &createRow();
+        void createRows(size_t count);
+
+        void grid(std::initializer_list<std::initializer_list<std::pair<Widget &, size_t>>> scheme);
 
         void updateGrid();
 

@@ -9,6 +9,8 @@ namespace TOOLKIT_NAMESPACE
 	class Bitmap : public Widget, public Pixelgrid
 	{
 	private:
+		WIDGET_CLASS("BITMAP");
+
 		SDL_Texture *tex = nullptr;
 
 		bool render = false;

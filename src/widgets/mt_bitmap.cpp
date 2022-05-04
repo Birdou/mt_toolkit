@@ -3,12 +3,16 @@
 
 #include "mt_point.hpp"
 
-TOOLKIT_NAMESPACE::Bitmap::Bitmap(Window &window, int x, int y, size_t w, size_t h, size_t map_w, size_t map_h) : Widget(window, x, y, w, h)
+TOOLKIT_NAMESPACE::Widget::widgetCounter TOOLKIT_NAMESPACE::Bitmap::counter;
+
+TOOLKIT_NAMESPACE::Bitmap::Bitmap(Window &window, int x, int y, size_t w, size_t h, size_t map_w, size_t map_h) : Widget(window, getClassId(), x, y, w, h)
 {
+
 	alloc(map_w, map_h);
 }
-TOOLKIT_NAMESPACE::Bitmap::Bitmap(Window &window, int x, int y, size_t w, size_t h) : Widget(window, x, y, w, h)
+TOOLKIT_NAMESPACE::Bitmap::Bitmap(Window &window, int x, int y, size_t w, size_t h) : Widget(window, getClassId(), x, y, w, h)
 {
+
 	alloc(w, h);
 }
 
@@ -35,7 +39,8 @@ TOOLKIT_NAMESPACE::Bitmap &TOOLKIT_NAMESPACE::Bitmap::create(Window &window, int
 
 TOOLKIT_NAMESPACE::Bitmap::~Bitmap()
 {
-	Debug("Destroying bitmap...");
+	Debug("Destroying " << this->id << " (" << ++counter.destroyedWidgetCount << "/" << counter.widgetCount << ")");
+
 	erase();
 }
 
@@ -90,43 +95,43 @@ void TOOLKIT_NAMESPACE::Bitmap::update()
 
 	if (Point::mousePos().intercept(geometry->destR))
 	{
-		if (window.hovering == nullptr)
+		// if (window.hovering == nullptr)
+		// {
+		// 	window.hovering = this;
+		// }
+		// if (window.hovering == this)
+		// {
+		onHover();
+		if (pressed)
 		{
-			window.hovering = this;
-		}
-		if (window.hovering == this)
-		{
-			onHover();
-			if (pressed)
+			onClicked();
+
+			if (window.event.type == SDL_MOUSEBUTTONUP && window.event.button.button == SDL_BUTTON_LEFT)
 			{
+				onMouseUp();
+
+				pressed = false;
+			}
+		}
+		else
+		{
+			if (window.event.type == SDL_MOUSEBUTTONDOWN && window.event.button.button == SDL_BUTTON_LEFT)
+			{
+				onMouseDown();
 				onClicked();
 
-				if (window.event.type == SDL_MOUSEBUTTONUP && window.event.button.button == SDL_BUTTON_LEFT)
-				{
-					onMouseUp();
-
-					pressed = false;
-				}
-			}
-			else
-			{
-				if (window.event.type == SDL_MOUSEBUTTONDOWN && window.event.button.button == SDL_BUTTON_LEFT)
-				{
-					onMouseDown();
-					onClicked();
-
-					pressed = true;
-				}
+				pressed = true;
 			}
 		}
+		// }
 	}
 	else
 	{
-		if (window.hovering == this)
-		{
-			pressed = false;
-			window.hovering = nullptr;
-		}
+		// if (window.hovering == this)
+		// {
+		pressed = false;
+		// window.hovering = nullptr;
+		// }
 	}
 
 	if (render)

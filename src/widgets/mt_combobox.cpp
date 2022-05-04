@@ -1,12 +1,18 @@
 
 #include "widgets/mt_combobox.hpp"
+TOOLKIT_NAMESPACE::Widget::widgetCounter TOOLKIT_NAMESPACE::ComboBox::counter;
 
-TOOLKIT_NAMESPACE::ComboBox::ComboBox(Window &window, int x, int y, int w, int h) : Widget(window, x, y, w, h)
+TOOLKIT_NAMESPACE::ComboBox::ComboBox(Window &window, int x, int y, int w, int h) : Widget(window, getClassId(), x, y, w, h)
 {
+
 	textbox = &Textbox::create(*this);
 	textbox->geometry->setW(w - 17);
 	textbox->geometry->setH(h);
 	textbox->geometry->normalize();
+
+	using namespace windowFlags;
+	popup = new Window(window, "popuptest", 200, 200, POPUP_MENU | BORDERLESS | ALWAYS_ON_TOP | SKIP_TASKBAR | HIDDEN);
+	flex = &Flex::create(*popup, 0, 0, popup->width(), popup->height());
 
 	button = &Button::create(*this);
 	button->geometry->setH(h);
@@ -15,7 +21,10 @@ TOOLKIT_NAMESPACE::ComboBox::ComboBox(Window &window, int x, int y, int w, int h
 	button->label->text = "\u25BC";
 	button->function = [this]()
 	{
-		turnVisible();
+		if (popup->isHidden())
+			popup->show();
+		else
+			popup->hide();
 	};
 
 	updatePosition();
@@ -31,28 +40,32 @@ void TOOLKIT_NAMESPACE::ComboBox::turnVisible()
 }
 TOOLKIT_NAMESPACE::ComboBox &TOOLKIT_NAMESPACE::ComboBox::create(Window &window, int x, int y, int w, int h)
 {
-	return *(new TOOLKIT_NAMESPACE::ComboBox(window, x, y, w, h));
+	return *new TOOLKIT_NAMESPACE::ComboBox(window, x, y, w, h);
 }
 
 TOOLKIT_NAMESPACE::ComboBox::~ComboBox()
 {
-	Debug("Destroying comboBox...");
+	Debug("Destroying " << this->id << " (" << ++counter.destroyedWidgetCount << "/" << counter.widgetCount << ")");
 
 	delete textbox;
 	delete button;
 
-	Debug("Done.");
+	delete popup;
 }
 void TOOLKIT_NAMESPACE::ComboBox::addOption(const std::string &string)
 {
-	auto button = &Button::create(*this);
+	// auto button = &Button::create(*this);
 
-	button->label->text = string;
+	// button->label->text = string;
 
-	button->geometry->setW(geometry->getW());
-	button->visible = show;
+	// button->geometry->setW(geometry->getW());
+	// button->visible = show;
 
-	options.emplace(string, button);
+	// options.emplace(string, button);
+	auto &row = flex->createRow();
+	auto &button = Button::create(*popup, 0, 0, popup->width(), 20);
+	button.label->text = string;
+	row.add(button);
 }
 
 void TOOLKIT_NAMESPACE::ComboBox::updatePosition()
@@ -102,6 +115,7 @@ void TOOLKIT_NAMESPACE::ComboBox::handleEvent()
 		for (auto btn : options)
 			btn.second->handleEvent();
 	}
+	popup->handleEvents();
 }
 
 void TOOLKIT_NAMESPACE::ComboBox::update()
@@ -113,6 +127,13 @@ void TOOLKIT_NAMESPACE::ComboBox::update()
 
 	updatePosition();
 	updateOptions();
+
+	const int difX = geometry->destR.x - geometry->srcR.x;
+	const int difY = geometry->destR.y - geometry->srcR.y;
+	int winX, winY;
+	window.getPosition(winX, winY);
+	popup->setPosition(difX + winX, difY + geometry->getH() + winY);
+	popup->update();
 
 	if (show)
 	{
@@ -145,7 +166,7 @@ void TOOLKIT_NAMESPACE::ComboBox::update()
 		{
 			if (btn.second->actioned())
 			{
-				window.hovering = nullptr;
+				// window.hovering = nullptr;
 				textbox->str(btn.first);
 				turnVisible();
 			}
@@ -159,6 +180,8 @@ void TOOLKIT_NAMESPACE::ComboBox::draw()
 
 	textbox->draw();
 	button->draw();
+
+	popup->draw();
 
 	if (show)
 	{

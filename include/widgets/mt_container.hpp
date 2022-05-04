@@ -8,6 +8,9 @@ namespace TOOLKIT_NAMESPACE
 {
     class Container : public Widget, public Parent
     {
+    private:
+        WIDGET_CLASS("CONTAINER");
+
     protected:
         void confineObject(Widget *widget);
         bool anyhover;
@@ -15,7 +18,7 @@ namespace TOOLKIT_NAMESPACE
         void init();
 
     public:
-        Container(Window &window, int x, int y, int w, int h);
+        Container(Window &window, const std::string &id, int x, int y, int w, int h);
         virtual ~Container();
     };
 }

@@ -6,6 +6,7 @@
 #include "mt_widget.hpp"
 #include "mt_textbox.hpp"
 #include "mt_button.hpp"
+#include "mt_flex.hpp"
 
 #include <map>
 
@@ -14,7 +15,11 @@ namespace TOOLKIT_NAMESPACE
 	class ComboBox : public Widget
 	{
 	private:
+		WIDGET_CLASS("COMBOBOX");
+		
 		std::map<std::string, Button *> options;
+		Window *popup = nullptr;
+		Flex *flex = nullptr;
 
 		bool show = false;
 

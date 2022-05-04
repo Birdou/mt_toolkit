@@ -1,4 +1,8 @@
 
+#define APP2
+
+#ifdef APP1
+
 #include <iostream>
 #include <algorithm>
 #include <cstdlib>
@@ -24,6 +28,7 @@
 #include "widgets/mt_textbox.hpp"
 #include "widgets/mt_scrollarea.hpp"
 #include "widgets/mt_button.hpp"
+#include "widgets/mt_combobox.hpp"
 
 #define PSSWD "S3ridu,25es"
 
@@ -34,7 +39,7 @@ using namespace itk::windowFlags;
 
 int main(int argc, char *argv[])
 {
-	REQUIRES_ELEVATION;
+	// REQUIRES_ELEVATION;
 
 	std::vector<std::string> args;
 	for (int i = 0; i < argc; ++i)
@@ -43,12 +48,10 @@ int main(int argc, char *argv[])
 	}
 
 	std::setlocale(LC_ALL, "Portuguese_Brasil.1252");
-	std::cout << 17.67 << std::endl;
-	return 0;
 
 	itk::Application app("Block", 800, 510 /*, HIDDEN*/);
 
-	auto &window01 = app.window->createChild("Autenticação", "window01", 200, 200, SKIP_TASKBAR | BORDERLESS | ALWAYS_ON_TOP);
+	auto &window01 = app.window->createChild("Autenticação", 200, 200, SKIP_TASKBAR | BORDERLESS | ALWAYS_ON_TOP);
 	window01.setDraggable(true);
 	auto &password = itk::Textbox::create(window01, window01.width() / 2, window01.height() / 2, 160, 20);
 	password.geometry->setAnchor(middle_center);
@@ -124,9 +127,9 @@ int main(int argc, char *argv[])
 		auto &label = itk::Label::create(*app.window, 0, 0);
 		auto &button = itk::Button::create(*app.window, 0, 0, 100, 20);
 		auto &row = flexbox.createRow();
-		row.addWidget(label, 4);
+		row.add(label, 4);
 		row[0].alignment = top_left;
-		row.addWidget(button);
+		row.add(button);
 
 		label.text = text;
 
@@ -221,17 +224,28 @@ int main(int argc, char *argv[])
 	auto &button02 = itk::Button::create(*app.window, 0, 0, 20, 50);
 	auto &row = flex.createRow();
 	row.currentBackgroundColor.hex(Red).a = 122;
-	row.addWidget(button01, 2);
+	row.add(button01, 2);
 	row[0].alignment = middle_center;
-	row.addWidget(label01);
-	row.addWidget(button02);
+	row.add(label01);
+	row.add(button02);
 	auto &row2 = flex.createRow();
 	row2.currentBackgroundColor.hex(Lime).a = 122;
 	auto &label2 = itk::Label::create(*app.window, 0, 0);
 	label2.text = "OLÁ MUNDO??";
 	label2.font->color.hex(Blue);
-	row2.addWidget(label2);
+	row2.add(label2);
 	row[0].currentBackgroundColor.hex(HotPink);
+	auto &cbox = itk::ComboBox::create(*app.window, 0, 0, 200, 20);
+	auto &row3 = flex.createRow();
+	cbox.addOption("teste-01");
+	cbox.addOption("teste-02");
+	cbox.addOption("teste-03");
+	cbox.addOption("teste-04");
+	row3.add(cbox);
+	auto &computerlabel = itk::Label::create(*app.window, 0, 0);
+	auto &row4 = flex.createRow();
+	computerlabel.text = itk::exec("echo %username%@%userdomain%");
+	row4.add(computerlabel);
 
 	auto &energyBox = itk::Box::create(*app.window, 570, app.window->height() / 2 + 100, 210, 120);
 	auto &shutd = itk::Button::create(*app.window, 5, 5, 200, 30);
@@ -306,3 +320,135 @@ int main(int argc, char *argv[])
 
 	return app();
 }
+
+#endif
+
+#ifdef APP2
+
+#include "widgets/mt_textbox.hpp"
+#include "widgets/mt_button.hpp"
+#include "widgets/mt_flex.hpp"
+#include "widgets/mt_textarea.hpp"
+
+using namespace itk::centers;
+using namespace itk::messageBoxFlags;
+
+int main(int argc, char const *argv[])
+{
+	// REQUIRES_ELEVATION;
+
+	itk::Application app("Desktop rename - [ESUFRN]", 500, 300);
+
+	auto &computernameLabel = itk::Label::create(*app.window, 0, 0);
+	computernameLabel.text = "Nome do computador:";
+
+	auto &button = itk::Button::create(*app.window, 0, 0, 50, 20);
+
+	auto &computernameName = itk::Textbox::create(*app.window, 0, 0, 200, 20);
+	computernameName.enter = [&]()
+	{
+		button();
+	};
+
+	auto &userLabel = itk::Label::create(*app.window, 0, 0);
+	userLabel.text = "Nome do usuário:";
+
+	auto &userName = itk::Textbox::create(*app.window, 0, 0, 200, 20);
+	userName.enter = [&]()
+	{
+		button();
+	};
+
+	button.label->text = "Alterar";
+	button.function = [&]()
+	{
+		if (computernameName.str().empty())
+		{
+			app.window->showSimpleMessageBox("Erro", "O campo de nome do computador não pode estar vazio", MB_ERROR);
+			return;
+		}
+		if (userName.str().empty())
+		{
+			app.window->showSimpleMessageBox("Erro", "O campo de usuário não pode estar vazio", MB_ERROR);
+			return;
+		}
+
+		button.disable();
+		userName.disable();
+		computernameName.disable();
+		app.newCoroutine([&]()
+						 {
+							 if(powershell("Rename-Computer -NewName " + computernameName.str()) != 0 ||
+							 	powershell("Add-Computer -DomainName ufrn.local -Credential ufrn\\" + userName.str() + " -OUPath \\\"OU=ESCOLASAUDE,OU=COMPUTADORES,OU=UFRN,DC=ufrn,DC=local\\\"") != 0)
+							 {
+							 	 Error("Ocorreu um erro durante o processo.");
+							 }
+							 else
+							 {
+								 Log("Sucesso.");
+							 }
+
+							 button.enable();
+							 userName.enable();
+							 computernameName.enable(); });
+	};
+
+	auto &flex = itk::Flex::create(*app.window, app.window->width() / 2, app.window->height() / 2, 210, 200);
+	flex.currentBorderColor.a = 0;
+
+	flex.geometry->setAnchor(middle_center);
+	flex.grid({
+		{
+			{computernameLabel, 1},
+		},
+		{
+			{computernameName, 1},
+		},
+		{
+			{userLabel, 1},
+		},
+		{
+			{userName, 1},
+		},
+		{
+			{button, 1},
+		},
+	});
+	flex[4][0].alignment = middle_center;
+
+	auto &energyBox = itk::Flex::create(*app.window, app.window->width() - 10, app.window->height() - 10, 160, 90);
+	energyBox.geometry->setAnchor(bottom_right);
+	auto &shutd = itk::Button::create(*app.window, 5, 5, 150, 20);
+	shutd.label->text = "Desligar";
+	shutd.function = []()
+	{
+		system("shutdown /s /f /t 0");
+	};
+	auto &shutdRow = energyBox.createRow();
+	shutdRow.add(shutd);
+	shutdRow[0].alignment = middle_center;
+
+	auto &reboot = itk::Button::create(*app.window, 5, 45, 150, 20);
+	reboot.label->text = "Reiniciar";
+	reboot.function = []()
+	{
+		system("shutdown /r /f /t 0");
+	};
+	auto &rebootRow = energyBox.createRow();
+	rebootRow.add(reboot);
+	rebootRow[0].alignment = middle_center;
+
+	auto &logoff = itk::Button::create(*app.window, 5, 85, 150, 20);
+	logoff.label->text = "Fazer logoff";
+	logoff.function = []()
+	{
+		system("shutdown /l /f /t 0");
+	};
+	auto &logoffRow = energyBox.createRow();
+	logoffRow.add(logoff);
+	logoffRow[0].alignment = middle_center;
+
+	return app();
+}
+
+#endif

@@ -9,6 +9,8 @@ namespace TOOLKIT_NAMESPACE
 	class Caret : public Widget
 	{
 	private:
+		WIDGET_CLASS("CARET");
+
 		SDL_Texture *texture = nullptr;
 
 		const unsigned short blinkInterval = 500;

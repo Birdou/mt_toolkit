@@ -1,8 +1,11 @@
 
 #include "widgets/mt_checkbox.hpp"
 
-TOOLKIT_NAMESPACE::Checkbox::Checkbox(TOOLKIT_NAMESPACE::Window &window, int x, int y, int size) : Widget(window, x, y, size, size)
+TOOLKIT_NAMESPACE::Widget::widgetCounter TOOLKIT_NAMESPACE::Checkbox::counter;
+
+TOOLKIT_NAMESPACE::Checkbox::Checkbox(TOOLKIT_NAMESPACE::Window &window, int x, int y, int size) : Widget(window, getClassId(), x, y, size, size)
 {
+
 	geometry->destR.w = geometry->destR.h = size;
 	geometry->destR.x = x;
 	geometry->destR.y = y;
@@ -32,11 +35,9 @@ TOOLKIT_NAMESPACE::Checkbox &TOOLKIT_NAMESPACE::Checkbox::create(TOOLKIT_NAMESPA
 
 TOOLKIT_NAMESPACE::Checkbox::~Checkbox()
 {
-	Debug("Destroying checkbox...");
+	Debug("Destroying " << this->id << " (" << ++counter.destroyedWidgetCount << "/" << counter.widgetCount << ")");
 
 	delete check;
-
-	Debug("Done.");
 }
 bool TOOLKIT_NAMESPACE::Checkbox::checked()
 {
@@ -56,54 +57,54 @@ void TOOLKIT_NAMESPACE::Checkbox::update()
 
 	if (Point::mousePos().intercept(geometry->destR))
 	{
-		if (window.hovering == nullptr)
+		// if (window.hovering == nullptr)
+		// {
+		// window.hovering = this;
+		fadeToHover();
+		// }
+		// if (window.hovering == this)
+		// {
+		onHover();
+		if (window.event.type == SDL_MOUSEBUTTONDOWN && !pressed)
 		{
-			window.hovering = this;
-			fadeToHover();
-		}
-		if (window.hovering == this)
-		{
-			onHover();
-			if (window.event.type == SDL_MOUSEBUTTONDOWN && !pressed)
+			switch (window.event.button.button)
 			{
-				switch (window.event.button.button)
-				{
-				case SDL_BUTTON_LEFT:
-					onMouseDown();
+			case SDL_BUTTON_LEFT:
+				onMouseDown();
 
-					pressed = true;
-					fadeToClicked();
-					break;
-				default:
-					break;
-				}
-			}
-			else if (window.event.type == SDL_MOUSEBUTTONUP && pressed)
-			{
-				switch (window.event.button.button)
-				{
-				case SDL_BUTTON_LEFT:
-					onMouseUp();
-
-					isChecked = !isChecked;
-					pressed = false;
-					break;
-				default:
-					break;
-				}
+				pressed = true;
+				fadeToClicked();
+				break;
+			default:
+				break;
 			}
 		}
+		else if (window.event.type == SDL_MOUSEBUTTONUP && pressed)
+		{
+			switch (window.event.button.button)
+			{
+			case SDL_BUTTON_LEFT:
+				onMouseUp();
+
+				isChecked = !isChecked;
+				pressed = false;
+				break;
+			default:
+				break;
+			}
+		}
+		// }
 	}
 	else
 	{
-		if (window.hovering == this)
-		{
-			onMouseLeave();
+		// if (window.hovering == this)
+		// {
+		onMouseLeave();
 
-			pressed = false;
-			window.hovering = nullptr;
-			fadeToNormal();
-		}
+		pressed = false;
+		// window.hovering = nullptr;
+		fadeToNormal();
+		// }
 	}
 }
 

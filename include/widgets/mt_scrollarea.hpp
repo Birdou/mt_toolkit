@@ -9,6 +9,8 @@ namespace TOOLKIT_NAMESPACE
     class Scrollarea : public Box
     {
     private:
+        WIDGET_CLASS("SCROLLAREA");
+
         SDL_Rect scroll;
         float progress = 0.f;
 

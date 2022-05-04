@@ -1,12 +1,15 @@
 
 #include "widgets/mt_container.hpp"
 
-TOOLKIT_NAMESPACE::Container::Container(Window &window, int x, int y, int w, int h) : Widget(window, x, y, w, h)
+TOOLKIT_NAMESPACE::Widget::widgetCounter TOOLKIT_NAMESPACE::Container::counter;
+
+TOOLKIT_NAMESPACE::Container::Container(Window &window, const std::string &id, int x, int y, int w, int h) : Widget(window, id, x, y, w, h)
 {
     init();
 }
 TOOLKIT_NAMESPACE::Container::~Container()
 {
+    Debug("Destroying " << this->id << " (" << ++counter.destroyedWidgetCount << "/" << counter.widgetCount << ")");
 }
 void TOOLKIT_NAMESPACE::Container::init()
 {

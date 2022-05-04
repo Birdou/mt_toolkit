@@ -12,12 +12,37 @@ TOOLKIT_NAMESPACE::Parent::~Parent()
 	for (auto widget : widgets)
 		delete widget;
 }
+void TOOLKIT_NAMESPACE::Parent::refresh()
+{
+	for (auto it = widgets.begin(); it != widgets.end();)
+	{
+		if (!(*it)->isActive())
+		{
+			delete (*it);
+			it = widgets.erase(it);
+		}
+		else
+		{
+			it++;
+		}
+	}
+}
 const std::vector<TOOLKIT_NAMESPACE::Widget *> &TOOLKIT_NAMESPACE::Parent::get() const noexcept
 {
 	return widgets;
 }
 void TOOLKIT_NAMESPACE::Parent::add(TOOLKIT_NAMESPACE::Widget &widget)
 {
+	if (dynamic_cast<Parent *>(&widget) == this)
+	{
+		Error("A container cannot contain itself");
+		return;
+	}
+	if (widget.parent == this)
+	{
+		Warn("This widget (" << widget.id << ") is already in this container.");
+		return;
+	}
 	if (widget.parent != nullptr)
 	{
 		auto &_widgets = widget.parent->widgets;
@@ -60,7 +85,7 @@ TOOLKIT_NAMESPACE::Window::Window(TOOLKIT_NAMESPACE::Window &parentWindow, const
 	rect = {0, 0, w, h};
 
 	int posx, posy;
-	parentWindow.getPostition(posx, posy);
+	parentWindow.getPosition(posx, posy);
 	int x = posx + (parentWindow.rect.w / 2) - (w / 2);
 	int y = posy + (parentWindow.rect.h / 2) - (h / 2);
 
@@ -94,16 +119,12 @@ void TOOLKIT_NAMESPACE::Window::showSimpleMessageBox(const char *title, const ch
 	SDL_ShowSimpleMessageBox(flags, title, message, window);
 }
 
-void TOOLKIT_NAMESPACE::Window::getPostition(int &x, int &y)
-{
-	SDL_GetWindowPosition(window, &x, &y);
-}
 TOOLKIT_NAMESPACE::Window::~Window()
 {
 	Debug("Destroying window...");
 
 	for (auto window : windows)
-		delete window.second;
+		delete window;
 
 	delete renderer;
 
@@ -118,25 +139,25 @@ bool TOOLKIT_NAMESPACE::Window::isActive() const
 	return active;
 }
 
-TOOLKIT_NAMESPACE::Window &TOOLKIT_NAMESPACE::Window::createChild(const std::string &title, const std::string &id, int width, int height, int flags)
+TOOLKIT_NAMESPACE::Window &TOOLKIT_NAMESPACE::Window::createChild(const std::string &title, int width, int height, int flags)
 {
-	auto find = windows.find(id);
-	if (find != windows.end())
-	{
-		Error("Already exists an active window with this id '" << id << "'");
-		return *find->second;
-	}
 	TOOLKIT_NAMESPACE::Window *window = new TOOLKIT_NAMESPACE::Window(*this, title, width, height, flags);
-	windows.emplace(id, window);
+	windows.emplace_back(window);
 	return *window;
 }
-TOOLKIT_NAMESPACE::Window &TOOLKIT_NAMESPACE::Window::getChildById(const std::string &id)
+TOOLKIT_NAMESPACE::Window &TOOLKIT_NAMESPACE::Window::getChildById(size_t index)
 {
-	if (windows.find(id) == windows.end())
-		throw window_not_found();
-	return *windows[id];
+	if (index >= windows.size())
+	{
+		Error("Linha inexistente '" << index << "'");
+		throw std::out_of_range("A classe não conseguiu encontrar a linha especificada.");
+	}
+	return *windows[index];
 }
-
+bool TOOLKIT_NAMESPACE::Window::isHidden() const
+{
+	return SDL_GetWindowFlags(window) & SDL_WINDOW_HIDDEN;
+}
 void TOOLKIT_NAMESPACE::Window::hide()
 {
 	if (window)
@@ -144,6 +165,10 @@ void TOOLKIT_NAMESPACE::Window::hide()
 	shown = false;
 }
 
+bool TOOLKIT_NAMESPACE::Window::isShown() const
+{
+	return SDL_GetWindowFlags(window) & SDL_WINDOW_SHOWN;
+}
 void TOOLKIT_NAMESPACE::Window::show()
 {
 	if (window)
@@ -154,6 +179,15 @@ void TOOLKIT_NAMESPACE::Window::show()
 void TOOLKIT_NAMESPACE::Window::destroy()
 {
 	active = false;
+}
+
+void TOOLKIT_NAMESPACE::Window::getPosition(int &x, int &y)
+{
+	SDL_GetWindowPosition(window, &x, &y);
+}
+void TOOLKIT_NAMESPACE::Window::setPosition(int x, int y)
+{
+	SDL_SetWindowPosition(window, x, y);
 }
 
 void TOOLKIT_NAMESPACE::Window::setSize(int w, int h)
@@ -235,7 +269,7 @@ TOOLKIT_NAMESPACE::Application &TOOLKIT_NAMESPACE::Window::getApplication() cons
 void TOOLKIT_NAMESPACE::Window::handleEvents()
 {
 	for (auto &window : windows)
-		window.second->handleEvents();
+		window->handleEvents();
 
 	return_if(!shown);
 
@@ -261,10 +295,9 @@ void TOOLKIT_NAMESPACE::Window::handleEvents()
 				break;
 			}
 		}
-
-		for (auto widget : widgets)
-			widget->handleEvent();
 	}
+	for (auto widget : widgets)
+		widget->handleEvent();
 }
 
 void TOOLKIT_NAMESPACE::Window::update()
@@ -272,9 +305,9 @@ void TOOLKIT_NAMESPACE::Window::update()
 	// refresh windows
 	for (auto it = windows.begin(); it != windows.end();)
 	{
-		if (!it->second->isActive())
+		if (!(*it)->isActive())
 		{
-			delete it->second;
+			delete *it;
 			it = windows.erase(it);
 		}
 		else
@@ -284,23 +317,11 @@ void TOOLKIT_NAMESPACE::Window::update()
 	}
 
 	for (auto &window : windows)
-		window.second->update();
+		window->update();
+
+	refresh();
 
 	return_if(!shown);
-
-	// refresh widgets
-	for (auto it = widgets.begin(); it != widgets.end();)
-	{
-		if (!(*it)->isActive())
-		{
-			delete (*it);
-			it = widgets.erase(it);
-		}
-		else
-		{
-			it++;
-		}
-	}
 
 	// update
 	for (auto widget : widgets)
@@ -310,7 +331,7 @@ void TOOLKIT_NAMESPACE::Window::update()
 void TOOLKIT_NAMESPACE::Window::draw()
 {
 	for (auto &window : windows)
-		window.second->draw();
+		window->draw();
 
 	return_if(!shown);
 

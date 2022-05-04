@@ -10,6 +10,8 @@ namespace TOOLKIT_NAMESPACE
 	class Textarea : public Textbox
 	{
 	private:
+		WIDGET_CLASS("TEXTAREA");
+
 		std::vector<Label *> lines;
 
 		Textarea(Window &window, int x, int y, int w, int h);
@@ -28,6 +30,7 @@ namespace TOOLKIT_NAMESPACE
 
 		std::string str() const override;
 		void str(const std::string &str) override;
+		void append(const std::string &str);
 
 		Label *newLine(const std::string &content = "");
 

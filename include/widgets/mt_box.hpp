@@ -6,6 +6,9 @@ namespace TOOLKIT_NAMESPACE
 {
     class Box : public Container
     {
+    private:
+        WIDGET_CLASS("BOX");
+
     protected:
         Box(Window &window, int x, int y, int w, int h);
         Box(const Box &) = delete;

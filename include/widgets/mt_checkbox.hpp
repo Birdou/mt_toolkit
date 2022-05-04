@@ -14,6 +14,8 @@ namespace TOOLKIT_NAMESPACE
 	class Checkbox : public Widget
 	{
 	private:
+		WIDGET_CLASS("CHECKBOX");
+
 		bool isChecked = false;
 		bool pressed = false;
 

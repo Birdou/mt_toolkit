@@ -1,12 +1,16 @@
 
 #include "widgets/mt_button.hpp"
 
-TOOLKIT_NAMESPACE::Button::Button(Widget &widget) : Widget(widget)
+TOOLKIT_NAMESPACE::Widget::widgetCounter TOOLKIT_NAMESPACE::Button::counter;
+
+TOOLKIT_NAMESPACE::Button::Button(Widget &widget) : Widget(widget, getClassId())
 {
+
 	init();
 }
-TOOLKIT_NAMESPACE::Button::Button(TOOLKIT_NAMESPACE::Window &window, int x, int y, int w, int h) : Widget(window, x, y, w, h)
+TOOLKIT_NAMESPACE::Button::Button(TOOLKIT_NAMESPACE::Window &window, int x, int y, int w, int h) : Widget(window, getClassId(), x, y, w, h)
 {
+
 	init();
 }
 
@@ -14,10 +18,7 @@ void TOOLKIT_NAMESPACE::Button::init()
 {
 	label = &Label::create(*this);
 
-	scheme = UI_BUTTON_COLOR_SCHEME;
-
-	currentBackgroundColor = scheme.background.normal;
-	currentBorderColor = scheme.border.normal;
+	setScheme(UI_BUTTON_COLOR_SCHEME);
 }
 TOOLKIT_NAMESPACE::Button &TOOLKIT_NAMESPACE::Button::create(Widget &widget)
 {
@@ -35,18 +36,9 @@ TOOLKIT_NAMESPACE::Button &TOOLKIT_NAMESPACE::Button::create(TOOLKIT_NAMESPACE::
 
 TOOLKIT_NAMESPACE::Button::~Button()
 {
-	Debug("Destroying button...");
+	Debug("Destroying " << this->id << " (" << ++counter.destroyedWidgetCount << "/" << counter.widgetCount << ")");
 
 	delete label;
-
-	Debug("Done.");
-}
-
-void TOOLKIT_NAMESPACE::Button::updateTextPosition()
-{
-	label->geometry->destR.x = (geometry->destR.x - geometry->srcR.x) + ((geometry->getW() - label->geometry->getW()) / 2);
-	label->geometry->destR.y = (geometry->destR.y - geometry->srcR.y) + ((geometry->getH() - label->geometry->getH()) / 2);
-	label->geometry->confine(geometry->destR);
 }
 
 bool TOOLKIT_NAMESPACE::Button::actioned() const
@@ -57,6 +49,11 @@ bool TOOLKIT_NAMESPACE::Button::actioned() const
 void TOOLKIT_NAMESPACE::Button::fitH(int padding)
 {
 	geometry->setH(label->font->getH() + (2 * padding));
+}
+
+void TOOLKIT_NAMESPACE::Button::operator()()
+{
+	this->function();
 }
 
 void TOOLKIT_NAMESPACE::Button::handleEvent()
@@ -73,69 +70,73 @@ void TOOLKIT_NAMESPACE::Button::update()
 		function();
 		clicked = false;
 	}
+	const int difX = geometry->destR.x - geometry->srcR.x;
+	const int difY = geometry->destR.y - geometry->srcR.y;
 
-	updateTextPosition();
+	label->geometry->destR.x = difX + ((geometry->getW() - label->geometry->getW()) / 2);
+	label->geometry->destR.y = difY + ((geometry->getH() - label->geometry->getH()) / 2);
+	label->geometry->confine(geometry->destR);
 	label->update();
 
 	if (Point::mousePos().intercept(geometry->destR) && enabled)
 	{
-		if (window.hovering == nullptr)
+		// if (window.hovering == nullptr)
+		// {
+		// window.hovering = this;
+		fadeToHover();
+		// }
+		// if (window.hovering == this)
+		// {
+		onHover();
+		if (pressed)
 		{
-			window.hovering = this;
-			fadeToHover();
-		}
-		if (window.hovering == this)
-		{
-			onHover();
-			if (pressed)
+			if (repeatInterval == 0 || SDL_GetTicks() - lastPressed > repeatInterval)
+				onClicked();
+
+			if (window.event.type == SDL_MOUSEBUTTONUP && window.event.button.button == SDL_BUTTON_LEFT)
 			{
-				if (repeatInterval == 0 || SDL_GetTicks() - lastPressed > repeatInterval)
-					onClicked();
+				onMouseUp();
 
-				if (window.event.type == SDL_MOUSEBUTTONUP && window.event.button.button == SDL_BUTTON_LEFT)
-				{
-					onMouseUp();
-
-					pressed = false;
-					clicked = true;
-				}
-			}
-			else
-			{
-				if (window.event.type == SDL_MOUSEBUTTONDOWN && window.event.button.button == SDL_BUTTON_LEFT)
-				{
-					int x, y;
-					SDL_GetMouseState(&x, &y);
-					clickOffset = {
-						x - (geometry->destR.x - geometry->srcR.x),
-						y - (geometry->destR.y - geometry->srcR.y),
-					};
-
-					onMouseDown();
-					onClicked();
-
-					pressed = true;
-					lastPressed = SDL_GetTicks();
-
-					fadeToClicked();
-				}
+				pressed = false;
+				clicked = true;
 			}
 		}
+		else
+		{
+			if (window.event.type == SDL_MOUSEBUTTONDOWN && window.event.button.button == SDL_BUTTON_LEFT)
+			{
+				int x, y;
+				SDL_GetMouseState(&x, &y);
+				clickOffset = {
+					x - difX,
+					y - difY,
+				};
+
+				onMouseDown();
+				onClicked();
+
+				pressed = true;
+				lastPressed = SDL_GetTicks();
+
+				fadeToClicked();
+			}
+		}
+		// }
 	}
 	else if (enabled)
 	{
 		fadeToNormal();
-		if (window.hovering == this)
-		{
-			onMouseLeave();
-			pressed = false;
-			window.hovering = nullptr;
-		}
+		// if (window.hovering == this)
+		// {
+		onMouseLeave();
+		pressed = false;
+		// window.hovering = nullptr;
+		// }
 	}
-	else
-	{
-		window.hovering = nullptr;
-	}
+	// else
+	// {
+	// window.hovering = nullptr;
+	// }
 }
 
 void TOOLKIT_NAMESPACE::Button::draw()

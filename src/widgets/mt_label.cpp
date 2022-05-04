@@ -1,17 +1,22 @@
 
 #include "widgets/mt_label.hpp"
 
-TOOLKIT_NAMESPACE::Label::Label(Window &window, int x, int y, int w, int h) : Widget(window, x, y, w, h)
+TOOLKIT_NAMESPACE::Widget::widgetCounter TOOLKIT_NAMESPACE::Label::counter;
+
+TOOLKIT_NAMESPACE::Label::Label(Window &window, int x, int y, int w, int h) : Widget(window, getClassId(), x, y, w, h)
 {
+
 	wrap = true;
 	init();
 }
-TOOLKIT_NAMESPACE::Label::Label(Window &window, int x, int y) : Widget(window, x, y)
+TOOLKIT_NAMESPACE::Label::Label(Window &window, int x, int y) : Widget(window, getClassId(), x, y)
 {
+
 	init();
 }
-TOOLKIT_NAMESPACE::Label::Label(Widget &widget) : Widget(widget)
+TOOLKIT_NAMESPACE::Label::Label(Widget &widget) : Widget(widget, getClassId())
 {
+
 	init();
 }
 
@@ -37,7 +42,7 @@ TOOLKIT_NAMESPACE::Label &TOOLKIT_NAMESPACE::Label::create(Widget &widget)
 }
 TOOLKIT_NAMESPACE::Label::~Label()
 {
-	Debug("Destroying label");
+	Debug("Destroying " << this->id << " (" << ++counter.destroyedWidgetCount << "/" << counter.widgetCount << ")");
 
 	if (textTexture != nullptr)
 		SDL_DestroyTexture(textTexture);

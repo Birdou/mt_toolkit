@@ -68,13 +68,13 @@ TOOLKIT_NAMESPACE::FileChooser::FileChooser()
     chooser.lpstrFile = filename;
     chooser.nMaxFile = MAX_PATH;
     chooser.lpstrTitle = "Selecione um arquivo";
-    chooser.Flags = DONT_ADD_TO_RECENT | PATH_MUST_EXIST;
+    chooser.Flags = fileChooserFlags::DONT_ADD_TO_RECENT | fileChooserFlags::PATH_MUST_EXIST;
 }
 void TOOLKIT_NAMESPACE::FileChooser::setTitle(const char *title)
 {
     chooser.lpstrTitle = title;
 }
-void TOOLKIT_NAMESPACE::FileChooser::setFlags(fileChooserFlags flags)
+void TOOLKIT_NAMESPACE::FileChooser::setFlags(fileChooserFlags::fileChooserFlags flags)
 {
     chooser.Flags = flags;
 }

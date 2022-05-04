@@ -3,8 +3,11 @@
 
 #include "mt_util.hpp"
 
-TOOLKIT_NAMESPACE::Caret::Caret(Widget &widget) : Widget(widget)
+TOOLKIT_NAMESPACE::Widget::widgetCounter TOOLKIT_NAMESPACE::Caret::counter;
+
+TOOLKIT_NAMESPACE::Caret::Caret(Widget &widget) : Widget(widget, getClassId())
 {
+
 	geometry->destR.w = geometry->srcR.w = geometry->getW();
 	geometry->destR.h = geometry->srcR.h = geometry->getH();
 }
@@ -20,7 +23,8 @@ TOOLKIT_NAMESPACE::Caret &TOOLKIT_NAMESPACE::Caret::create(Widget &widget)
 
 TOOLKIT_NAMESPACE::Caret::~Caret()
 {
-	Debug("Destroying caret...");
+	Debug("Destroying " << this->id << " (" << ++counter.destroyedWidgetCount << "/" << counter.widgetCount << ")");
+
 	if (texture != nullptr)
 		SDL_DestroyTexture(texture);
 	SDL_PrintIfError(Warn);

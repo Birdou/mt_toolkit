@@ -13,6 +13,8 @@ namespace TOOLKIT_NAMESPACE
 	class Label : public Widget
 	{
 	private:
+		WIDGET_CLASS("LABEL");
+
 		SDL_Texture *iconTexture = nullptr;
 		SDL_Texture *textTexture = nullptr;
 

@@ -3,8 +3,11 @@
 
 #include <algorithm>
 
+TOOLKIT_NAMESPACE::Widget::widgetCounter TOOLKIT_NAMESPACE::Scrollarea::counter;
+
 TOOLKIT_NAMESPACE::Scrollarea::Scrollarea(TOOLKIT_NAMESPACE::Window &window, int x, int y, int w, int h, int scroll_w, int scroll_h) : Box(window, x, y, w, h)
 {
+
 	init();
 	up = &Button::create(*this);
 	up->font = up->label->font = std::shared_ptr<Font>(new Font(window.getApplication(), defaultFont, defaultFontSize));
@@ -77,13 +80,11 @@ TOOLKIT_NAMESPACE::Scrollarea &TOOLKIT_NAMESPACE::Scrollarea::create(TOOLKIT_NAM
 
 TOOLKIT_NAMESPACE::Scrollarea::~Scrollarea()
 {
-	Debug("Destroying scrollarea...");
+	Debug("Destroying " << this->id << " (" << ++counter.destroyedWidgetCount << "/" << counter.widgetCount << ")");
 
 	delete up;
 	delete down;
 	delete scrollbar;
-
-	Debug("Done.");
 }
 
 void TOOLKIT_NAMESPACE::Scrollarea::handleEvent()

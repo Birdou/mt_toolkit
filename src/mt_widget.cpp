@@ -3,8 +3,8 @@
 
 std::string TOOLKIT_NAMESPACE::Widget::defaultFont = "assets/fonts/segoeui.ttf";
 int TOOLKIT_NAMESPACE::Widget::defaultFontSize = 14;
-long TOOLKIT_NAMESPACE::Widget::widgetCount = 0;
-long TOOLKIT_NAMESPACE::Widget::destroyedWidgetCount = 0;
+
+TOOLKIT_NAMESPACE::Widget::widgetCounter TOOLKIT_NAMESPACE::Widget::counter;
 
 void TOOLKIT_NAMESPACE::Widget::SetCursor(SDL_SystemCursor id)
 {
@@ -23,23 +23,26 @@ void TOOLKIT_NAMESPACE::Widget::init()
 {
 }
 
-TOOLKIT_NAMESPACE::Widget::Widget(Widget &widget) : id(widgetCount++), window(widget.window)
+TOOLKIT_NAMESPACE::Widget::Widget(Widget &widget, const std::string &id) : id(id), window(widget.window)
 {
 	font = widget.font;
 	geometry = std::unique_ptr<Geometry>(new Geometry());
+	counter.widgetCount++;
 }
-TOOLKIT_NAMESPACE::Widget::Widget(Window &window, int x, int y) : id(widgetCount++), window(window)
+TOOLKIT_NAMESPACE::Widget::Widget(Window &window, const std::string &id, int x, int y) : id(id), window(window)
 {
 	font = std::shared_ptr<Font>(new Font(window.getApplication(), defaultFont, defaultFontSize));
 	geometry = std::unique_ptr<Geometry>(new Geometry(x, y));
+	counter.widgetCount++;
 
 	// window.widgets.emplace_back(this);
 }
-TOOLKIT_NAMESPACE::Widget::Widget(Window &window, int x, int y, int w, int h) : id(widgetCount++), window(window)
+TOOLKIT_NAMESPACE::Widget::Widget(Window &window, const std::string &id, int x, int y, int w, int h) : id(id), window(window)
 {
 	font = std::shared_ptr<Font>(new Font(window.getApplication(), defaultFont, defaultFontSize));
 	geometry = std::unique_ptr<Geometry>(new Geometry(x, y, w, h));
 	geometry->normalize();
+	counter.widgetCount++;
 
 	// window.widgets.emplace_back(this);
 }
@@ -48,9 +51,9 @@ TOOLKIT_NAMESPACE::Widget::~Widget()
 	if (cursor != nullptr)
 		SDL_FreeCursor(cursor);
 
-	Debug("Destroyed widget (" << ++destroyedWidgetCount << "/" << widgetCount << ")");
+	Debug("Destroyed " << this->id << " (" << ++counter.destroyedWidgetCount << "/" << counter.widgetCount << ")");
 }
-bool TOOLKIT_NAMESPACE::Widget::isEnabled() const
+bool TOOLKIT_NAMESPACE::Widget::isEnabled() const noexcept
 {
 	return enabled;
 }
@@ -69,20 +72,25 @@ void TOOLKIT_NAMESPACE::Widget::destroy()
 	active = false;
 }
 
-bool TOOLKIT_NAMESPACE::Widget::isActive() const
+bool TOOLKIT_NAMESPACE::Widget::isActive() const noexcept
 {
 	return active;
 }
-bool TOOLKIT_NAMESPACE::Widget::isHoverScrollable() const
+bool TOOLKIT_NAMESPACE::Widget::isHoverScrollable() const noexcept
 {
 	return hoverScroll;
+}
+std::string TOOLKIT_NAMESPACE::Widget::getId() const noexcept
+{
+	return id;
 }
 
 void TOOLKIT_NAMESPACE::Widget::setScheme(ColorScheme scheme)
 {
 	this->scheme = scheme;
-	this->currentBackgroundColor = scheme.background.normal;
-	this->currentBorderColor = scheme.border.normal;
+	currentBackgroundColor = scheme.background.normal;
+	currentBorderColor = scheme.border.normal;
+	font->color = scheme.font.normal;
 }
 void TOOLKIT_NAMESPACE::Widget::fadeToNormal()
 {
@@ -115,7 +123,7 @@ void TOOLKIT_NAMESPACE::Widget::fadeToDisabled()
 	font->color.fadeInto(scheme.font.disabled);
 }
 
-TOOLKIT_NAMESPACE::Window &TOOLKIT_NAMESPACE::Widget::getApplication() const
+TOOLKIT_NAMESPACE::Window &TOOLKIT_NAMESPACE::Widget::getApplication() const noexcept
 {
 	return window;
 }

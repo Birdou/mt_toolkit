@@ -8,7 +8,7 @@ namespace TOOLKIT_NAMESPACE
 {
 	namespace centers
 	{
-		enum center
+		enum centers
 		{
 			none,
 			top_left,
@@ -29,7 +29,7 @@ namespace TOOLKIT_NAMESPACE
 	public:
 	private:
 		int x = 0, y = 0, w = 0, h = 0;
-		centers::center anchor = centers::top_left;
+		centers::centers anchor = centers::top_left;
 
 	public:
 		float scale = 1.f;
@@ -40,7 +40,7 @@ namespace TOOLKIT_NAMESPACE
 		Geometry(int x, int y, int w, int h);
 		~Geometry();
 
-		void setAnchor(centers::center anchor);
+		void setAnchor(centers::centers anchor);
 
 		int getX() const noexcept;
 		void setX(int x);

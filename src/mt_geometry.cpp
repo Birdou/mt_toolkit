@@ -24,7 +24,7 @@ TOOLKIT_NAMESPACE::Geometry::~Geometry()
 	// Debug("Destroying geometry");
 }
 
-void TOOLKIT_NAMESPACE::Geometry::setAnchor(centers::center anchor)
+void TOOLKIT_NAMESPACE::Geometry::setAnchor(centers::centers anchor)
 {
 	this->anchor = anchor;
 	posCenter();

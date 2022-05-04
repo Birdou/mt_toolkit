@@ -14,6 +14,9 @@ namespace TOOLKIT_NAMESPACE
 {
     class Textbox : public Widget
     {
+    private:
+        WIDGET_CLASS("TEXTBOX");
+
     protected:
         Label *input = nullptr;
         Caret *caret = nullptr;

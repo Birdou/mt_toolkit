@@ -123,8 +123,10 @@ namespace TOOLKIT_NAMESPACE
 	public:
 		virtual ~Parent();
 
+		virtual void refresh();
+
 		const std::vector<Widget *> &get() const noexcept;
-		void add(Widget &widget);
+		virtual void add(Widget &widget);
 	};
 
 	class Application;
@@ -142,7 +144,7 @@ namespace TOOLKIT_NAMESPACE
 		bool initialized = false;
 		bool draggable = false;
 
-		std::map<std::string, Window *> windows;
+		std::vector<Window *> windows;
 
 		Window(const Window &) = delete;
 
@@ -212,25 +214,27 @@ namespace TOOLKIT_NAMESPACE
 		void setDraggable(bool draggable = true);
 		bool isDraggable();
 
-		Widget *hovering = nullptr;
+		// Widget *hovering = nullptr;
 
 		bool hover(void *obj);
 
 		bool isActive() const;
 
-		Window &createChild(const std::string &title, const std::string &id, int width, int height, int flags = 0);
-		Window &getChildById(const std::string &id);
+		Window &createChild(const std::string &title, int width, int height, int flags = 0);
+		Window &getChildById(size_t index);
 
 		void showSimpleMessageBox(const char *title, const char *message, int flags = messageBoxFlags::MB_INFORMATION);
 
 		messageBox createMessageBox();
 
-		void getPostition(int &x, int &y);
-
+		bool isHidden() const;
 		void hide();
+		bool isShown() const;
 		void show();
 		void destroy();
 
+		void getPosition(int &x, int &y);
+		void setPosition(int x, int y);
 		void setSize(int w, int h);
 		void setIcon(const char *file);
 		void setTitle(const char *title);

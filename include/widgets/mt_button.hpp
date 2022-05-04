@@ -17,6 +17,8 @@ namespace TOOLKIT_NAMESPACE
 	class Button : public Widget
 	{
 	private:
+		WIDGET_CLASS("BUTTON");
+
 		bool pressed = false;
 		int scale = 1;
 
@@ -38,16 +40,16 @@ namespace TOOLKIT_NAMESPACE
 
 		Label *label = nullptr;
 
-		std::function<void()> function = none;
+		Event<void> function;
 
 		SDL_Point clickOffset;
 		unsigned repeatInterval = 300;
 
-		void updateTextPosition();
-
 		bool actioned() const;
 
 		void fitH(int padding = 4);
+
+		void operator()();
 
 		void handleEvent() override;
 		void update() override;

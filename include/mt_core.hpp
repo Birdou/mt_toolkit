@@ -109,7 +109,7 @@
                                                       \
 		return 0;                                     \
 	}
-#define powershell(command) system("powershell -Command " #command)
+#define powershell(command) system(std::string("powershell -Command \" " + std::string(command) + " \"").c_str())
 #else
 #define REQUIRES_ELEVATION
 #endif
